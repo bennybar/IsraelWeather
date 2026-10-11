@@ -49,4 +49,4 @@ debug build: launch the app (it publishes the generated previews), then
 `adb shell am start -n com.bennybar.israelweather/.PreviewExportActivity` and pull
 `files/previews/*.webp` with `adb exec-out run-as com.bennybar.israelweather cat …`.
 
-Data: Israel Meteorological Service. Map tiles: © OpenStreetMap contributors.
+Data: Israel Meteorological Service; Open-Meteo (CC BY 4.0) where no IMS point is near. Map tiles: © OpenStreetMap contributors. Font: Google Sans (SIL OFL 1.1, see `licenses/`). Weather icons: Material Symbols (Apache 2.0).

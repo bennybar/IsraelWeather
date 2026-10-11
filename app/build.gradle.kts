@@ -30,8 +30,8 @@ android {
         applicationId = "com.bennybar.israelweather"
         minSdk = 35
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.0.13"
+        versionCode = 15
+        versionName = "1.0.14"
     }
 
     dependenciesInfo {

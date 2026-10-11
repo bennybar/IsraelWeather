@@ -77,10 +77,11 @@ private fun lightScheme(accent: Color): ColorScheme = lightColorScheme(
     outline = Color(0xFF8A90A0), outlineVariant = Color(0xFFD5D9CC),
 )
 
-private fun assistant(weight: Int) =
-    Font(R.font.assistant, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
+// Google Sans (OFL), trimmed to Latin + Hebrew; its weight axis stops at 700, so ExtraBold uses 700.
+private fun googleSans(weight: Int) =
+    Font(R.font.google_sans, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight.coerceAtMost(700))))
 
-val Assistant = FontFamily(assistant(400), assistant(500), assistant(600), assistant(700), assistant(800))
+val GoogleSans = FontFamily(googleSans(400), googleSans(500), googleSans(600), googleSans(700), googleSans(800))
 
 private fun Typography.withFont(f: FontFamily): Typography {
     fun TextStyle.f() = copy(fontFamily = f)
@@ -93,7 +94,7 @@ private fun Typography.withFont(f: FontFamily): Typography {
     )
 }
 
-private val typography = Typography().withFont(Assistant)
+private val typography = Typography().withFont(GoogleSans)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
