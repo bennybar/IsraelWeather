@@ -30,6 +30,8 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.settings.WidgetOptions
 import com.bennybar.israelweather.ui.theme.WeatherTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * A widget's own settings screen: opened from the widget's long-press
@@ -63,6 +65,19 @@ class WidgetConfigActivity : ComponentActivity() {
                         Button(onClick = { finish() }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.done)) }
                     }
                 }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Some launchers (Samsung) ignore widget updates while this screen covers them and
+        // show the old picture on return: redraw again once the home screen is back.
+        if (isFinishing) {
+            val context = applicationContext
+            app.scope.launch {
+                delay(1_500)
+                Widgets.updateAll(context)
             }
         }
     }
