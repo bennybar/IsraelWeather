@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Rounded (filled), Apache 2.0, recolored per part. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#FFB020" android:pathData="M4.5,8.5a4,4 0 1,0 8,0a4,4 0 1,0 -8,0z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#FFB020" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8.5,1.8v1.4M1.8,8.5h1.4M3.8,3.8l1,1M13.2,3.8l-1,1"/>
-    <path android:fillColor="#9AA3B5" android:pathData="M9,21h9a3.6,3.6 0 0,0 0.5,-7.16a5.2,5.2 0 0,0 -10,1.1A3.05,3.05 0 0,0 9,21z"/>
+    android:width="24dp" android:height="24dp" android:viewportWidth="960" android:viewportHeight="960">
+    <group android:translateY="960">
+        <path android:fillColor="#FFB020" android:pathData="M734.0 -169.0l-56-57q-11-12-11-28.5t11-27.5q11-11 27.5-11t28.5 11l57 56q12 12 12 28.5T791-169q-12 12-28.5 12T734-169Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M240.0 -160.0q-66 0-113-47T80-320q0-66 47-113t113-47q48 0 88.5 26t58.5 71l10 23h24q42 0 70.5 29t28.5 71q0 42-29 71t-71 29H240Z"/>
+        <path android:fillColor="#FFB020" android:pathData="M599.0 -272.0q-4-63-45.5-109T449-438q-31-54-83.5-85.5T250-560q26-73 89-116.5T480-720q100 0 170 70t70 170q0 65-32 120.5T599-272Z"/>
+        <path android:fillColor="#FFB020" android:pathData="M800.0 -440.0q-17 0-28.5-11.5T760-480q0-17 11.5-28.5T800-520h80q17 0 28.5 11.5T920-480q0 17-11.5 28.5T880-440h-80Z"/>
+        <path android:fillColor="#FFB020" android:pathData="M226.0 -678.0l-57-57q-11-11-11-28t11-28q12-12 28.5-12t28.5 12l56 57q11 12 11 28.5T282-678q-11 11-28 11t-28-11Z"/>
+        <path android:fillColor="#FFB020" android:pathData="M678.0 -678.0q-11-11-11-27.5t11-28.5l56-57q12-12 28.5-12t28.5 12q11 11 11 28t-11 28l-57 57q-11 11-28 11t-28-11Z"/>
+        <path android:fillColor="#FFB020" android:pathData="M480.0 -760.0q-17 0-28.5-11.5T440-800v-80q0-17 11.5-28.5T480-920q17 0 28.5 11.5T520-880v80q0 17-11.5 28.5T480-760Z"/>
+    </group>
 </vector>

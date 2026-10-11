@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Rounded (filled), Apache 2.0, recolored per part. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#9AA3B5" android:pathData="M7,13h10.5a4,4 0 0,0 0.6,-7.96A6,6 0 0,0 6.6,6.1A3.5,3.5 0 0,0 7,13z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#9AA3B5" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M4,16.5h16M6,20h12"/>
+    android:width="24dp" android:height="24dp" android:viewportWidth="960" android:viewportHeight="960">
+    <group android:translateY="960">
+        <path android:fillColor="#9AA3B5" android:pathData="M720.0 -200.0q-17 0-28.5-11.5T680-240q0-17 11.5-28.5T720-280q17 0 28.5 11.5T760-240q0 17-11.5 28.5T720-200Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M280.0 -80.0q-17 0-28.5-11.5T240-120q0-17 11.5-28.5T280-160q17 0 28.5 11.5T320-120q0 17-11.5 28.5T280-80Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M240.0 -200.0q-17 0-28.5-11.5T200-240q0-17 11.5-28.5T240-280h360q17 0 28.5 11.5T640-240q0 17-11.5 28.5T600-200H240Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M400.0 -80.0q-17 0-28.5-11.5T360-120q0-17 11.5-28.5T400-160h280q17 0 28.5 11.5T720-120q0 17-11.5 28.5T680-80H400Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M300.0 -320.0q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Z"/>
+    </group>
 </vector>

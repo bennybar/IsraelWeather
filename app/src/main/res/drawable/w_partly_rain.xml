@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Rounded (filled), Apache 2.0, recolored per part. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#FFB020" android:pathData="M4.6,7a3.4,3.4 0 1,0 6.8,0a3.4,3.4 0 1,0 -6.8,0z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#FFB020" android:strokeWidth="1.6" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8,1.6v1M2.6,7h1M4.2,3.2l0.7,0.7M11.8,3.2l-0.7,0.7"/>
-    <path android:fillColor="#9AA3B5" android:pathData="M9,16.5h9a3.6,3.6 0 0,0 0.5,-7.16a5.2,5.2 0 0,0 -10,1.1A3.05,3.05 0 0,0 9,16.5z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#4F8DFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M10.5,19l-0.8,2.5M14.5,19l-0.8,2.5"/>
+    android:width="24dp" android:height="24dp" android:viewportWidth="960" android:viewportHeight="960">
+    <group android:translateY="960">
+        <path android:fillColor="#4F8DFF" android:pathData="M558.0 -84.0q-15 8-30.5 2.5T504-102l-60-120q-8-15-2.5-30.5T462-276q15-8 30.5-2.5T516-258l60 120q8 15 2.5 30.5T558-84Z"/>
+        <path android:fillColor="#4F8DFF" android:pathData="M318.0 -84.0q-15 8-30.5 2.5T264-102l-60-120q-8-15-2.5-30.5T222-276q15-8 30.5-2.5T276-258l60 120q8 15 2.5 30.5T318-84Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M300.0 -320.0q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Z"/>
+    </group>
 </vector>

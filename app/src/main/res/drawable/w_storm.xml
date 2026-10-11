@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Rounded (filled), Apache 2.0, recolored per part. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#9AA3B5" android:pathData="M7,15h10.5a4,4 0 0,0 0.6,-7.96A6,6 0 0,0 6.6,8.1A3.5,3.5 0 0,0 7,15z"/>
-    <path android:fillColor="#FFD84D" android:pathData="M13,14l-4,5.2h2.8l-1.6,3.8 4.8,-5.6h-2.9l1.9,-3.4z"/>
+    android:width="24dp" android:height="24dp" android:viewportWidth="960" android:viewportHeight="960">
+    <group android:translateY="960">
+        <path android:fillColor="#FFD84D" android:pathData="M520.0 -66.0l36-41-34-17q-17-9-21-28t9-34l70-80q5-7 13.5-10.5T610-280q26 0 36.5 23t-6.5 43l-36 41 34 17q17 9 21 28t-9 34l-70 80q-5 7-13.5 10.5T550 0q-26 0-36.5-23t6.5-43Z"/>
+        <path android:fillColor="#FFD84D" android:pathData="M280.0 -66.0l36-41-34-17q-17-9-21-28t9-34l70-80q5-7 13.5-10.5T370-280q26 0 36.5 23t-6.5 43l-36 41 34 17q17 9 21 28t-9 34l-70 80q-5 7-13.5 10.5T310 0q-26 0-36.5-23t6.5-43Z"/>
+        <path android:fillColor="#9AA3B5" android:pathData="M300.0 -320.0q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Z"/>
+    </group>
 </vector>
