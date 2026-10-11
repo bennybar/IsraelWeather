@@ -138,6 +138,10 @@ class SettingsStore(context: Context) {
     fun widgetColor(appWidgetId: Int): String = prefs.getString("widget_color_$appWidgetId", null) ?: "lavender"
     fun setWidgetColor(appWidgetId: Int, color: String) = prefs.edit().putString("widget_color_$appWidgetId", color).apply()
 
+    /** Wind column on the Ranges widget (off by default). */
+    fun widgetShowWind(appWidgetId: Int) = prefs.getBoolean("widget_wind_$appWidgetId", false)
+    fun setWidgetShowWind(appWidgetId: Int, show: Boolean) = prefs.edit().putBoolean("widget_wind_$appWidgetId", show).apply()
+
     private fun <T> List<T>.moved(item: T, delta: Int): List<T> {
         val i = indexOf(item)
         val j = (i + delta).coerceIn(0, size - 1)

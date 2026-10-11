@@ -29,6 +29,7 @@ import androidx.glance.text.Text
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.windShort
 
 // "Quiet week" and "Ranges": two calm daily widgets, each in lavender or orange (per-widget setting).
 
@@ -152,6 +153,12 @@ class RangesWidget : WeatherWidget() {
                         }
                         Box(GlanceModifier.width(36.dp), contentAlignment = Alignment.Center) {
                             Text(temp(d.max, s), style = style(text, p.ink, bold = true), maxLines = 1)
+                        }
+                        if (data.showWind) {
+                            val (w, dir) = dayWind(data, d)
+                            Box(GlanceModifier.width(42.dp), contentAlignment = Alignment.CenterEnd) {
+                                Text(windShort(w, dir, s), style = style(if (tall) 13.sp else 12.sp, p.muted), maxLines = 1)
+                            }
                         }
                         Box(GlanceModifier.width(40.dp), contentAlignment = Alignment.CenterEnd) {
                             Text(pct(dayRainChance(data, d)), style = style(if (tall) 13.sp else 12.sp, p.rain, bold = true), maxLines = 1)

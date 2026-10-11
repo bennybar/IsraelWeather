@@ -185,4 +185,5 @@
     <string name="widget_color">Color</string>
     <string name="color_lavender">Lavender</string>
     <string name="color_orange">Orange</string>
+    <string name="show_wind">Show wind</string>
 </resources>

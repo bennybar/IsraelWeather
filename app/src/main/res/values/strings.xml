@@ -185,4 +185,5 @@
     <string name="widget_color">צבע</string>
     <string name="color_lavender">לבנדר</string>
     <string name="color_orange">כתום</string>
+    <string name="show_wind">הצגת רוח</string>
 </resources>

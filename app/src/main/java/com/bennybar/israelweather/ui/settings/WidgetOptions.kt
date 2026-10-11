@@ -48,7 +48,9 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var place by remember(appWidgetId) { mutableStateOf(app.settings.widgetPlace(appWidgetId) ?: "current") }
     var showRefresh by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowRefresh(appWidgetId)) }
     var color by remember(appWidgetId) { mutableStateOf(app.settings.widgetColor(appWidgetId)) }
-    val hasColor = remember(appWidgetId) { Widgets.placed(context).firstOrNull { it.second == appWidgetId }?.first in setOf(WidgetKind.QUIET, WidgetKind.RANGES) }
+    val kind = remember(appWidgetId) { Widgets.placed(context).firstOrNull { it.second == appWidgetId }?.first }
+    val hasColor = kind in setOf(WidgetKind.QUIET, WidgetKind.RANGES)
+    var showWind by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowWind(appWidgetId)) }
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> places.value?.firstOrNull { it.id == id }?.name(english) ?: "$id" }
@@ -104,6 +106,16 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 app.settings.setWidgetShowRefresh(appWidgetId, it)
                 update()
             })
+        }
+        if (kind == WidgetKind.RANGES) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.show_wind), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Switch(checked = showWind, onCheckedChange = {
+                    showWind = it
+                    app.settings.setWidgetShowWind(appWidgetId, it)
+                    update()
+                })
+            }
         }
         if (hasColor) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

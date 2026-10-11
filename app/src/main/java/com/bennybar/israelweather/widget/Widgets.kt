@@ -98,13 +98,14 @@ object Widgets {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
         val showRefresh = app.settings.widgetShowRefresh(appWidgetId)
         val color = app.settings.widgetColor(appWidgetId)
-        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null, color)
+        val showWind = app.settings.widgetShowWind(appWidgetId)
+        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null, color, showWind)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         var cached = app.repo.cachedForecast(id)
         if (cached?.value == null && app.repo.refreshForecast(id)) cached = app.repo.cachedForecast(id)
         val forecast = cached?.value
         val warnings = place?.let { app.repo.warningsFor(it.rid) }.orEmpty()
-        return WidgetData(place, forecast, warnings, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color)
+        return WidgetData(place, forecast, warnings, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind)
     }
 }
 
@@ -117,6 +118,8 @@ data class WidgetData(
     val updated: Long?,
     /** [WIDGET_COLOR_LAVENDER] or [WIDGET_COLOR_ORANGE] (Quiet week and Ranges widgets). */
     val color: String = WIDGET_COLOR_LAVENDER,
+    /** Ranges widget: show each day's strongest wind. */
+    val showWind: Boolean = false,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"
