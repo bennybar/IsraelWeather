@@ -15,9 +15,11 @@ export default {
     const parts = url.pathname.split('/').filter(Boolean); // ["v1", route, arg]
     if (request.method !== 'GET' || parts[0] !== 'v1') return json({ error: 'not_found' }, 404);
 
-    // Whole responses are cached at the edge for `ttl` seconds.
+    // Whole responses are cached at the edge for `ttl` seconds, keyed by path only,
+    // so random query strings can't bypass the cache and hammer IMS.
     const cache = caches.default;
-    const hit = await cache.match(request);
+    const cacheKey = new Request(url.origin + url.pathname);
+    const hit = await cache.match(cacheKey);
     if (hit) return hit;
 
     let body, ttl;
@@ -35,7 +37,7 @@ export default {
       return json({ error: e.code || 'upstream', message: String(e.message || e) }, status);
     }
     const res = json(body, 200, ttl);
-    ctx.waitUntil(cache.put(request, res.clone()));
+    ctx.waitUntil(cache.put(cacheKey, res.clone()));
     return res;
   },
 };
