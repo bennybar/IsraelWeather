@@ -1,0 +1,5 @@
+name = "israel-weather-proxy"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Live station readings: `npx wrangler secret put IMS_TOKEN`

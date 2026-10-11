@@ -1,0 +1,140 @@
+<resources>
+    <string name="app_name">מזג אוויר ישראל</string>
+
+    <string name="tab_forecast">תחזית</string>
+    <string name="tab_radar">מכ״ם</string>
+    <string name="tab_alerts">התראות</string>
+    <string name="tab_places">מקומות</string>
+
+    <string name="settings">הגדרות</string>
+    <string name="back">חזרה</string>
+    <string name="retry">נסו שוב</string>
+    <string name="loading">טוען…</string>
+    <string name="load_failed">לא הצלחנו לטעון את הנתונים</string>
+    <string name="updated_at">עודכן ב-%1$s</string>
+    <string name="source_ims">נתונים: השירות המטאורולוגי הישראלי</string>
+    <string name="now">עכשיו</string>
+    <string name="today">היום</string>
+
+    <string name="current_location">המיקום שלי</string>
+    <string name="use_my_location">השתמשו במיקום שלי</string>
+    <string name="allow_location">אפשרו גישה למיקום</string>
+    <string name="location_why">כדי להציג את התחזית במקום שבו אתם נמצאים, האפליקציה צריכה גישה למיקום משוער.</string>
+    <string name="no_fix">לא הצלחנו לאתר את המיקום שלכם.</string>
+    <string name="outside_israel">נראה שאתם מחוץ לישראל. התחזיות זמינות רק לישראל — אפשר להוסיף מקום ידנית.</string>
+    <string name="empty_title">איפה אתם?</string>
+    <string name="empty_body">בחרו מקום או השתמשו במיקום שלכם כדי לראות את התחזית.</string>
+    <string name="add_place">הוספת מקום</string>
+    <string name="search_hint">חיפוש יישוב בישראל</string>
+    <string name="saved">נשמר</string>
+    <string name="move_up">הזזה למעלה</string>
+    <string name="move_down">הזזה למטה</string>
+    <string name="remove">הסרה</string>
+
+    <string name="measured_now">נמדד עכשיו</string>
+    <string name="forecast_now">תחזית לשעה זו</string>
+    <string name="humidity">לחות</string>
+    <string name="wind">רוח</string>
+    <string name="gusts">משבים</string>
+    <string name="uv">UV</string>
+    <string name="rain_chance">סיכוי לגשם</string>
+    <string name="rain_today">גשם היום</string>
+    <string name="heat_stress">עומס חום</string>
+    <string name="pm10">חלקיקים PM10</string>
+    <string name="next_24h">24 השעות הקרובות</string>
+    <string name="next_24h_short">ב-24 שעות</string>
+    <string name="legend_temp">טמפ׳</string>
+    <string name="legend_rain">גשם</string>
+    <string name="country_forecast">תחזית ארצית</string>
+    <string name="ims_radar">מכ״ם גשם</string>
+    <string name="play">הפעלה</string>
+    <string name="pause">השהיה</string>
+
+    <string name="unit_kmh">קמ״ש</string>
+    <string name="unit_ms">מ׳/ש׳</string>
+    <string name="unit_mm">מ״מ</string>
+    <string name="unit_ugm3">מק״ג/מ״ק</string>
+
+    <string name="dir_n">צפ׳</string>
+    <string name="dir_ne">צפ״מז</string>
+    <string name="dir_e">מז׳</string>
+    <string name="dir_se">דר״מז</string>
+    <string name="dir_s">דר׳</string>
+    <string name="dir_sw">דר״מע</string>
+    <string name="dir_w">מע׳</string>
+    <string name="dir_nw">צפ״מע</string>
+
+    <string name="uv_low">נמוך</string>
+    <string name="uv_moderate">בינוני</string>
+    <string name="uv_high">גבוה</string>
+    <string name="uv_very_high">גבוה מאוד</string>
+    <string name="uv_extreme">קיצוני</string>
+    <string name="heat_none">ללא</string>
+    <string name="heat_light">קל</string>
+    <string name="heat_moderate">בינוני</string>
+    <string name="heat_heavy">כבד</string>
+    <string name="heat_extreme">קיצוני</string>
+
+    <string name="warning_yellow">אזהרה צהובה</string>
+    <string name="warning_orange">אזהרה כתומה</string>
+    <string name="warning_red">אזהרה אדומה</string>
+    <string name="early_yellow">התראה מוקדמת צהובה</string>
+    <string name="early_orange">התראה מוקדמת כתומה</string>
+    <string name="early_red">התראה מוקדמת אדומה</string>
+    <string name="news_flash">מבזק</string>
+    <string name="alerts_mine">במקומות שלי</string>
+    <string name="alerts_elsewhere">בשאר הארץ</string>
+    <string name="alerts_none_mine">אין התראות פעילות במקומות שלכם.</string>
+    <string name="alerts_none">אין התראות פעילות.</string>
+    <string name="alerts_none_short">אין התראות</string>
+    <string name="rain_expected">גשם צפוי %1$s · %2$d%%</string>
+    <string name="no_rain_48h">לא צפוי גשם ב-48 השעות הקרובות</string>
+
+    <string name="edit_cards">עריכת מסך התחזית</string>
+    <string name="edit_cards_hint">סידור והסתרה של הכרטיסים</string>
+    <string name="reset">איפוס</string>
+    <string name="card_hero">עכשיו</string>
+    <string name="card_alerts">התראות</string>
+    <string name="card_hourly">24 שעות</string>
+    <string name="card_week">7 ימים</string>
+    <string name="card_details">פרטים</string>
+    <string name="card_radar">מכ״ם</string>
+    <string name="card_summary">תחזית ארצית</string>
+
+    <string name="section_display">תצוגה</string>
+    <string name="temperature">טמפרטורה</string>
+    <string name="theme">ערכת נושא</string>
+    <string name="theme_system">לפי המערכת</string>
+    <string name="theme_light">בהירה</string>
+    <string name="theme_dark">כהה</string>
+    <string name="accent">צבע הדגשה</string>
+    <string name="language">שפה</string>
+    <string name="lang_system">לפי המערכת</string>
+    <string name="section_home">מסך התחזית</string>
+    <string name="section_refresh">רענון ברקע</string>
+    <string name="refresh_hint">כל כמה זמן לרענן את התחזית והווידג׳טים כשהאפליקציה סגורה.</string>
+    <string name="refresh_off">כבוי</string>
+    <string name="minutes">%1$d דק׳</string>
+    <string name="hours">%1$d שע׳</string>
+    <string name="section_widgets">ווידג׳טים</string>
+    <string name="widgets_none">עדיין אין ווידג׳טים במסך הבית.</string>
+    <string name="add_widget">הוספת ווידג׳ט</string>
+    <string name="section_about">אודות</string>
+    <string name="about_body">התחזיות, ההתראות ותמונות המכ״ם מגיעים מהשירות המטאורולוגי הישראלי. המפה: © OpenStreetMap.</string>
+    <string name="version">גרסה</string>
+
+    <string name="widget_hourly">שעתי</string>
+    <string name="widget_daily">יומי</string>
+    <string name="widget_strip">יומי מקוצר</string>
+    <string name="widget_alerts">התראות וגשם</string>
+    <string name="widget_hourly_desc">עכשיו והשעות הקרובות</string>
+    <string name="widget_daily_desc">חמשת הימים הקרובים</string>
+    <string name="widget_strip_desc">חמישה ימים בשורה אחת</string>
+    <string name="widget_alerts_desc">התראות השירות המטאורולוגי והגשם הבא</string>
+    <string name="widget_open_app">פתחו את האפליקציה כדי לטעון תחזית</string>
+    <string name="refresh_now">רענון עכשיו</string>
+    <string name="show_refresh">כפתור רענון בווידג׳ט</string>
+    <string name="widget_place">מקום</string>
+    <string name="widget_settings">הגדרות ווידג׳ט</string>
+    <string name="done">סיום</string>
+</resources>

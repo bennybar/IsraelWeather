@@ -1,0 +1,140 @@
+<resources>
+    <string name="app_name">Israel Weather</string>
+
+    <string name="tab_forecast">Forecast</string>
+    <string name="tab_radar">Radar</string>
+    <string name="tab_alerts">Alerts</string>
+    <string name="tab_places">Places</string>
+
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="retry">Try again</string>
+    <string name="loading">Loading…</string>
+    <string name="load_failed">Couldn\'t load the data</string>
+    <string name="updated_at">Updated %1$s</string>
+    <string name="source_ims">Data: Israel Meteorological Service</string>
+    <string name="now">Now</string>
+    <string name="today">Today</string>
+
+    <string name="current_location">My location</string>
+    <string name="use_my_location">Use my location</string>
+    <string name="allow_location">Allow location</string>
+    <string name="location_why">To show the forecast where you are, the app needs your approximate location.</string>
+    <string name="no_fix">Couldn\'t find your location.</string>
+    <string name="outside_israel">You seem to be outside Israel. Forecasts cover Israel only — you can add a place manually.</string>
+    <string name="empty_title">Where are you?</string>
+    <string name="empty_body">Pick a place or use your location to see the forecast.</string>
+    <string name="add_place">Add place</string>
+    <string name="search_hint">Search places in Israel</string>
+    <string name="saved">Saved</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="remove">Remove</string>
+
+    <string name="measured_now">Measured now</string>
+    <string name="forecast_now">Forecast for this hour</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="gusts">Gusts</string>
+    <string name="uv">UV</string>
+    <string name="rain_chance">Rain chance</string>
+    <string name="rain_today">Rain today</string>
+    <string name="heat_stress">Heat stress</string>
+    <string name="pm10">PM10</string>
+    <string name="next_24h">Next 24 hours</string>
+    <string name="next_24h_short">in 24 h</string>
+    <string name="legend_temp">Temp</string>
+    <string name="legend_rain">Rain</string>
+    <string name="country_forecast">National forecast</string>
+    <string name="ims_radar">Rain radar</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+
+    <string name="unit_kmh">km/h</string>
+    <string name="unit_ms">m/s</string>
+    <string name="unit_mm">mm</string>
+    <string name="unit_ugm3">µg/m³</string>
+
+    <string name="dir_n">N</string>
+    <string name="dir_ne">NE</string>
+    <string name="dir_e">E</string>
+    <string name="dir_se">SE</string>
+    <string name="dir_s">S</string>
+    <string name="dir_sw">SW</string>
+    <string name="dir_w">W</string>
+    <string name="dir_nw">NW</string>
+
+    <string name="uv_low">Low</string>
+    <string name="uv_moderate">Moderate</string>
+    <string name="uv_high">High</string>
+    <string name="uv_very_high">Very high</string>
+    <string name="uv_extreme">Extreme</string>
+    <string name="heat_none">None</string>
+    <string name="heat_light">Light</string>
+    <string name="heat_moderate">Moderate</string>
+    <string name="heat_heavy">Heavy</string>
+    <string name="heat_extreme">Extreme</string>
+
+    <string name="warning_yellow">Yellow warning</string>
+    <string name="warning_orange">Orange warning</string>
+    <string name="warning_red">Red warning</string>
+    <string name="early_yellow">Yellow early warning</string>
+    <string name="early_orange">Orange early warning</string>
+    <string name="early_red">Red early warning</string>
+    <string name="news_flash">News flash</string>
+    <string name="alerts_mine">In my places</string>
+    <string name="alerts_elsewhere">Elsewhere in Israel</string>
+    <string name="alerts_none_mine">No active warnings for your places.</string>
+    <string name="alerts_none">No active warnings.</string>
+    <string name="alerts_none_short">No warnings</string>
+    <string name="rain_expected">Rain expected %1$s · %2$d%%</string>
+    <string name="no_rain_48h">No rain expected in the next 48 hours</string>
+
+    <string name="edit_cards">Edit forecast screen</string>
+    <string name="edit_cards_hint">Reorder and hide cards</string>
+    <string name="reset">Reset</string>
+    <string name="card_hero">Now</string>
+    <string name="card_alerts">Alerts</string>
+    <string name="card_hourly">24 hours</string>
+    <string name="card_week">7 days</string>
+    <string name="card_details">Details</string>
+    <string name="card_radar">Radar</string>
+    <string name="card_summary">National forecast</string>
+
+    <string name="section_display">Display</string>
+    <string name="temperature">Temperature</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="accent">Accent color</string>
+    <string name="language">Language</string>
+    <string name="lang_system">System</string>
+    <string name="section_home">Forecast screen</string>
+    <string name="section_refresh">Background refresh</string>
+    <string name="refresh_hint">How often to refresh the forecast and widgets while the app is closed.</string>
+    <string name="refresh_off">Off</string>
+    <string name="minutes">%1$d min</string>
+    <string name="hours">%1$d h</string>
+    <string name="section_widgets">Widgets</string>
+    <string name="widgets_none">No widgets on your home screen yet.</string>
+    <string name="add_widget">Add a widget</string>
+    <string name="section_about">About</string>
+    <string name="about_body">Forecasts, warnings and radar images come from the Israel Meteorological Service. Map: © OpenStreetMap.</string>
+    <string name="version">Version</string>
+
+    <string name="widget_hourly">Hourly</string>
+    <string name="widget_daily">Daily</string>
+    <string name="widget_strip">Daily strip</string>
+    <string name="widget_alerts">Alerts &amp; rain</string>
+    <string name="widget_hourly_desc">Now and the next hours</string>
+    <string name="widget_daily_desc">The next five days</string>
+    <string name="widget_strip_desc">Five days in one row</string>
+    <string name="widget_alerts_desc">IMS warnings and the next rain</string>
+    <string name="widget_open_app">Open the app to load a forecast</string>
+    <string name="refresh_now">Refresh now</string>
+    <string name="show_refresh">Refresh button on widget</string>
+    <string name="widget_place">Place</string>
+    <string name="widget_settings">Widget settings</string>
+    <string name="done">Done</string>
+</resources>
