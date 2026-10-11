@@ -56,6 +56,7 @@ import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Card
+import com.bennybar.israelweather.data.Forecast
 import com.bennybar.israelweather.data.IsraelZone
 import com.bennybar.israelweather.location.CurrentPlace
 import com.bennybar.israelweather.ui.LocalUi
@@ -90,8 +91,11 @@ fun ForecastTab() {
     }
 
     val pages = buildList {
-        if (settings.useLocation) add(Page(settings.currentPlace, current = true))
-        settings.places.filter { !settings.useLocation || it != settings.currentPlace }.forEach { add(Page(it, current = false)) }
+        // "My location": the nearest IMS point's forecast when it's within IMS_RADIUS_KM,
+        // else Open-Meteo for the exact spot (CURRENT_ID).
+        val currentId = settings.currentForecastId
+        if (settings.useLocation) add(Page(currentId, current = true))
+        settings.places.filter { !settings.useLocation || it != currentId }.forEach { add(Page(it, current = false)) }
     }
     if (pages.isEmpty()) {
         EmptyState(
@@ -135,12 +139,14 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
     val warnings by app.repo.warnings.collectAsStateWithLifecycle()
     val observations by app.repo.now.collectAsStateWithLifecycle()
     val places by app.repo.places.collectAsStateWithLifecycle()
-    val place = places.value?.firstOrNull { it.id == id }
+    val place = app.repo.placeFor(id, places.value)
     val f = forecasts[id]
     val scope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
 
+    val country by app.repo.country.collectAsStateWithLifecycle()
     LaunchedEffect(id) {
+        app.repo.refreshCountry()
         app.repo.refreshForecast(id)
         app.repo.refreshNow(id)
     }
@@ -167,6 +173,10 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
             item(key = "header") {
                 Header(
                     name = place?.name(isEnglish()) ?: "",
+                    // Which forecast this is: IMS's own, or the model for the exact spot.
+                    source = f?.value?.let {
+                        stringResource(if (it.source == Forecast.SOURCE_OPEN_METEO) R.string.source_line_om else R.string.source_line_ims)
+                    },
                     current = current,
                     updated = f?.fetchedAt?.takeIf { it > 0 },
                     dots = dots,
@@ -194,12 +204,12 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                             Card.WEEK -> WeekCard(data, settings)
                             Card.DETAILS -> DetailsCard(data, settings)
                             Card.RADAR -> RadarCard(place) { ui.tab = 1 }
-                            Card.SUMMARY -> SummaryCard(data)
+                            Card.SUMMARY -> SummaryCard(data, country)
                         }
                     }
                     item(key = "source") {
                         Text(
-                            stringResource(R.string.source_ims),
+                            stringResource(if (data.source == Forecast.SOURCE_OPEN_METEO) R.string.source_om else R.string.source_ims),
                             Modifier.fillMaxWidth().padding(16.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -213,7 +223,15 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
 }
 
 @Composable
-private fun Header(name: String, current: Boolean, updated: Long?, dots: @Composable () -> Unit, onEdit: () -> Unit, onSettings: () -> Unit) {
+private fun Header(
+    name: String,
+    current: Boolean,
+    updated: Long?,
+    dots: @Composable () -> Unit,
+    onEdit: () -> Unit,
+    onSettings: () -> Unit,
+    source: String? = null,
+) {
     Column(Modifier.padding(start = 20.dp, end = 12.dp, top = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -224,6 +242,7 @@ private fun Header(name: String, current: Boolean, updated: Long?, dots: @Compos
                     }
                     Text(name, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
                 }
+                if (source != null) Text(source, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 if (updated != null) {
                     val t = LocalDateTime.ofInstant(Instant.ofEpochMilli(updated), IsraelZone)
                     Text(

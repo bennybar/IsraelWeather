@@ -59,8 +59,8 @@ fun RadarTab() {
     val ui = LocalUi.current
     val settings by app.settings.state.collectAsStateWithLifecycle()
     val places by app.repo.places.collectAsStateWithLifecycle()
-    val place = (settings.currentPlace.takeIf { settings.useLocation } ?: settings.places.firstOrNull())
-        ?.let { id -> places.value?.firstOrNull { it.id == id } }
+    val place = (settings.currentForecastId.takeIf { settings.useLocation } ?: settings.places.firstOrNull())
+        .let { id -> app.repo.placeFor(id, places.value) }
 
     var radar by remember { mutableStateOf<Radar?>(null) }
     var failed by remember { mutableStateOf(false) }

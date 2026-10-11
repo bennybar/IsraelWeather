@@ -3,6 +3,8 @@ package com.bennybar.israelweather.location
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.CancellationSignal
@@ -19,7 +21,10 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.Locale
+import kotlin.coroutines.resume
 import java.util.concurrent.Executors
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -102,6 +107,38 @@ class LocationResolver(private val context: Context) {
         awaitClose { cancel.cancel() }
     }.firstOrNull()
 
+    private var townCache: Pair<String, String?>? = null
+
+    /**
+     * The town at a point in [locale] (e.g. "גדרה"), from the phone's geocoder; null when
+     * unavailable. Cached per ~1 km and language.
+     */
+    suspend fun town(lat: Double, lon: Double, locale: Locale): String? {
+        if (!Geocoder.isPresent()) return null
+        val key = "%.2f,%.2f,%s".format(lat, lon, locale.language)
+        townCache?.takeIf { it.first == key }?.let { return it.second }
+        val name = withTimeoutOrNull(5_000) {
+            suspendCancellableCoroutine { cont ->
+                try {
+                    Geocoder(context, locale).getFromLocation(lat, lon, 1, object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: MutableList<Address>) {
+                            val a = addresses.firstOrNull()
+                            if (cont.isActive) cont.resume(a?.locality ?: a?.subAdminArea)
+                        }
+
+                        override fun onError(errorMessage: String?) {
+                            if (cont.isActive) cont.resume(null)
+                        }
+                    })
+                } catch (_: Exception) {
+                    if (cont.isActive) cont.resume(null)
+                }
+            }
+        }
+        townCache = key to name
+        return name
+    }
+
     /** The newest fix the phone already has, from Play Services or any platform provider. Costs nothing. */
     suspend fun lastKnown(): Location? {
         if (!hasPermission()) return null
@@ -119,6 +156,11 @@ class LocationResolver(private val context: Context) {
             val best = places.minByOrNull { p -> sq(p.lat - lat) + sq((p.lon - lon) * k) } ?: return null
             val km = sqrt(sq(best.lat - lat) + sq((best.lon - lon) * k)) * 111.0
             return best.takeIf { km <= MAX_KM }
+        }
+
+        fun distanceKm(p: Place, lat: Double, lon: Double): Double {
+            val k = cos(Math.toRadians(lat))
+            return sqrt(sq(p.lat - lat) + sq((p.lon - lon) * k)) * 111.0
         }
 
         private fun sq(x: Double) = x * x

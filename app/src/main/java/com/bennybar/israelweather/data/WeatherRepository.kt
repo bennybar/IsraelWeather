@@ -28,6 +28,8 @@ data class Loadable<T>(val value: T? = null, val fetchedAt: Long = 0, val loadin
 class WeatherRepository(
     private val context: Context,
     private val api: Api,
+    private val openMeteo: OpenMeteo,
+    private val settings: SettingsStore,
     private val json: Json,
     private val scope: CoroutineScope,
 ) {
@@ -54,6 +56,35 @@ class WeatherRepository(
     }
 
     fun place(id: Int): Place? = _places.value.value?.firstOrNull { it.id == id }
+
+    /**
+     * The place a forecast id stands for. [CURRENT_ID] is the device's exact spot: named after
+     * its town (else the nearest IMS point), with the nearest IMS point's region for warnings.
+     */
+    fun placeFor(id: Int?, all: List<Place>? = _places.value.value): Place? {
+        if (id == null) return null
+        if (id != CURRENT_ID) return all?.firstOrNull { it.id == id }
+        val s = settings.value
+        val nearest = all?.firstOrNull { it.id == s.currentPlace } ?: return null
+        return Place(
+            CURRENT_ID,
+            s.currentTown?.he ?: nearest.he,
+            s.currentTown?.en ?: nearest.en,
+            s.currentLat ?: nearest.lat,
+            s.currentLon ?: nearest.lon,
+            nearest.rid,
+        )
+    }
+
+    private val _country = MutableStateFlow<Localized?>(null)
+
+    /** IMS's national text forecast (the same for every place), for Open-Meteo pages too. */
+    val country: StateFlow<Localized?> = _country.asStateFlow()
+
+    suspend fun refreshCountry() {
+        if (_country.value != null) return
+        runCatching { api.forecast(1).country }.onSuccess { _country.value = it }
+    }
 
     /** The IMS location list changes rarely: refresh weekly. */
     suspend fun refreshPlaces(force: Boolean = false) {
@@ -92,7 +123,15 @@ class WeatherRepository(
         val cached = cachedForecast(id)
         if (!force && cached != null && age(cached.fetchedAt) < FORECAST_TTL) return true
         _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = true, error = null)) }
-        return runCatching { api.forecast(id, fresh = force) }
+        return runCatching {
+            if (id == CURRENT_ID) {
+                // "My location" far from any IMS point: model forecast for the exact spot.
+                val s = settings.value
+                openMeteo.forecast(s.currentLat ?: error("no location"), s.currentLon ?: error("no location"), fresh = force)
+            } else {
+                api.forecast(id, fresh = force)
+            }
+        }
             .onSuccess { f ->
                 val now = System.currentTimeMillis()
                 _forecasts.update { m -> m + (id to Loadable(f, now)) }

@@ -120,7 +120,7 @@
     <string name="widgets_none">עדיין אין ווידג׳טים במסך הבית.</string>
     <string name="add_widget">הוספת ווידג׳ט</string>
     <string name="section_about">אודות</string>
-    <string name="about_body">התחזיות, ההתראות ותמונות המכ״ם מגיעים מהשירות המטאורולוגי הישראלי. המפה: © OpenStreetMap.</string>
+    <string name="about_body">התחזיות מגיעות מהשירות המטאורולוגי הישראלי; כשאין נקודת תחזית שלו קרובה (עד 3 ק״מ) למיקום שלכם, התחזית למיקום המדויק מגיעה מ-Open-Meteo (מודלים של ECMWF ו-ICON, רישיון CC BY 4.0). ההתראות ותמונות המכ״ם מהשירות המטאורולוגי. המפה: © OpenStreetMap.</string>
     <string name="version">גרסה</string>
 
     <string name="widget_hourly">שעתי · קלאסי</string>
@@ -174,4 +174,7 @@
     <string name="widget_combo_desc">השעות הקרובות וחמשת הימים, בכרטיס אחד</string>
     <string name="widget_combo_table_desc">טבלת השעות הקרובות וטבלת חמשת הימים</string>
     <string name="widget_combo_tonal_desc">השעות הקרובות וחמשת הימים בגוונים רכים</string>
+    <string name="source_line_ims">מקור: השירות המטאורולוגי הישראלי</string>
+    <string name="source_line_om">מקור: Open-Meteo · מיקום מדויק</string>
+    <string name="source_om">תחזית: Open-Meteo (ECMWF, ICON) · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
 </resources>

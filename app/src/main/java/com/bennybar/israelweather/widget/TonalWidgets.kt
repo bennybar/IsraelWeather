@@ -94,11 +94,11 @@ fun SoftHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean 
     val sub = listOfNotNull(WeatherCodes.describe(now.code, en).ifEmpty { null }, updatedText(context, data.updated)).joinToString(" · ")
 
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Box(GlanceModifier.size(if (compact) 104.dp else 130.dp), contentAlignment = Alignment.Center) {
+        Box(GlanceModifier.size(if (compact) 104.dp else 112.dp), contentAlignment = Alignment.Center) {
             Image(ImageProvider(R.drawable.tonal_cookie), null, GlanceModifier.fillMaxSize(), contentScale = ContentScale.Fit)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), null, GlanceModifier.size(if (compact) 22.dp else 28.dp))
-                Text(temp(now.temp, s), style = style(if (compact) 28.sp else 34.sp, Color.White, bold = true))
+                Image(ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), null, GlanceModifier.size(if (compact) 22.dp else 24.dp))
+                Text(temp(now.temp, s), style = style(if (compact) 28.sp else 30.sp, Color.White, bold = true))
                 if (today != null) Text("${temp(today.max, s)} / ${temp(today.min, s)}", style = style(if (compact) 10.sp else 11.sp, Color.White))
                 Text(windShort(now.wind, now.windDir, s), style = style(if (compact) 9.sp else 10.sp, Color.White), maxLines = 1)
             }
@@ -124,7 +124,7 @@ fun SoftHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean 
                 Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     row.forEachIndexed { j, h ->
                         if (j > 0) Spacer(GlanceModifier.width(5.dp))
-                        SoftHourChip(h, compact)
+                        SoftHourChip(h, compact = true)
                     }
                 }
             }
@@ -142,13 +142,13 @@ private fun androidx.glance.layout.RowScope.SoftHourChip(h: Hour, compact: Boole
     ) {
         val icon = ImageProvider(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time)))
         if (compact) {
-            // Hour, icon and temp share one line so the chip fits ~40dp.
+            // Hour ("21"), icon and temp share one line so the chip stays 3 lines tall.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(hh(h.time), style = style(9.sp, Muted))
+                Text(h.time.hour.toString(), style = style(9.sp, Muted), maxLines = 1)
                 Spacer(GlanceModifier.width(3.dp))
                 Image(icon, null, GlanceModifier.size(14.dp))
                 Spacer(GlanceModifier.width(2.dp))
-                Text(temp(h.temp, s), style = style(12.sp, Ink, bold = true))
+                Text(temp(h.temp, s), style = style(12.sp, Ink, bold = true), maxLines = 1)
             }
             Text("${pct(h.chance())} · ${mm(h.rain)}", style = style(9.sp, Rain, bold = true), maxLines = 1)
             Text(windShort(h.wind, h.windDir, s), style = style(9.sp, Muted), maxLines = 1)
@@ -171,7 +171,6 @@ fun SoftDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean =
     val list = days(data)
     val context = LocalContext.current
     val s = app.settings.value
-    val unit = context.getString(R.string.unit_mm)
     val updated = if (compact) null else data.updated?.let { hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) }
     val todayDate = israelNow().toLocalDate()
 
@@ -188,7 +187,6 @@ fun SoftDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean =
             ) {
                 Column(GlanceModifier.width(if (compact) 40.dp else 46.dp)) {
                     Text(dayLabel(context, d), style = style(if (compact) 11.sp else 13.sp, fg, bold = true), maxLines = 1)
-                    if (today && updated != null) Text(updated, style = style(9.sp, Lilac), maxLines = 1)
                 }
                 Spacer(GlanceModifier.width(6.dp))
                 Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (compact) 15.dp else 20.dp))
@@ -202,11 +200,15 @@ fun SoftDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean =
                         ) {
                             Image(ImageProvider(if (today) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size(if (compact) 9.dp else 10.dp))
                             Spacer(GlanceModifier.width(3.dp))
-                            Text("${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))} $unit", style = style(if (compact) 9.sp else 10.sp, rain, bold = true), maxLines = 1)
+                            Text("${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))}", style = style(if (compact) 9.sp else 10.sp, rain, bold = true), maxLines = 1)
                         }
                         Spacer(GlanceModifier.width(6.dp))
                         val (w, dir) = dayWind(data, d)
                         Text(windShort(w, dir, s), style = style(if (compact) 9.sp else 10.sp, if (today) Lilac else Muted, bold = true), maxLines = 1)
+                        if (today && updated != null) {
+                            Spacer(GlanceModifier.width(6.dp))
+                            Text(updated, style = style(9.sp, Lilac), maxLines = 1)
+                        }
                     }
                 }
                 Spacer(GlanceModifier.width(6.dp))

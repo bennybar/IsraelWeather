@@ -5,6 +5,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+/** Forecast id of "my exact location" when no IMS point is near (Open-Meteo); IMS ids are positive. */
+const val CURRENT_ID = -1
+
+/** Within this distance of an IMS forecast point, its (official) forecast is used; beyond it, Open-Meteo. */
+const val IMS_RADIUS_KM = 3
+
 /** All IMS times are Israel local time. */
 val IsraelZone: ZoneId = ZoneId.of("Asia/Jerusalem")
 
@@ -57,7 +63,14 @@ data class Forecast(
     val country: Localized = Localized(),
     val hourly: List<Hour> = emptyList(),
     val daily: List<Day> = emptyList(),
+    /** Where it came from: [SOURCE_IMS] (a nearby IMS point) or [SOURCE_OPEN_METEO] (exact location). */
+    val source: String = SOURCE_IMS,
 ) {
+    companion object {
+        const val SOURCE_IMS = "ims"
+        const val SOURCE_OPEN_METEO = "open-meteo"
+    }
+
     /** The hour slot covering now (or the first upcoming one). */
     fun currentHour(now: LocalDateTime = israelNow()): Hour? {
         val slot = now.withMinute(0).withSecond(0).withNano(0)

@@ -85,8 +85,8 @@ fun PlacesTab() {
         item {
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(MaterialTheme.colorScheme.surfaceContainer)
-                    .clickable(enabled = settings.useLocation && settings.currentPlace != null) {
-                        ui.focusPlace = settings.currentPlace
+                    .clickable(enabled = settings.useLocation && settings.currentForecastId != null) {
+                        ui.focusPlace = settings.currentForecastId
                         ui.tab = 0
                     }
                     .padding(horizontal = 18.dp, vertical = 14.dp),
@@ -96,8 +96,8 @@ fun PlacesTab() {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.current_location), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                    val cur = settings.currentPlace
-                    if (settings.useLocation && cur != null) Text(name(cur), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    val cur = app.repo.placeFor(settings.currentForecastId, places.value)
+                    if (settings.useLocation && cur != null) Text(cur.name(english), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(
                     checked = settings.useLocation,

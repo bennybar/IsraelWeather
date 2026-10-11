@@ -120,7 +120,7 @@
     <string name="widgets_none">No widgets on your home screen yet.</string>
     <string name="add_widget">Add a widget</string>
     <string name="section_about">About</string>
-    <string name="about_body">Forecasts, warnings and radar images come from the Israel Meteorological Service. Map: © OpenStreetMap.</string>
+    <string name="about_body">Forecasts come from the Israel Meteorological Service; where none of its forecast points is near your location (within 3 km), the forecast for your exact spot comes from Open-Meteo (ECMWF and ICON models, CC BY 4.0). Warnings and radar: Israel Meteorological Service. Map: © OpenStreetMap.</string>
     <string name="version">Version</string>
 
     <string name="widget_hourly">Hourly · Classic</string>
@@ -165,7 +165,7 @@
     <string name="preview_place">Tel Aviv-Yafo</string>
     <string name="col_hour">Hour</string>
     <string name="col_temp">Temp</string>
-    <string name="col_chance">Chance</string>
+    <string name="col_chance">Rain</string>
     <string name="days_5">5 days</string>
     <string name="col_wind">Wind</string>
     <string name="widget_combo">Hourly + Daily · Classic</string>
@@ -174,4 +174,7 @@
     <string name="widget_combo_desc">The next hours and five days in one card</string>
     <string name="widget_combo_table_desc">Tables of the next hours and the next five days</string>
     <string name="widget_combo_tonal_desc">The next hours and five days in soft tones</string>
+    <string name="source_line_ims">Source: Israel Meteorological Service</string>
+    <string name="source_line_om">Source: Open-Meteo · exact location</string>
+    <string name="source_om">Forecast: Open-Meteo (ECMWF, ICON) · Warnings &amp; radar: Israel Meteorological Service</string>
 </resources>

@@ -2,6 +2,12 @@ package com.bennybar.israelweather.location
 
 import android.location.Location
 import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.CURRENT_ID
+import com.bennybar.israelweather.data.IMS_RADIUS_KM
+import com.bennybar.israelweather.data.Localized
+import com.bennybar.israelweather.data.Place
+import java.util.Locale
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -90,7 +96,24 @@ object CurrentPlace {
         }
         if (places.isEmpty()) return Result.NO_PLACES
         val place = LocationResolver.nearest(places, loc.latitude, loc.longitude) ?: return Result.OUTSIDE_ISRAEL
-        app.settings.setCurrentPlace(place.id)
+        // ~100 m precision is plenty, and keeps the exact spot out of storage.
+        val lat = Math.round(loc.latitude * 1000) / 1000.0
+        val lon = Math.round(loc.longitude * 1000) / 1000.0
+        val km = LocationResolver.distanceKm(place, lat, lon).roundToInt()
+        val before = app.settings.value
+        // Beyond IMS_RADIUS_KM the forecast is Open-Meteo's for this exact spot, named after its town.
+        val town = if (km > IMS_RADIUS_KM) {
+            val he = app.location.town(lat, lon, Locale.forLanguageTag("he"))
+            val en = app.location.town(lat, lon, Locale.ENGLISH)
+            if (he == null && en == null) null else Localized(he ?: en, en ?: he)
+        } else {
+            null
+        }
+        app.settings.setCurrentLocation(place.id, lat, lon, km, town)
+        // Moved noticeably while on the exact-location forecast: fetch the new spot.
+        val moved = before.currentLat == null || before.currentLon == null ||
+            LocationResolver.distanceKm(Place(0, "", "", before.currentLat, before.currentLon, 0), lat, lon) > 1.0
+        if (moved && app.settings.value.currentForecastId == CURRENT_ID) app.repo.refreshForecast(CURRENT_ID, force = true)
         return Result.OK
     }
 }

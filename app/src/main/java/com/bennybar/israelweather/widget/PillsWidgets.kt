@@ -59,7 +59,8 @@ private fun Pill(on: Boolean, base: Color, radius: Dp, modifier: GlanceModifier,
 private fun RainLine(chance: Int?, amount: Double?, unit: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(pct(chance), style = style(10.sp, color, bold = true), maxLines = 1)
-        Text(" ${mm(amount)} $unit", style = style(8.sp, color), maxLines = 1)
+        // No unit here: with readable text sizes it didn't fit the compact pills.
+        Text(" · ${mm(amount)}", style = style(9.sp, color), maxLines = 1)
     }
 }
 

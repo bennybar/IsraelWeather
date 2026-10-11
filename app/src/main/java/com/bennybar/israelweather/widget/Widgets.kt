@@ -77,16 +77,16 @@ object Widgets {
     fun placeIdFor(appWidgetId: Int): Int? {
         val s = app.settings.value
         return app.settings.widgetPlace(appWidgetId)?.toIntOrNull()
-            ?: s.currentPlace.takeIf { s.useLocation }
+            ?: s.currentForecastId.takeIf { s.useLocation }
             ?: s.places.firstOrNull()
-            ?: s.currentPlace
+            ?: s.currentForecastId
     }
 
     suspend fun load(context: Context, glanceId: GlanceId): WidgetData {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
         val showRefresh = app.settings.widgetShowRefresh(appWidgetId)
         val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null)
-        val place = app.repo.ensurePlacesLoaded().firstOrNull { it.id == id }
+        val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         var cached = app.repo.cachedForecast(id)
         if (cached?.value == null && app.repo.refreshForecast(id)) cached = app.repo.cachedForecast(id)
         val forecast = cached?.value

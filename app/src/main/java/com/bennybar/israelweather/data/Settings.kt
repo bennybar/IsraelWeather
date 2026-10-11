@@ -26,7 +26,24 @@ data class Settings(
     val useLocation: Boolean = true,
     /** The IMS location nearest the device, from the last successful fix. */
     val currentPlace: Int? = null,
+    /** The device's last fix (rounded), and its distance to [currentPlace]. */
+    val currentLat: Double? = null,
+    val currentLon: Double? = null,
+    val currentKm: Int? = null,
+    /** The town at the device's location (reverse geocoded), named when Open-Meteo is used. */
+    val currentTown: Localized? = null,
 ) {
+    /**
+     * The forecast to show for "my location": the nearest IMS point's when it is within
+     * [IMS_RADIUS_KM] (or the distance is unknown), else Open-Meteo for the exact spot.
+     */
+    val currentForecastId: Int?
+        get() = when {
+            currentPlace == null -> null
+            currentLat == null || currentKm == null || currentKm <= IMS_RADIUS_KM -> currentPlace
+            else -> CURRENT_ID
+        }
+
     val visibleCards get() = cards.filter { it !in hiddenCards }
 }
 
@@ -52,6 +69,10 @@ class SettingsStore(context: Context) {
             places = prefs.getString("places", "")!!.split(',').mapNotNull { it.toIntOrNull() },
             useLocation = prefs.getBoolean("useLocation", d.useLocation),
             currentPlace = prefs.getInt("currentPlace", -1).takeIf { it >= 0 },
+            currentLat = prefs.getString("currentLat", null)?.toDoubleOrNull(),
+            currentLon = prefs.getString("currentLon", null)?.toDoubleOrNull(),
+            currentKm = prefs.getInt("currentKm", -1).takeIf { it >= 0 },
+            currentTown = prefs.getString("currentTownHe", null)?.let { Localized(it, prefs.getString("currentTownEn", null)) },
         )
     }
 
@@ -72,6 +93,11 @@ class SettingsStore(context: Context) {
             .putString("places", s.places.joinToString(","))
             .putBoolean("useLocation", s.useLocation)
             .putInt("currentPlace", s.currentPlace ?: -1)
+            .putString("currentLat", s.currentLat?.toString())
+            .putString("currentLon", s.currentLon?.toString())
+            .putInt("currentKm", s.currentKm ?: -1)
+            .putString("currentTownHe", s.currentTown?.he)
+            .putString("currentTownEn", s.currentTown?.en)
             .apply()
     }
 
@@ -82,6 +108,9 @@ class SettingsStore(context: Context) {
     fun setRefreshMinutes(v: Int) = update { it.copy(refreshMinutes = v) }
     fun setUseLocation(v: Boolean) = update { it.copy(useLocation = v) }
     fun setCurrentPlace(id: Int?) = update { it.copy(currentPlace = id) }
+
+    fun setCurrentLocation(id: Int, lat: Double, lon: Double, km: Int, town: Localized?) =
+        update { it.copy(currentPlace = id, currentLat = lat, currentLon = lon, currentKm = km, currentTown = town) }
 
     fun setCardVisible(card: Card, visible: Boolean) =
         update { it.copy(hiddenCards = if (visible) it.hiddenCards - card else it.hiddenCards + card) }

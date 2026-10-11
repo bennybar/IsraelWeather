@@ -66,8 +66,15 @@ abstract class WeatherWidget : GlanceAppWidget() {
 
 // ---- text, shells, shared bits ----
 
-fun style(size: TextUnit, color: Color, bold: Boolean = false) =
-    TextStyle(fontSize = size, color = ColorProvider(color), fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+/**
+ * Widget text style. Small sizes are lifted (+1.5sp, at least 10.5sp): layouts were drawn with
+ * 8–11sp labels that read too small on a real home screen. Headline sizes are unchanged.
+ */
+fun style(size: TextUnit, color: Color, bold: Boolean = false): TextStyle {
+    val v = size.value
+    val readable = if (v < 12f) maxOf(v + 1.5f, 10.5f).sp else size
+    return TextStyle(fontSize = readable, color = ColorProvider(color), fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+}
 
 fun english(context: Context) = context.resources.configuration.locales[0].language == "en"
 

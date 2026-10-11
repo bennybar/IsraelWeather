@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.data.Forecast
+import com.bennybar.israelweather.data.Localized
 import com.bennybar.israelweather.data.Observation
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Settings
@@ -365,8 +366,8 @@ private fun uvLabel(uv: Double?): String = stringResource(
 )
 
 @Composable
-private fun heatLabel(level: Int?): String = stringResource(
-    when (level ?: 0) {
+private fun heatLabel(level: Int?): String = if (level == null) "–" else stringResource(
+    when (level) {
         0 -> R.string.heat_none
         1 -> R.string.heat_light
         2 -> R.string.heat_moderate
@@ -402,8 +403,9 @@ fun RadarCard(place: Place?, onOpen: () -> Unit) {
 // ---- IMS's national text forecast ----
 
 @Composable
-fun SummaryCard(f: Forecast) {
-    val text = f.country.get(isEnglish()) ?: return
+fun SummaryCard(f: Forecast, country: Localized?) {
+    // Open-Meteo forecasts have no text; IMS's national forecast is the same everywhere.
+    val text = f.country.get(isEnglish()) ?: country?.get(isEnglish()) ?: return
     CardBox {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.country_forecast), fontSize = 17.sp, fontWeight = FontWeight.Bold)
