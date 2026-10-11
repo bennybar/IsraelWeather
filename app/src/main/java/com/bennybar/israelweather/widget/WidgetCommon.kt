@@ -2,6 +2,11 @@ package com.bennybar.israelweather.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -14,7 +19,9 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
@@ -54,8 +61,15 @@ abstract class WeatherWidget : GlanceAppWidget() {
     abstract fun Content(data: WidgetData)
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = Widgets.load(context, id)
-        provideContent { Content(data) }
+        val first = Widgets.load(context, id)
+        val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+        provideContent {
+            // A session can outlive several refreshes (e.g. repeated taps), so reload on every bump.
+            val version by Widgets.version.collectAsState()
+            val data by produceState(first, version) { if (version > 0) value = Widgets.load(context, id) }
+            val refreshing by Widgets.refreshing.collectAsState()
+            CompositionLocalProvider(LocalRefreshing provides (appWidgetId in refreshing)) { Content(data) }
+        }
     }
 
     override suspend fun providePreview(context: Context, widgetCategory: Int) {
@@ -100,8 +114,17 @@ fun RefreshButton(bg: Color, size: Dp = 32.dp) {
     Box(
         GlanceModifier.size(size).background(bg).cornerRadius(size / 2).clickable(actionRunCallback<RefreshCallback>()),
         contentAlignment = Alignment.Center,
-    ) { Image(ImageProvider(R.drawable.ic_refresh), LocalContext.current.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f)) }
+    ) {
+        if (LocalRefreshing.current) {
+            CircularProgressIndicator(GlanceModifier.size(size * 0.55f), color = ColorProvider(Color(0xFF1F1F1F)))
+        } else {
+            Image(ImageProvider(R.drawable.ic_refresh), LocalContext.current.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f))
+        }
+    }
 }
+
+/** True while this widget's "refresh now" is running (shows a spinner on the button). */
+val LocalRefreshing = staticCompositionLocalOf { false }
 
 /** "Updated 16:05". */
 fun updatedText(context: Context, updated: Long?): String? = updated?.let {

@@ -41,7 +41,7 @@
     <string name="rain_today">גשם היום</string>
     <string name="heat_stress">עומס חום</string>
     <string name="pm10">חלקיקים PM10</string>
-    <string name="next_24h">24 השעות הקרובות</string>
+    <string name="next_24h">12 השעות הקרובות</string>
     <string name="next_24h_short">ב-24 שעות</string>
     <string name="legend_temp">טמפ׳</string>
     <string name="legend_rain">גשם</string>
@@ -95,7 +95,7 @@
     <string name="reset">איפוס</string>
     <string name="card_hero">עכשיו</string>
     <string name="card_alerts">התראות</string>
-    <string name="card_hourly">24 שעות</string>
+    <string name="card_hourly">12 שעות</string>
     <string name="card_week">7 ימים</string>
     <string name="card_details">פרטים</string>
     <string name="card_radar">מכ״ם</string>

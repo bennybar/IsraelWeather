@@ -41,7 +41,7 @@
     <string name="rain_today">Rain today</string>
     <string name="heat_stress">Heat stress</string>
     <string name="pm10">PM10</string>
-    <string name="next_24h">Next 24 hours</string>
+    <string name="next_24h">Next 12 hours</string>
     <string name="next_24h_short">in 24 h</string>
     <string name="legend_temp">Temp</string>
     <string name="legend_rain">Rain</string>
@@ -95,7 +95,7 @@
     <string name="reset">Reset</string>
     <string name="card_hero">Now</string>
     <string name="card_alerts">Alerts</string>
-    <string name="card_hourly">24 hours</string>
+    <string name="card_hourly">12 hours</string>
     <string name="card_week">7 days</string>
     <string name="card_details">Details</string>
     <string name="card_radar">Radar</string>

@@ -5,6 +5,9 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidget
 import kotlin.reflect.KClass
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
@@ -32,7 +35,14 @@ enum class WidgetKind(val receiver: KClass<out GlanceAppWidgetReceiver>, val tit
 }
 
 object Widgets {
+    /** Bumped whenever data changes, so running widget sessions reload it. */
+    val version = MutableStateFlow(0)
+
+    /** App widget ids whose "refresh now" is in progress. */
+    val refreshing = MutableStateFlow(emptySet<Int>())
+
     suspend fun updateAll(context: Context) {
+        version.update { it + 1 }
         WidgetKind.entries.forEach { k -> runCatching { k.widget().updateAll(context) } }
     }
 
@@ -108,8 +118,19 @@ data class WidgetData(
 class RefreshCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-        Widgets.placeIdFor(appWidgetId)?.let { app.repo.refreshForecast(it, force = true) }
-        app.repo.refreshWarnings(force = true)
-        Widgets.updateAll(context)
+        Widgets.refreshing.update { it + appWidgetId }
+        // Redraw this widget now, so the spinner shows while we fetch.
+        val provider = AppWidgetManager.getInstance(context).getAppWidgetInfo(appWidgetId)?.provider?.className
+        WidgetKind.entries.firstOrNull { it.receiver.java.name == provider }?.let { runCatching { it.widget().update(context, glanceId) } }
+        val started = System.currentTimeMillis()
+        try {
+            Widgets.placeIdFor(appWidgetId)?.let { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
+            app.repo.refreshWarnings(force = true)
+            // Keep the spinner up long enough to be seen, even when the fetch is instant.
+            delay(1_000 - (System.currentTimeMillis() - started))
+        } finally {
+            Widgets.refreshing.update { it - appWidgetId }
+            Widgets.updateAll(context)
+        }
     }
 }

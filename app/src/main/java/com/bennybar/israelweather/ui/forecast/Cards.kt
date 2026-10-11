@@ -3,6 +3,8 @@ package com.bennybar.israelweather.ui.forecast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -174,79 +176,75 @@ fun AlertsCard(warnings: List<Warning>, onOpen: () -> Unit) {
     }
 }
 
-// ---- 24 hours: temperature line + rain-chance bars ----
+// ---- 12 hours: temperature line + rain-chance bars, one column per hour, scrolls sideways ----
 
 @Composable
 fun HourlyCard(f: Forecast, s: Settings) {
-    val hours = f.upcoming(24)
+    val hours = f.upcoming(12)
     if (hours.size < 6) return
     val cs = MaterialTheme.colorScheme
     val wc = LocalWeatherColors.current
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val groups = hours.size / 3
-    // Labels sit at the middle hour of each 3-hour group, so they line up with the chart points.
-    val labelled = (0 until groups).map { g -> hours[g * 3 + 1] }
+    val n = hours.size
+    val colW = 52.dp
     CardBox {
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.padding(top = 18.dp, bottom = 14.dp)) {
+            Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.next_24h), Modifier.weight(1f), fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Legend(cs.primary, stringResource(R.string.legend_temp))
                 Spacer(Modifier.width(12.dp))
                 Legend(wc.rain, stringResource(R.string.legend_rain))
             }
             Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth()) {
-                labelled.forEach { h ->
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), null, Modifier.size(24.dp))
+            Column(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp)) {
+                Row {
+                    hours.forEach { h ->
+                        Box(Modifier.width(colW), contentAlignment = Alignment.Center) {
+                            Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), null, Modifier.size(24.dp))
+                        }
                     }
                 }
-            }
-            val n = groups * 3
-            val temps = hours.take(n).map { it.temp ?: 0.0 }
-            val lo = temps.min()
-            val hi = temps.max().coerceAtLeast(lo + 1)
-            Canvas(Modifier.fillMaxWidth().height(96.dp).padding(vertical = 6.dp)) {
-                val step = size.width / n
-                fun x(i: Int) = if (rtl) size.width - (i + 0.5f) * step else (i + 0.5f) * step
-                val top = 8.dp.toPx()
-                val chartH = size.height * 0.62f
-                hours.take(n).forEachIndexed { i, h ->
-                    val chance = (h.rainChance ?: 0.0).toFloat() / 100f
-                    if (chance > 0f) {
-                        val bh = size.height * 0.45f * chance
-                        drawRoundRect(wc.rain, Offset(x(i) - step * 0.3f, size.height - bh), Size(step * 0.6f, bh), CornerRadius(3.dp.toPx()))
+                val temps = hours.map { it.temp ?: 0.0 }
+                val lo = temps.min()
+                val hi = temps.max().coerceAtLeast(lo + 1)
+                Canvas(Modifier.width(colW * n).height(96.dp).padding(vertical = 6.dp)) {
+                    val step = size.width / n
+                    fun x(i: Int) = if (rtl) size.width - (i + 0.5f) * step else (i + 0.5f) * step
+                    val top = 8.dp.toPx()
+                    val chartH = size.height * 0.62f
+                    hours.forEachIndexed { i, h ->
+                        val chance = (h.rainChance ?: 0.0).toFloat() / 100f
+                        if (chance > 0f) {
+                            val bh = size.height * 0.45f * chance
+                            drawRoundRect(wc.rain, Offset(x(i) - step * 0.2f, size.height - bh), Size(step * 0.4f, bh), CornerRadius(3.dp.toPx()))
+                        }
+                    }
+                    val path = Path()
+                    temps.forEachIndexed { i, t ->
+                        val y = top + chartH * (1f - ((t - lo) / (hi - lo)).toFloat())
+                        if (i == 0) path.moveTo(x(i), y) else path.lineTo(x(i), y)
+                    }
+                    drawPath(path, cs.primary, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                    temps.forEachIndexed { i, t ->
+                        val y = top + chartH * (1f - ((t - lo) / (hi - lo)).toFloat())
+                        drawCircle(cs.surfaceContainer, 5.dp.toPx(), Offset(x(i), y))
+                        drawCircle(cs.primary, 3.5.dp.toPx(), Offset(x(i), y))
                     }
                 }
-                val path = Path()
-                temps.forEachIndexed { i, t ->
-                    val y = top + chartH * (1f - ((t - lo) / (hi - lo)).toFloat())
-                    if (i == 0) path.moveTo(x(i), y) else path.lineTo(x(i), y)
-                }
-                drawPath(path, cs.primary, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-                (0 until groups).forEach { g ->
-                    val i = g * 3 + 1
-                    val y = top + chartH * (1f - ((temps[i] - lo) / (hi - lo)).toFloat())
-                    drawCircle(cs.surfaceContainer, 5.dp.toPx(), Offset(x(i), y))
-                    drawCircle(cs.primary, 3.5.dp.toPx(), Offset(x(i), y))
-                }
-            }
-            val unit = stringResource(R.string.unit_mm)
-            Row(Modifier.fillMaxWidth()) {
-                labelled.forEachIndexed { g, h ->
-                    // Rain for the whole 3-hour slot: its highest chance and total amount.
-                    val slot = hours.subList(g * 3, g * 3 + 3)
-                    val chance = slot.mapNotNull { it.rainChance }.maxOrNull()?.roundToInt()
-                    val amount = slot.sumOf { it.rain ?: 0.0 }
-                    val color = if ((chance ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(temp(h.temp, s), fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(hh(h.time), fontSize = 11.sp, color = cs.onSurfaceVariant)
-                        Text(pct(chance), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
-                        Text("${mm(amount)} $unit", fontSize = 10.sp, color = color, maxLines = 1)
-                        // Wind: the slot's strongest hour (arrow = where it blows).
-                        val windy = slot.filter { it.wind != null }.maxByOrNull { it.wind!! }
-                        Text(windShort(windy?.wind, windy?.windDir, s), fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1)
+                val unit = stringResource(R.string.unit_mm)
+                Row {
+                    hours.forEach { h ->
+                        val chance = h.rainChance?.roundToInt()
+                        val amount = h.rain ?: 0.0
+                        val color = if ((chance ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
+                        Column(Modifier.width(colW), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(temp(h.temp, s), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(hh(h.time), fontSize = 11.sp, color = cs.onSurfaceVariant)
+                            Text(pct(chance), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
+                            Text("${mm(amount)} $unit", fontSize = 10.sp, color = color, maxLines = 1)
+                            // Arrow = where the wind blows.
+                            Text(windShort(h.wind, h.windDir, s), fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1)
+                        }
                     }
                 }
             }

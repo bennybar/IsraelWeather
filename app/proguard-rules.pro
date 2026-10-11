@@ -5,3 +5,6 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 -keepclasseswithmembers class **$$serializer { *; }
+
+# Glance creates widget action callbacks by reflection (no-arg constructor).
+-keep class * implements androidx.glance.appwidget.action.ActionCallback { <init>(); }
