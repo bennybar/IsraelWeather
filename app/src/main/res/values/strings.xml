@@ -167,4 +167,5 @@
     <string name="col_temp">טמפ׳</string>
     <string name="col_chance">סיכוי</string>
     <string name="days_5">5 ימים</string>
+    <string name="col_wind">רוח</string>
 </resources>

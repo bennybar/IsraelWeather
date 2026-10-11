@@ -32,6 +32,17 @@ fun windValue(kmh: Double?, s: Settings): String {
     return if (s.windUnit == WindUnit.MS) "${(kmh / 3.6).roundToInt()}" else "${kmh.roundToInt()}"
 }
 
+/**
+ * An arrow showing where the wind blows TO (IMS gives where it comes FROM),
+ * e.g. a westerly (270°) is "→". Arrows aren't mirrored in RTL text.
+ */
+fun windArrow(fromDeg: Double?): String =
+    if (fromDeg == null) "" else listOf("↑", "↗", "→", "↘", "↓", "↙", "←", "↖")[compassIndex(fromDeg + 180)]
+
+/** "↘ 14" — arrow and speed in the user's unit (no unit label). */
+fun windShort(kmh: Double?, fromDeg: Double?, s: Settings): String =
+    if (kmh == null) "–" else "${windArrow(fromDeg)} ${windValue(kmh, s)}".trim()
+
 /** Eight-point compass index (0 = N … 7 = NW) for a direction in degrees. */
 fun compassIndex(deg: Double): Int = (((deg % 360) + 360) % 360 / 45.0).roundToInt() % 8
 

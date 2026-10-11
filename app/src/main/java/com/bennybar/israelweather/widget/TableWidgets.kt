@@ -32,6 +32,7 @@ import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.israelNow
 import com.bennybar.israelweather.ui.hh
 import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.windShort
 
 // "Now + table" palette.
 private val Card = Color.White
@@ -84,20 +85,22 @@ class HourlyTableWidget : WeatherWidget() {
                 Column(GlanceModifier.defaultWeight().fillMaxHeight()) {
                     Row(GlanceModifier.fillMaxWidth().padding(bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         val h = style(10.sp, Muted)
-                        Cell(44.dp) { Text(context.getString(R.string.col_hour), style = h, maxLines = 1) }
-                        Spacer(GlanceModifier.width(26.dp))
+                        Cell(40.dp) { Text(context.getString(R.string.col_hour), style = h, maxLines = 1) }
+                        Spacer(GlanceModifier.width(24.dp))
                         Cell(30.dp) { Text(context.getString(R.string.col_temp), style = h, maxLines = 1) }
-                        Cell(38.dp) { Text(context.getString(R.string.col_chance), style = h, maxLines = 1) }
-                        Text(context.getString(R.string.unit_mm), style = h, maxLines = 1, modifier = GlanceModifier.defaultWeight())
+                        Cell(36.dp) { Text(context.getString(R.string.col_chance), style = h, maxLines = 1) }
+                        Cell(28.dp) { Text(context.getString(R.string.unit_mm), style = h, maxLines = 1) }
+                        Text(context.getString(R.string.col_wind), style = h, maxLines = 1, modifier = GlanceModifier.defaultWeight())
                     }
                     Box(GlanceModifier.fillMaxWidth().height(1.dp).background(Line)) {}
                     rows.forEach { hr ->
                         Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
-                            Cell(44.dp) { Text(hh(hr.time), style = style(13.sp, Muted), maxLines = 1) }
-                            Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(hr.code, WeatherCodes.isNight(hr.time))), null, GlanceModifier.size(20.dp)) }
+                            Cell(40.dp) { Text(hh(hr.time), style = style(13.sp, Muted), maxLines = 1) }
+                            Cell(24.dp) { Image(ImageProvider(WeatherCodes.drawable(hr.code, WeatherCodes.isNight(hr.time))), null, GlanceModifier.size(20.dp)) }
                             Cell(30.dp) { Text(temp(hr.temp, s), style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                            Cell(38.dp) { Text("${pct(hr.chance())}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
-                            Text(mm(hr.rain), style = style(13.sp, Blue), maxLines = 1, modifier = GlanceModifier.defaultWeight())
+                            Cell(36.dp) { Text("${pct(hr.chance())}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
+                            Cell(28.dp) { Text(mm(hr.rain), style = style(12.sp, Blue), maxLines = 1) }
+                            Text(windShort(hr.wind, hr.windDir, s), style = style(12.sp, Muted), maxLines = 1, modifier = GlanceModifier.defaultWeight())
                         }
                     }
                 }
@@ -137,10 +140,12 @@ class DailyTableWidget : WeatherWidget() {
                 }
                 list.forEach { d ->
                     Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
-                        Cell(48.dp) { Text(dayLabel(context, d), style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                        Cell(30.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(22.dp)) }
-                        Cell(42.dp) { Text("${pct(dayRainChance(data, d))}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
-                        Cell(48.dp) { Text("${mm(dayRainMm(data, d))} $unit", style = style(11.sp, Blue), maxLines = 1) }
+                        Cell(44.dp) { Text(dayLabel(context, d), style = style(13.sp, Ink, bold = true), maxLines = 1) }
+                        Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(22.dp)) }
+                        Cell(36.dp) { Text("${pct(dayRainChance(data, d))}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
+                        Cell(42.dp) { Text("${mm(dayRainMm(data, d))} $unit", style = style(11.sp, Blue), maxLines = 1) }
+                        val (w, dir) = dayWind(data, d)
+                        Cell(36.dp) { Text(windShort(w, dir, s), style = style(11.sp, Muted), maxLines = 1) }
                         Box(GlanceModifier.width(28.dp), contentAlignment = Alignment.Center) {
                             Text(temp(d.min, s), style = style(13.sp, Muted), maxLines = 1)
                         }

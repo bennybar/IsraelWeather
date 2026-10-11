@@ -39,6 +39,7 @@ private val Cream = Color(0xFFFFF6EC)
 private val Peach = Color(0xFFFFE9D2)
 private val Burnt = Color(0xFFB24A00)
 private val Ink = Color(0xFF2A1B0E)
+private val Blue = Color(0xFF1554B8)
 private val Lemon = Color(0xFFFFE16B)
 private val LemonInk = Color(0xFF3D2E00)
 
@@ -70,9 +71,14 @@ private fun StripContent(data: WidgetData) {
                 Box(GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp)) {
                     Pill(i == 0, Cream, 32.dp, GlanceModifier.fillMaxSize()) {
                         val fg = if (i == 0) Color.White else Ink
-                        Text(dayLabel(context, d, short = true), style = style(11.sp, fg, bold = true))
-                        Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(20.dp))
-                        Text("${temp(d.max, s)} ${temp(d.min, s)}", style = style(12.sp, fg, bold = true))
+                        Text(dayLabel(context, d, short = true), style = style(11.sp, fg, bold = true), maxLines = 1)
+                        Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(18.dp))
+                        Text("${temp(d.max, s)} ${temp(d.min, s)}", style = style(12.sp, fg, bold = true), maxLines = 1)
+                        // Rain: chance · mm (the day's highest hourly chance and its total).
+                        Text(
+                            "${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))}",
+                            style = style(9.sp, if (i == 0) Color.White else Blue, bold = true), maxLines = 1,
+                        )
                     }
                 }
             }

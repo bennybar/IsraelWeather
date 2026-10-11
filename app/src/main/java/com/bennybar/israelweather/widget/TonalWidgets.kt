@@ -35,6 +35,7 @@ import com.bennybar.israelweather.data.israelNow
 import com.bennybar.israelweather.ui.hh
 import com.bennybar.israelweather.ui.hhmm
 import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.windShort
 import java.time.Instant
 import java.time.LocalDateTime
 
@@ -69,6 +70,7 @@ class HourlyTonalWidget : WeatherWidget() {
                         Image(ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), null, GlanceModifier.size(28.dp))
                         Text(temp(now.temp, s), style = style(34.sp, Color.White, bold = true))
                         if (today != null) Text("${temp(today.max, s)} / ${temp(today.min, s)}", style = style(11.sp, Color.White))
+                        Text(windShort(now.wind, now.windDir, s), style = style(10.sp, Color.White), maxLines = 1)
                     }
                 }
                 Spacer(GlanceModifier.width(10.dp))
@@ -110,6 +112,7 @@ class HourlyTonalWidget : WeatherWidget() {
                 Text(temp(h.temp, s), style = style(13.sp, Ink, bold = true))
             }
             Text("${pct(h.chance())} · ${mm(h.rain)}", style = style(10.sp, Rain, bold = true), maxLines = 1)
+            Text(windShort(h.wind, h.windDir, s), style = style(9.sp, Muted), maxLines = 1)
         }
     }
 }
@@ -144,13 +147,18 @@ class DailyTonalWidget : WeatherWidget() {
                         Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(20.dp))
                         Spacer(GlanceModifier.width(6.dp))
                         Box(GlanceModifier.defaultWeight()) {
-                            Row(
-                                GlanceModifier.background(if (today) BadgeDeep else BadgeLight).cornerRadius(10.dp).padding(horizontal = 7.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Image(ImageProvider(if (today) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size(10.dp))
-                                Spacer(GlanceModifier.width(3.dp))
-                                Text("${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))} $unit", style = style(10.sp, rain, bold = true), maxLines = 1)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    GlanceModifier.background(if (today) BadgeDeep else BadgeLight).cornerRadius(10.dp).padding(horizontal = 7.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Image(ImageProvider(if (today) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size(10.dp))
+                                    Spacer(GlanceModifier.width(3.dp))
+                                    Text("${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))} $unit", style = style(10.sp, rain, bold = true), maxLines = 1)
+                                }
+                                Spacer(GlanceModifier.width(6.dp))
+                                val (w, dir) = dayWind(data, d)
+                                Text(windShort(w, dir, s), style = style(10.sp, if (today) Lilac else Muted, bold = true), maxLines = 1)
                             }
                         }
                         Spacer(GlanceModifier.width(6.dp))

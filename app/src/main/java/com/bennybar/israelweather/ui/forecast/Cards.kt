@@ -64,6 +64,7 @@ import com.bennybar.israelweather.ui.temp
 import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 import com.bennybar.israelweather.ui.warningLabel
 import com.bennybar.israelweather.ui.warningRange
+import com.bennybar.israelweather.ui.windShort
 import com.bennybar.israelweather.ui.windValue
 import com.bennybar.israelweather.widget.mm
 import com.bennybar.israelweather.widget.pct
@@ -242,6 +243,9 @@ fun HourlyCard(f: Forecast, s: Settings) {
                         Text(hh(h.time), fontSize = 11.sp, color = cs.onSurfaceVariant)
                         Text(pct(chance), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
                         Text("${mm(amount)} $unit", fontSize = 10.sp, color = color, maxLines = 1)
+                        // Wind: the slot's strongest hour (arrow = where it blows).
+                        val windy = slot.filter { it.wind != null }.maxByOrNull { it.wind!! }
+                        Text(windShort(windy?.wind, windy?.windDir, s), fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1)
                     }
                 }
             }
@@ -279,11 +283,16 @@ fun WeekCard(f: Forecast, s: Settings) {
                 val amount = dayHours.sumOf { it.rain ?: 0.0 }
                 val rainColor = if ((rain ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
                 Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        // English full names ("Wednesday") don't fit the column; Hebrew ones do.
-                        if (d.localDate == today) stringResource(R.string.today) else dayName(d.localDate, locale, short = locale.language == "en"),
-                        Modifier.width(68.dp), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1,
-                    )
+                    Column(Modifier.width(68.dp)) {
+                        Text(
+                            // English full names ("Wednesday") don't fit the column; Hebrew ones do.
+                            if (d.localDate == today) stringResource(R.string.today) else dayName(d.localDate, locale, short = locale.language == "en"),
+                            fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1,
+                        )
+                        // The day's strongest wind.
+                        val windy = dayHours.filter { it.wind != null }.maxByOrNull { it.wind!! }
+                        Text("${windShort(windy?.wind, windy?.windDir, s)} ${windUnitLabel(s)}", fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1)
+                    }
                     Image(painterResource(WeatherCodes.drawable(d.code)), null, Modifier.size(28.dp))
                     // Chance (the day's highest hourly) over its total amount.
                     Column(Modifier.width(60.dp).padding(start = 6.dp)) {

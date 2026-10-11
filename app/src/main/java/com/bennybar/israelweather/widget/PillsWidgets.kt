@@ -32,6 +32,7 @@ import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.israelNow
 import com.bennybar.israelweather.ui.hh
 import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.windShort
 
 // "Classic" (mockup 1, Sunburst): apricot, cream and a burnt-orange highlight.
 private val Apricot = Color(0xFFFFD8A8)
@@ -89,19 +90,20 @@ private fun HourlyContent(data: WidgetData) {
                     RefreshButton(Cream)
                 }
             }
-            Spacer(GlanceModifier.height(6.dp))
+            Spacer(GlanceModifier.height(4.dp))
             Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                 f.upcoming(6, now).forEachIndexed { i, hour ->
                     val on = i == 0
                     Box(GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp)) {
-                        Pill(on, Cream, 18.dp, GlanceModifier.fillMaxSize().padding(vertical = 5.dp)) {
+                        Pill(on, Cream, 18.dp, GlanceModifier.fillMaxSize().padding(vertical = 3.dp)) {
                             val fg = if (on) Color.White else Ink
                             val rainFg = if (on) Color.White else Blue
                             Text(if (on) context.getString(R.string.now) else hh(hour.time), style = style(11.sp, fg), maxLines = 1)
-                            Image(ImageProvider(WeatherCodes.drawable(hour.code, WeatherCodes.isNight(hour.time))), null, GlanceModifier.size(22.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(hour.code, WeatherCodes.isNight(hour.time))), null, GlanceModifier.size(20.dp))
                             Text(temp(hour.temp, s), style = style(14.sp, fg, bold = true), maxLines = 1)
                             Text("${pct(hour.chance())}", style = style(11.sp, rainFg, bold = true), maxLines = 1)
                             Text("${mm(hour.rain)} $unit", style = style(9.sp, rainFg), maxLines = 1)
+                            Text(windShort(hour.wind, hour.windDir, s), style = style(9.sp, if (on) Color.White else Muted), maxLines = 1)
                         }
                     }
                 }
@@ -134,9 +136,11 @@ private fun DailyContent(data: WidgetData) {
                             val fg = if (on) Color.White else Ink
                             val rainFg = if (on) Color.White else Blue
                             Text(dayLabel(context, d, short = true), style = style(12.sp, fg, bold = true), maxLines = 1)
-                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(26.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(24.dp))
                             Text(temp(d.max, s), style = style(16.sp, fg, bold = true), maxLines = 1)
                             Text(temp(d.min, s), style = style(12.sp, if (on) Peach else Muted), maxLines = 1)
+                            val (w, dir) = dayWind(data, d)
+                            Text(windShort(w, dir, s), style = style(10.sp, if (on) Color.White else Muted), maxLines = 1)
                             Spacer(GlanceModifier.height(2.dp))
                             Column(
                                 GlanceModifier.background(if (on) BurntDark else Cream).cornerRadius(10.dp).padding(horizontal = 6.dp, vertical = 2.dp),

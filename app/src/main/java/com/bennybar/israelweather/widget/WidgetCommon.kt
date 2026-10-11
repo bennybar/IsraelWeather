@@ -121,6 +121,12 @@ fun dayRainChance(data: WidgetData, d: Day): Int? =
 fun dayRainMm(data: WidgetData, d: Day): Double =
     data.forecast?.hoursOn(d.localDate)?.sumOf { it.rain ?: 0.0 } ?: 0.0
 
+/** A day's wind: its strongest hourly wind (km/h) and that hour's direction. */
+fun dayWind(data: WidgetData, d: Day): Pair<Double?, Double?> {
+    val h = data.forecast?.hoursOn(d.localDate)?.filter { it.wind != null }?.maxByOrNull { it.wind!! }
+    return h?.wind to h?.windDir
+}
+
 fun Hour.chance(): Int? = rainChance?.roundToInt()
 
 /** "70%", or "–" when IMS gives no chance (it gives amounts further ahead than chances). */
@@ -143,6 +149,7 @@ fun sampleData(context: Context): WidgetData {
     val temps = listOf(21, 20, 19, 18, 17, 16, 16, 15, 15, 14, 14, 14, 15, 17, 19, 20, 21, 21, 20, 19, 18, 17, 16, 16)
     val chances = listOf(40, 70, 80, 60, 30, 10, 5, 5, 10, 20, 30, 40, 50, 60, 70, 60, 40, 30, 20, 10, 10, 5, 5, 0)
     val amounts = listOf(0.2, 1.4, 2.6, 0.8, 0.1, 0.0, 0.0, 0.0, 0.0, 0.1, 0.3, 0.6, 0.9, 1.2, 1.8, 1.1, 0.4, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0)
+    val winds = listOf(14, 18, 22, 20, 16, 12, 10, 9, 8, 8, 9, 11, 13, 16, 19, 21, 20, 18, 15, 13, 12, 11, 10, 9)
     val codes = listOf(1230, 1560, 1140, 1560, 1230, 1230, 1220, 1220, 1220, 1230, 1540, 1560, 1140, 1140, 1140, 1560, 1230, 1220, 1220, 1220, 1250, 1250, 1250, 1250)
     val fmt = { t: LocalDateTime -> "%04d-%02d-%02d %02d:00".format(t.year, t.monthValue, t.dayOfMonth, t.hour) }
     val hourly = (0 until 24 * 5).map { i ->
@@ -150,7 +157,7 @@ fun sampleData(context: Context): WidgetData {
         val k = i % 24
         // Rainy today and tomorrow, a few drops on day 3, then dry.
         val f = listOf(1.0, 1.6, 0.2, 0.0, 0.0).getOrElse(java.time.temporal.ChronoUnit.DAYS.between(now.toLocalDate(), t.toLocalDate()).toInt()) { 0.0 }
-        Hour(fmt(t), if (f == 0.0) 1250 else codes[k], temps[k].toDouble(), (chances[k] * minOf(f, 1.15)).coerceAtMost(95.0), amounts[k] * f, 70.0, 12.0)
+        Hour(fmt(t), if (f == 0.0) 1250 else codes[k], temps[k].toDouble(), (chances[k] * minOf(f, 1.15)).coerceAtMost(95.0), amounts[k] * f, rh = 70.0, wind = winds[k].toDouble(), windDir = 292.5)
     }
     val dayCodes = listOf(1140, 1140, 1220, 1250, 1250)
     val his = listOf(22.0, 19.0, 20.0, 23.0, 25.0)
