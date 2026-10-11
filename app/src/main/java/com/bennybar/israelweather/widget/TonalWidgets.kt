@@ -112,7 +112,7 @@ private fun SoftDayPills(data: WidgetData, modifier: GlanceModifier) {
                     ) {
                         Text(dayLabel(context, d, short = true), style = style(if (tall) 14.sp else 11.sp, fg, bold = true), maxLines = 1)
                         if (tall) Spacer(GlanceModifier.height(4.dp))
-                        Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (tall) 30.dp else 20.dp))
+                        Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (tall) 30.dp else 20.dp))
                         if (tall) Spacer(GlanceModifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(temp(d.max, s), style = style(if (tall) 18.sp else 14.sp, fg, bold = true), maxLines = 1)
@@ -161,7 +161,7 @@ fun SoftHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean 
         Box(GlanceModifier.size(if (compact) 104.dp else 112.dp), contentAlignment = Alignment.Center) {
             Image(ImageProvider(R.drawable.tonal_cookie), null, GlanceModifier.fillMaxSize(), contentScale = ContentScale.Fit)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), null, GlanceModifier.size(if (compact) 22.dp else 24.dp))
+                Image(ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, english(LocalContext.current)), GlanceModifier.size(if (compact) 22.dp else 24.dp))
                 Text(temp(now.temp, s), style = style(if (compact) 28.sp else 30.sp, Color.White, bold = true))
                 if (today != null) Text("${temp(today.max, s)} / ${temp(today.min, s)}", style = style(if (compact) 10.sp else 11.sp, Color.White))
                 Text(windShort(now.wind, now.windDir, s), style = style(if (compact) 9.sp else 10.sp, Color.White), maxLines = 1)
@@ -210,7 +210,7 @@ private fun androidx.glance.layout.RowScope.SoftHourChip(h: Hour, compact: Boole
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(h.time.hour.toString(), style = style(9.sp, Muted), maxLines = 1)
                 Spacer(GlanceModifier.width(3.dp))
-                Image(icon, null, GlanceModifier.size(14.dp))
+                Image(icon, WeatherCodes.describe(h.code, english(LocalContext.current)), GlanceModifier.size(14.dp))
                 Spacer(GlanceModifier.width(2.dp))
                 Text(temp(h.temp, s), style = style(12.sp, Ink, bold = true), maxLines = 1)
             }
@@ -219,7 +219,7 @@ private fun androidx.glance.layout.RowScope.SoftHourChip(h: Hour, compact: Boole
         } else {
             Text(hh(h.time), style = style(10.sp, Muted))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(icon, null, GlanceModifier.size(16.dp))
+                Image(icon, WeatherCodes.describe(h.code, english(LocalContext.current)), GlanceModifier.size(16.dp))
                 Spacer(GlanceModifier.width(3.dp))
                 Text(temp(h.temp, s), style = style(13.sp, Ink, bold = true))
             }
@@ -253,7 +253,7 @@ fun SoftDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean =
                     Text(dayLabel(context, d), style = style(if (compact) 11.sp else 13.sp, fg, bold = true), maxLines = 1)
                 }
                 Spacer(GlanceModifier.width(6.dp))
-                Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (compact) 15.dp else 20.dp))
+                Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (compact) 15.dp else 20.dp))
                 Spacer(GlanceModifier.width(6.dp))
                 Box(GlanceModifier.defaultWeight()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

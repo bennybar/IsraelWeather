@@ -4,6 +4,8 @@ import com.bennybar.israelweather.data.Forecast
 import com.bennybar.israelweather.data.Hour
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Warning
+import com.bennybar.israelweather.data.apparentTemp
+import com.bennybar.israelweather.data.sunTimes
 import com.bennybar.israelweather.location.LocationResolver
 import com.bennybar.israelweather.ui.compassIndex
 import com.bennybar.israelweather.ui.places.normalize
@@ -12,7 +14,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import kotlin.math.abs
 
 class WeatherLogicTest {
     private val places = listOf(
@@ -56,5 +61,19 @@ class WeatherLogicTest {
         assertEquals(7, compassIndex(292.5 + 22.5)) // NW
         assertEquals(6, compassIndex(270.0)) // W
         assertEquals(0, compassIndex(355.0))
+    }
+
+    // Reference values from Open-Meteo for Gedera, 11 Oct 2026: sunrise 06:41, sunset 18:13.
+    @Test fun sunTimesMatchReference() {
+        val (rise, set) = sunTimes(LocalDate.of(2026, 10, 11), 31.8128, 34.7787)!!
+        fun minutes(t: LocalTime) = t.hour * 60 + t.minute
+        assertTrue("sunrise $rise", abs(minutes(rise) - (6 * 60 + 41)) <= 2)
+        assertTrue("sunset $set", abs(minutes(set) - (18 * 60 + 13)) <= 2)
+    }
+
+    // Open-Meteo's apparent_temperature at night (by day it adds sunshine; ours is the shade value).
+    @Test fun apparentTempMatchesOpenMeteo() {
+        assertEquals(26.3, apparentTemp(22.6, 87.0, 2.6)!!, 0.4)
+        assertNull(apparentTemp(20.0, null, 5.0))
     }
 }

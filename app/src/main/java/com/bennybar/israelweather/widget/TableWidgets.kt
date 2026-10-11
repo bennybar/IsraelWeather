@@ -90,7 +90,7 @@ fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean
         Column(GlanceModifier.width(112.dp).fillMaxHeight().background(NowBg).cornerRadius(20.dp).padding(if (compact) 8.dp else 10.dp)) {
             if (compact) {
                 Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Image(icon, null, GlanceModifier.size(24.dp))
+                    Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(24.dp))
                     Spacer(GlanceModifier.width(4.dp))
                     Text(temp(cur.temp, s), style = style(24.sp, Ink, bold = true), maxLines = 1)
                     Spacer(GlanceModifier.defaultWeight())
@@ -103,7 +103,7 @@ fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean
                 updatedText(context, data.updated)?.let { Text(it, style = style(10.sp, Muted), maxLines = 1) }
             } else {
                 Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Image(icon, null, GlanceModifier.size(26.dp))
+                    Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(26.dp))
                     Spacer(GlanceModifier.defaultWeight())
                     if (data.showRefresh) RefreshButton(Card, 28.dp)
                 }
@@ -130,7 +130,7 @@ fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean
             rows.forEach { hr ->
                 Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
                     Cell(42.dp) { Text(hh(hr.time), style = style(13.sp, Muted), maxLines = 1) }
-                    WCell { Image(ImageProvider(WeatherCodes.drawable(hr.code, WeatherCodes.isNight(hr.time))), null, GlanceModifier.size(20.dp)) }
+                    WCell { Image(ImageProvider(WeatherCodes.drawable(hr.code, WeatherCodes.isNight(hr.time))), WeatherCodes.describe(hr.code, english(LocalContext.current)), GlanceModifier.size(20.dp)) }
                     WCell { Text(temp(hr.temp, s), style = style(13.sp, Ink, bold = true), maxLines = 1) }
                     WCell { Text(pct(hr.chance()), style = style(13.sp, Blue, bold = true), maxLines = 1) }
                     WCell { Text(mm(hr.rain), style = style(12.sp, Blue), maxLines = 1) }
@@ -178,7 +178,7 @@ fun TableDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean 
         list.forEach { d ->
             Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
                 Cell(44.dp) { Text(dayLabel(context, d), style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (compact) 18.dp else 22.dp)) }
+                Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (compact) 18.dp else 22.dp)) }
                 Cell(36.dp) { Text("${pct(dayRainChance(data, d))}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
                 Cell(54.dp) { Text("${mm(dayRainMm(data, d))} $unit", style = style(11.sp, Blue), maxLines = 1) }
                 val (w, dir) = dayWind(data, d)

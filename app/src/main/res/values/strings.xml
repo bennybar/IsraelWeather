@@ -40,7 +40,6 @@
     <string name="rain_chance">סיכוי לגשם</string>
     <string name="rain_today">גשם היום</string>
     <string name="heat_stress">עומס חום</string>
-    <string name="pm10">חלקיקים PM10</string>
     <string name="next_24h">12 השעות הקרובות</string>
     <string name="next_24h_short">ב-24 שעות</string>
     <string name="legend_temp">טמפ׳</string>
@@ -186,4 +185,20 @@
     <string name="color_lavender">לבנדר</string>
     <string name="color_orange">כתום</string>
     <string name="show_wind">הצגת רוח</string>
+    <string name="feels_like">מורגש כ-%1$s</string>
+    <string name="rain_here">יורד גשם כאן עכשיו</string>
+    <string name="rain_here_heavy">גשם חזק כאן עכשיו</string>
+    <string name="rain_km">גשם במרחק %1$d ק״מ</string>
+    <string name="rain_km_heavy">גשם חזק במרחק %1$d ק״מ</string>
+    <string name="rain_approaching">מתקרב</string>
+    <string name="air_quality">איכות אוויר</string>
+    <string name="dust">אבק</string>
+    <string name="sunrise">זריחה</string>
+    <string name="sunset">שקיעה</string>
+    <string name="aqi_good">טובה</string>
+    <string name="aqi_moderate">בינונית</string>
+    <string name="aqi_sensitive">לא בריאה לרגישים</string>
+    <string name="aqi_unhealthy">לא בריאה</string>
+    <string name="aqi_very">לא בריאה מאוד</string>
+    <string name="aqi_hazard">מסוכנת</string>
 </resources>

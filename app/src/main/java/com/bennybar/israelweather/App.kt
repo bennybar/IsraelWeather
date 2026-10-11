@@ -8,6 +8,7 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.bennybar.israelweather.data.Api
 import com.bennybar.israelweather.data.OpenMeteo
+import com.bennybar.israelweather.data.RainRadar
 import com.bennybar.israelweather.data.SettingsStore
 import com.bennybar.israelweather.data.WeatherRepository
 import com.bennybar.israelweather.location.LocationResolver
@@ -65,6 +66,7 @@ class AppContainer(val context: Context) {
     val settings = SettingsStore(context)
     val api = Api(http, json, BuildConfig.PROXY_URL)
     val openMeteo = OpenMeteo(http, json)
+    val rainRadar = RainRadar(http)
     val repo = WeatherRepository(context, api, openMeteo, settings, json, scope)
     val location = LocationResolver(context)
 }

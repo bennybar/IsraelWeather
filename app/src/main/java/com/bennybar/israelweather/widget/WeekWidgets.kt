@@ -99,7 +99,7 @@ class QuietWeekWidget : WeatherWidget() {
                         ) {
                             Text(dayLabel(context, d), style = style(if (tall) 14.sp else 12.sp, if (on) p.ink else p.muted, bold = on), maxLines = 1)
                             Spacer(GlanceModifier.height(if (tall) 6.dp else 3.dp))
-                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (tall) 30.dp else 24.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (tall) 30.dp else 24.dp))
                             Spacer(GlanceModifier.height(if (tall) 6.dp else 3.dp))
                             Text(temp(d.max, s), style = style(if (tall) 24.sp else 20.sp, p.ink, bold = true), maxLines = 1)
                             Text(temp(d.min, s), style = style(if (tall) 15.sp else 13.sp, p.muted), maxLines = 1)
@@ -138,7 +138,7 @@ class RangesWidget : WeatherWidget() {
                             Text(dayLabel(context, d), style = style(text, p.ink, bold = i == 0), maxLines = 1)
                         }
                         Box(GlanceModifier.width(28.dp), contentAlignment = Alignment.Center) {
-                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(if (tall) 24.dp else 20.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (tall) 24.dp else 20.dp))
                         }
                         Box(GlanceModifier.width(34.dp), contentAlignment = Alignment.Center) {
                             Text(temp(d.min, s), style = style(text, p.muted), maxLines = 1)

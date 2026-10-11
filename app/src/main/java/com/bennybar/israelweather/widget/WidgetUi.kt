@@ -72,7 +72,7 @@ private fun StripContent(data: WidgetData) {
                     Pill(i == 0, Cream, 32.dp, GlanceModifier.fillMaxSize()) {
                         val fg = if (i == 0) Color.White else Ink
                         Text(dayLabel(context, d, short = true), style = style(11.sp, fg, bold = true), maxLines = 1)
-                        Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(18.dp))
+                        Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(18.dp))
                         Text("${temp(d.max, s)} ${temp(d.min, s)}", style = style(12.sp, fg, bold = true), maxLines = 1)
                         // Rain: chance · mm (the day's highest hourly chance and its total).
                         Text(

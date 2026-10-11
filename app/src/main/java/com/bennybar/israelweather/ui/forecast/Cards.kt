@@ -47,6 +47,14 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bennybar.israelweather.R
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.sunTimes
+import com.bennybar.israelweather.data.apparentTemp
+import com.bennybar.israelweather.data.RainNow
+import com.bennybar.israelweather.data.AirQuality
 import com.bennybar.israelweather.data.Forecast
 import com.bennybar.israelweather.data.Localized
 import com.bennybar.israelweather.data.Observation
@@ -96,10 +104,18 @@ private fun compass(deg: Double?): String {
 // ---- Hero: the big accent card with the current temperature ----
 
 @Composable
-fun HeroCard(f: Forecast, obs: Observation?, s: Settings) {
+fun HeroCard(f: Forecast, obs: Observation?, s: Settings, place: Place?) {
     val cs = MaterialTheme.colorScheme
     val now = israelNow()
     val h = f.currentHour(now) ?: return
+    // What the IMS radar sees at this place, rechecked every 5 minutes.
+    val rain by produceState<RainNow?>(null, place?.lat, place?.lon) {
+        if (place == null) return@produceState
+        while (true) {
+            value = runCatching { app.repo.radar()?.let { app.rainRadar.near(it, place.lat, place.lon) } }.getOrNull()
+            delay(5 * 60_000L)
+        }
+    }
     val today = f.daily.firstOrNull { it.localDate == now.toLocalDate() }
     val english = isEnglish()
     Row(Modifier.padding(horizontal = 16.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -112,7 +128,7 @@ fun HeroCard(f: Forecast, obs: Observation?, s: Settings) {
                     if (obs?.temp != null) stringResource(R.string.measured_now) else stringResource(R.string.forecast_now),
                     Modifier.weight(1f), color = cs.onPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
                 )
-                Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), null, Modifier.size(48.dp))
+                Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), WeatherCodes.describe(h.code, isEnglish()), Modifier.size(48.dp))
             }
             Text(
                 temp(obs?.temp ?: h.temp, s), color = cs.onPrimary,
@@ -125,6 +141,20 @@ fun HeroCard(f: Forecast, obs: Observation?, s: Settings) {
                 },
                 color = cs.onPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold,
             )
+            apparentTemp(obs?.temp ?: h.temp, obs?.rh ?: h.rh, obs?.wind ?: h.wind)?.let {
+                Text(stringResource(R.string.feels_like, temp(it, s)), color = cs.onPrimary, fontSize = 14.sp)
+            }
+            rain?.let { r ->
+                val text = when {
+                    r.km == 0.0 -> stringResource(if (r.heavy) R.string.rain_here_heavy else R.string.rain_here)
+                    else -> stringResource(if (r.heavy) R.string.rain_km_heavy else R.string.rain_km, r.km.roundToInt()) +
+                        if (r.approaching) " · " + stringResource(R.string.rain_approaching) else ""
+                }
+                Text(
+                    text, Modifier.padding(top = 6.dp).clip(RoundedCornerShape(12.dp)).background(cs.onPrimary).padding(horizontal = 10.dp, vertical = 4.dp),
+                    color = cs.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1,
+                )
+            }
             if (obs != null) Text(obs.station.name, color = cs.onPrimary, fontSize = 13.sp)
         }
         Column(Modifier.width(112.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -201,7 +231,7 @@ fun HourlyCard(f: Forecast, s: Settings) {
                 Row {
                     hours.forEach { h ->
                         Box(Modifier.width(colW), contentAlignment = Alignment.Center) {
-                            Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), null, Modifier.size(24.dp))
+                            Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), WeatherCodes.describe(h.code, isEnglish()), Modifier.size(24.dp))
                         }
                     }
                 }
@@ -293,7 +323,7 @@ fun WeekCard(f: Forecast, s: Settings) {
                         val windy = dayHours.filter { it.wind != null }.maxByOrNull { it.wind!! }
                         Text("${windShort(windy?.wind, windy?.windDir, s)} ${windUnitLabel(s)}", fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1)
                     }
-                    Image(painterResource(WeatherCodes.drawable(d.code)), null, Modifier.size(28.dp))
+                    Image(painterResource(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, isEnglish()), Modifier.size(28.dp))
                     // Chance (the day's highest hourly) over its total amount.
                     Column(Modifier.width(60.dp).padding(start = 6.dp)) {
                         Text(pct(rain), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = rainColor, maxLines = 1)
@@ -318,7 +348,7 @@ fun WeekCard(f: Forecast, s: Settings) {
 // ---- Details grid ----
 
 @Composable
-fun DetailsCard(f: Forecast, s: Settings) {
+fun DetailsCard(f: Forecast, s: Settings, place: Place?) {
     val now = israelNow()
     val h = f.currentHour(now) ?: return
     val next24 = f.upcoming(24, now)
@@ -328,6 +358,10 @@ fun DetailsCard(f: Forecast, s: Settings) {
     val hourStart = now.truncatedTo(ChronoUnit.HOURS)
     val rainToday = f.hoursOn(now.toLocalDate()).filter { !it.time.isBefore(hourStart) }.mapNotNull { it.rain }.takeIf { it.isNotEmpty() }?.sum()
     val gust = next24.mapNotNull { it.gust }.maxOrNull()
+    val air by produceState<AirQuality?>(null, place?.lat, place?.lon) {
+        if (place != null) value = runCatching { app.openMeteo.airQuality(place.lat, place.lon) }.getOrNull()
+    }
+    val sun = place?.let { sunTimes(now.toLocalDate(), it.lat, it.lon) }
     val rainChance = next24.mapNotNull { it.rainChance }.maxOrNull()
     val tiles = listOf(
         Triple(stringResource(R.string.gusts), windValue(gust, s), windUnitLabel(s)) to null,
@@ -335,7 +369,10 @@ fun DetailsCard(f: Forecast, s: Settings) {
         Triple(stringResource(R.string.rain_chance), pct(rainChance?.roundToInt()), stringResource(R.string.next_24h_short)) to wc.rain,
         Triple(stringResource(R.string.rain_today), rainToday?.let { "%.1f".format(it) } ?: "–", stringResource(R.string.unit_mm)) to wc.rain,
         Triple(stringResource(R.string.heat_stress), heatLabel(h.heat), "") to null,
-        Triple(stringResource(R.string.pm10), h.pm10?.roundToInt()?.toString() ?: "–", stringResource(R.string.unit_ugm3)) to null,
+        Triple(stringResource(R.string.air_quality), air?.aqi?.toString() ?: "–", aqiLabel(air?.aqi)) to aqiColor(air?.aqi),
+        Triple(stringResource(R.string.dust), air?.dust?.roundToInt()?.toString() ?: "–", stringResource(R.string.unit_ugm3)) to null,
+        Triple(stringResource(R.string.sunrise), sun?.first?.let { "%02d:%02d".format(it.hour, it.minute) } ?: "–", "") to wc.heat,
+        Triple(stringResource(R.string.sunset), sun?.second?.let { "%02d:%02d".format(it.hour, it.minute) } ?: "–", "") to null,
     )
     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         tiles.chunked(3).forEach { row ->
@@ -352,6 +389,29 @@ fun DetailsCard(f: Forecast, s: Settings) {
             }
         }
     }
+}
+
+@Composable
+private fun aqiLabel(aqi: Int?): String = if (aqi == null) "" else stringResource(
+    when {
+        aqi <= 50 -> R.string.aqi_good
+        aqi <= 100 -> R.string.aqi_moderate
+        aqi <= 150 -> R.string.aqi_sensitive
+        aqi <= 200 -> R.string.aqi_unhealthy
+        aqi <= 300 -> R.string.aqi_very
+        else -> R.string.aqi_hazard
+    },
+)
+
+/** US AQI band colors (green → maroon), muted to sit on the dark cards. */
+private fun aqiColor(aqi: Int?): Color? = when {
+    aqi == null -> null
+    aqi <= 50 -> Color(0xFF6FD08C)
+    aqi <= 100 -> Color(0xFFF2D25C)
+    aqi <= 150 -> Color(0xFFF59E4C)
+    aqi <= 200 -> Color(0xFFEF5B5B)
+    aqi <= 300 -> Color(0xFFB57EDC)
+    else -> Color(0xFFA0525E)
 }
 
 @Composable

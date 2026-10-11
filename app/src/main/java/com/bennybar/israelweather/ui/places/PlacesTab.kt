@@ -66,7 +66,7 @@ fun PlacesTab() {
     fun Summary(id: Int) {
         val f = forecasts[id]?.value ?: return
         val h = f.currentHour(israelNow()) ?: return
-        Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), null, Modifier.size(28.dp))
+        Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), WeatherCodes.describe(h.code, isEnglish()), Modifier.size(28.dp))
         Spacer(Modifier.width(6.dp))
         Text(temp(h.temp, settings), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
     }

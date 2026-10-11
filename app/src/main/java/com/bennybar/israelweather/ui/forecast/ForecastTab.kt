@@ -198,11 +198,11 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                     val local = place?.let { app.repo.warningsFor(it.rid, warnings.value) }.orEmpty()
                     items(settings.visibleCards, key = { it.name }) { card ->
                         when (card) {
-                            Card.HERO -> HeroCard(data, observations[id], settings)
+                            Card.HERO -> HeroCard(data, observations[id], settings, place)
                             Card.ALERTS -> AlertsCard(local) { ui.tab = 2 }
                             Card.HOURLY -> HourlyCard(data, settings)
                             Card.WEEK -> WeekCard(data, settings)
-                            Card.DETAILS -> DetailsCard(data, settings)
+                            Card.DETAILS -> DetailsCard(data, settings, place)
                             Card.RADAR -> RadarCard(place) { ui.tab = 1 }
                             Card.SUMMARY -> SummaryCard(data, country)
                         }

@@ -40,7 +40,6 @@
     <string name="rain_chance">Rain chance</string>
     <string name="rain_today">Rain today</string>
     <string name="heat_stress">Heat stress</string>
-    <string name="pm10">PM10</string>
     <string name="next_24h">Next 12 hours</string>
     <string name="next_24h_short">in 24 h</string>
     <string name="legend_temp">Temp</string>
@@ -186,4 +185,20 @@
     <string name="color_lavender">Lavender</string>
     <string name="color_orange">Orange</string>
     <string name="show_wind">Show wind</string>
+    <string name="feels_like">Feels like %1$s</string>
+    <string name="rain_here">Raining here now</string>
+    <string name="rain_here_heavy">Heavy rain here now</string>
+    <string name="rain_km">Rain %1$d km away</string>
+    <string name="rain_km_heavy">Heavy rain %1$d km away</string>
+    <string name="rain_approaching">approaching</string>
+    <string name="air_quality">Air quality</string>
+    <string name="dust">Dust</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="aqi_good">Good</string>
+    <string name="aqi_moderate">Moderate</string>
+    <string name="aqi_sensitive">Unhealthy for some</string>
+    <string name="aqi_unhealthy">Unhealthy</string>
+    <string name="aqi_very">Very unhealthy</string>
+    <string name="aqi_hazard">Hazardous</string>
 </resources>

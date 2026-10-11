@@ -13,6 +13,9 @@ import java.util.Locale
  * for exact coordinates. Used where no IMS forecast point is near (see [IMS_RADIUS_KM]).
  * Called directly from the phone: free without a key, and each user has their own quota.
  */
+/** US AQI (0–500) and particles in µg/m³. */
+data class AirQuality(val aqi: Int?, val pm10: Double?, val pm25: Double?, val dust: Double?)
+
 class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
 
     @Serializable
@@ -74,6 +77,27 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             Day(d.time[i], imsCode(d.weather_code[i]), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
         }
         Forecast(id = CURRENT_ID, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO)
+    }
+
+    @Serializable
+    private data class AirCurrent(val us_aqi: Double? = null, val pm10: Double? = null, val pm2_5: Double? = null, val dust: Double? = null)
+
+    @Serializable
+    private data class AirResponse(val current: AirCurrent)
+
+    private var air: Triple<String, Long, AirQuality>? = null
+
+    /** Current air quality (CAMS model) at a point; cached for 30 minutes per ~1 km. */
+    suspend fun airQuality(lat: Double, lon: Double): AirQuality = withContext(Dispatchers.IO) {
+        val key = "%.2f,%.2f".format(Locale.ROOT, lat, lon)
+        air?.takeIf { it.first == key && System.currentTimeMillis() - it.second < 30 * 60_000L }?.let { return@withContext it.third }
+        val url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
+            "&current=us_aqi,pm10,pm2_5,dust&timezone=Asia%2FJerusalem"
+        val c = http.newCall(Request.Builder().url(url).build()).execute().use { res ->
+            if (!res.isSuccessful) throw HttpException(res.code)
+            json.decodeFromString(AirResponse.serializer(), res.body.string()).current
+        }
+        AirQuality(c.us_aqi?.toInt(), c.pm10, c.pm2_5, c.dust).also { air = Triple(key, System.currentTimeMillis(), it) }
     }
 
     /** WMO weather codes → the IMS codes the app's icons and texts use. */

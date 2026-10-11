@@ -124,7 +124,7 @@ fun ClassicHourlyBody(data: WidgetData, modifier: GlanceModifier, showHeader: Bo
                         val fg = if (on) Color.White else Ink
                         val rainFg = if (on) Color.White else Blue
                         Text(if (on) context.getString(R.string.now) else hh(hour.time), style = style(if (compact) 10.sp else 11.sp, fg), maxLines = 1)
-                        Image(ImageProvider(WeatherCodes.drawable(hour.code, WeatherCodes.isNight(hour.time))), null, GlanceModifier.size(if (compact) 18.dp else 20.dp))
+                        Image(ImageProvider(WeatherCodes.drawable(hour.code, WeatherCodes.isNight(hour.time))), WeatherCodes.describe(hour.code, english(LocalContext.current)), GlanceModifier.size(if (compact) 18.dp else 20.dp))
                         Text(temp(hour.temp, s), style = style(if (compact) 13.sp else 14.sp, fg, bold = true), maxLines = 1)
                         if (compact) {
                             RainLine(hour.chance(), hour.rain, unit, rainFg)
@@ -173,7 +173,7 @@ fun ClassicDailyBody(data: WidgetData, modifier: GlanceModifier, showFooter: Boo
                         val chipBg = GlanceModifier.background(if (on) BurntDark else Cream).cornerRadius(10.dp)
                         if (compact) {
                             Text(dayLabel(context, d, short = true), style = style(11.sp, fg, bold = true), maxLines = 1)
-                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(18.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(18.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(temp(d.max, s), style = style(13.sp, fg, bold = true), maxLines = 1)
                                 Text(" ${temp(d.min, s)}", style = style(11.sp, minFg), maxLines = 1)
@@ -184,7 +184,7 @@ fun ClassicDailyBody(data: WidgetData, modifier: GlanceModifier, showFooter: Boo
                             }
                         } else {
                             Text(dayLabel(context, d, short = true), style = style(12.sp, fg, bold = true), maxLines = 1)
-                            Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(24.dp))
+                            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(24.dp))
                             Text(temp(d.max, s), style = style(16.sp, fg, bold = true), maxLines = 1)
                             Text(temp(d.min, s), style = style(12.sp, minFg), maxLines = 1)
                             Text(windShort(w, dir, s), style = style(10.sp, if (on) Color.White else Muted), maxLines = 1)
