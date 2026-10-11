@@ -24,16 +24,12 @@ enum class WidgetKind(val receiver: KClass<out GlanceAppWidgetReceiver>, val tit
     HOURLY(HourlyWidgetReceiver::class, R.string.widget_hourly, ::HourlyWidget),
     HOURLY_TABLE(HourlyTableReceiver::class, R.string.widget_hourly_table, ::HourlyTableWidget),
     HOURLY_TONAL(HourlyTonalReceiver::class, R.string.widget_hourly_tonal, ::HourlyTonalWidget),
-    DAILY(DailyWidgetReceiver::class, R.string.widget_daily, ::DailyWidget),
     DAILY_TABLE(DailyTableReceiver::class, R.string.widget_daily_table, ::DailyTableWidget),
     DAILY_TONAL(DailyTonalReceiver::class, R.string.widget_daily_tonal, ::DailyTonalWidget),
-    COMBO(ClassicComboReceiver::class, R.string.widget_combo, ::ClassicComboWidget),
-    COMBO_TABLE(TableComboReceiver::class, R.string.widget_combo_table, ::TableComboWidget),
-    COMBO_TONAL(SoftComboReceiver::class, R.string.widget_combo_tonal, ::SoftComboWidget),
     QUIET(QuietWeekReceiver::class, R.string.widget_quiet, ::QuietWeekWidget),
     RANGES(RangesReceiver::class, R.string.widget_ranges, ::RangesWidget),
+    SPECTRUM(SpectrumReceiver::class, R.string.widget_spectrum, ::SpectrumWidget),
     STRIP(StripWidgetReceiver::class, R.string.widget_strip, ::StripWidget),
-    ALERTS(AlertsWidgetReceiver::class, R.string.widget_alerts, ::AlertsWidget),
 }
 
 object Widgets {
@@ -99,24 +95,22 @@ object Widgets {
         val showRefresh = app.settings.widgetShowRefresh(appWidgetId)
         val color = app.settings.widgetColor(appWidgetId)
         val showWind = app.settings.widgetShowWind(appWidgetId)
-        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null, color, showWind)
+        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, showRefresh, null, color, showWind)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         var cached = app.repo.cachedForecast(id)
         if (cached?.value == null && app.repo.refreshForecast(id)) cached = app.repo.cachedForecast(id)
         val forecast = cached?.value
-        val warnings = place?.let { app.repo.warningsFor(it.rid) }.orEmpty()
-        return WidgetData(place, forecast, warnings, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind)
     }
 }
 
 data class WidgetData(
     val place: Place?,
     val forecast: Forecast?,
-    val warnings: List<Warning>,
     val showRefresh: Boolean,
     /** When the forecast was last fetched (epoch millis). */
     val updated: Long?,
-    /** [WIDGET_COLOR_LAVENDER] or [WIDGET_COLOR_ORANGE] (Quiet week and Ranges widgets). */
+    /** [WIDGET_COLOR_LAVENDER], [WIDGET_COLOR_ORANGE] or (Spectrum only) [WIDGET_COLOR_TWILIGHT]. */
     val color: String = WIDGET_COLOR_LAVENDER,
     /** Ranges widget: show each day's strongest wind. */
     val showWind: Boolean = false,
@@ -124,6 +118,7 @@ data class WidgetData(
 
 const val WIDGET_COLOR_LAVENDER = "lavender"
 const val WIDGET_COLOR_ORANGE = "orange"
+const val WIDGET_COLOR_TWILIGHT = "twilight"
 
 /** The widgets' "refresh now" button: re-fetch this widget's place, then redraw every widget. */
 class RefreshCallback : ActionCallback {

@@ -90,47 +90,4 @@ private fun StripContent(data: WidgetData) {
     }
 }
 
-// ---- Alerts & rain 4×1 ----
-
-class AlertsWidget : WeatherWidget() {
-    @Composable
-    override fun Content(data: WidgetData) = AlertsContent(data)
-}
-
-@Composable
-private fun AlertsContent(data: WidgetData) {
-    val context = LocalContext.current
-    val f = data.forecast ?: return NoData(Lemon, LemonInk)
-    val en = english(context)
-    val warning = data.warnings.firstOrNull { !it.isFlash }
-    val now = israelNow()
-    val nextRain = f.hourly.firstOrNull { !it.time.isBefore(now.withMinute(0)) && it.time.isBefore(now.plusHours(48)) && (it.rainChance ?: 0.0) >= 40 }
-    val title = warning?.let { listOfNotNull(it.typeName.get(en), context.getString(warningLabelRes(it))).joinToString(" · ") }
-        ?: context.getString(R.string.alerts_none_short)
-    val rainLine = nextRain?.let {
-        val day = if (it.time.toLocalDate() == now.toLocalDate()) "" else dayName(it.time.toLocalDate(), context.resources.configuration.locales[0], short = true) + " "
-        context.getString(R.string.rain_expected, day + hh(it.time), it.rainChance!!.roundToInt())
-    } ?: context.getString(R.string.no_rain_48h)
-    Shell(Lemon, 40.dp, 10.dp) {
-        Row(GlanceModifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            Box(GlanceModifier.size(52.dp).background(LemonInk).cornerRadius(26.dp), contentAlignment = Alignment.Center) {
-                Image(
-                    ImageProvider(if (warning != null) R.drawable.ic_warning else if (nextRain != null) R.drawable.w_rain else R.drawable.w_sun),
-                    null, GlanceModifier.size(30.dp),
-                )
-            }
-            Spacer(GlanceModifier.width(12.dp))
-            Column(GlanceModifier.defaultWeight()) {
-                Text(title, style = style(15.sp, LemonInk, bold = true), maxLines = 1)
-                Text(data.place?.name(en)?.let { "$it · $rainLine" } ?: rainLine, style = style(12.sp, LemonInk), maxLines = 2)
-            }
-            if (data.showRefresh) {
-                Spacer(GlanceModifier.width(8.dp))
-                RefreshButton(Cream)
-            }
-        }
-    }
-}
-
 class StripWidgetReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget: GlanceAppWidget = StripWidget() }
-class AlertsWidgetReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget: GlanceAppWidget = AlertsWidget() }

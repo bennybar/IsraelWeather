@@ -46,10 +46,6 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_hourly" />
         </receiver>
-        <receiver android:name=".widget.DailyWidgetReceiver" android:exported="true" android:label="@string/widget_daily">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily" />
-        </receiver>
         <receiver android:name=".widget.HourlyTableReceiver" android:exported="true" android:label="@string/widget_hourly_table">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_hourly_table" />
@@ -74,25 +70,13 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_ranges" />
         </receiver>
-        <receiver android:name=".widget.ClassicComboReceiver" android:exported="true" android:label="@string/widget_combo">
+        <receiver android:name=".widget.SpectrumReceiver" android:exported="true" android:label="@string/widget_spectrum">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo" />
-        </receiver>
-        <receiver android:name=".widget.TableComboReceiver" android:exported="true" android:label="@string/widget_combo_table">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo_table" />
-        </receiver>
-        <receiver android:name=".widget.SoftComboReceiver" android:exported="true" android:label="@string/widget_combo_tonal">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo_tonal" />
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_spectrum" />
         </receiver>
         <receiver android:name=".widget.StripWidgetReceiver" android:exported="true" android:label="@string/widget_strip">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_strip" />
-        </receiver>
-        <receiver android:name=".widget.AlertsWidgetReceiver" android:exported="true" android:label="@string/widget_alerts">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_alerts" />
         </receiver>
     </application>
 

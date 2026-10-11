@@ -85,9 +85,6 @@
     <string name="alerts_elsewhere">בשאר הארץ</string>
     <string name="alerts_none_mine">אין התראות פעילות במקומות שלכם.</string>
     <string name="alerts_none">אין התראות פעילות.</string>
-    <string name="alerts_none_short">אין התראות</string>
-    <string name="rain_expected">גשם צפוי %1$s · %2$d%%</string>
-    <string name="no_rain_48h">לא צפוי גשם ב-48 השעות הקרובות</string>
 
     <string name="edit_cards">עריכת מסך התחזית</string>
     <string name="edit_cards_hint">סידור והסתרה של הכרטיסים</string>
@@ -123,13 +120,9 @@
     <string name="version">גרסה</string>
 
     <string name="widget_hourly">שעתי · קלאסי</string>
-    <string name="widget_daily">יומי · קלאסי</string>
     <string name="widget_strip">יומי מקוצר</string>
-    <string name="widget_alerts">התראות וגשם</string>
     <string name="widget_hourly_desc">עכשיו והשעות הקרובות</string>
-    <string name="widget_daily_desc">חמשת הימים הקרובים</string>
     <string name="widget_strip_desc">חמישה ימים בשורה אחת</string>
-    <string name="widget_alerts_desc">התראות השירות המטאורולוגי והגשם הבא</string>
     <string name="widget_open_app">פתחו את האפליקציה כדי לטעון תחזית</string>
     <string name="refresh_now">רענון עכשיו</string>
     <string name="show_refresh">כפתור רענון בווידג׳ט</string>
@@ -167,12 +160,6 @@
     <string name="col_chance">סיכוי</string>
     <string name="days_5">5 ימים</string>
     <string name="col_wind">רוח</string>
-    <string name="widget_combo">שעתי ויומי · קלאסי</string>
-    <string name="widget_combo_table">שעתי ויומי · טבלה</string>
-    <string name="widget_combo_tonal">שעתי ויומי · רך</string>
-    <string name="widget_combo_desc">השעות הקרובות וחמשת הימים, בכרטיס אחד</string>
-    <string name="widget_combo_table_desc">טבלת השעות הקרובות וטבלת חמשת הימים</string>
-    <string name="widget_combo_tonal_desc">השעות הקרובות וחמשת הימים בגוונים רכים</string>
     <string name="source_line_ims">מקור: השירות המטאורולוגי הישראלי</string>
     <string name="source_line_om">מקור: Open-Meteo · מיקום מדויק</string>
     <string name="source_om">תחזית: Open-Meteo (ECMWF, ICON) · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
@@ -201,4 +188,7 @@
     <string name="aqi_unhealthy">לא בריאה</string>
     <string name="aqi_very">לא בריאה מאוד</string>
     <string name="aqi_hazard">מסוכנת</string>
+    <string name="widget_spectrum">יומי · ספקטרום</string>
+    <string name="widget_spectrum_desc">עכשיו למעלה, וחמישה ימים עם טווחי טמפרטורה צבעוניים וסיכויי גשם</string>
+    <string name="color_twilight">דמדומים</string>
 </resources>

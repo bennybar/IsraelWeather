@@ -196,5 +196,5 @@ fun sampleData(context: Context): WidgetData {
         Day(now.toLocalDate().plusDays(i.toLong()).toString(), dayCodes[i], los[i], his[i], 4.0)
     }
     val place = Place(0, context.getString(R.string.preview_place), context.getString(R.string.preview_place), 31.73, 34.74, 0)
-    return WidgetData(place, Forecast(0, hourly = hourly, daily = daily), emptyList(), showRefresh = true, updated = System.currentTimeMillis())
+    return WidgetData(place, Forecast(0, hourly = hourly, daily = daily), showRefresh = true, updated = System.currentTimeMillis())
 }

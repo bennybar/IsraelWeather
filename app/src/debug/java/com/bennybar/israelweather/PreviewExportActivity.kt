@@ -34,11 +34,7 @@ class PreviewExportActivity : Activity() {
                 Log.w("PreviewExport", "${k.name}: no generated preview yet")
                 return@forEach
             }
-            val hDp = when (k) {
-                WidgetKind.STRIP, WidgetKind.ALERTS -> 90
-                WidgetKind.COMBO, WidgetKind.COMBO_TABLE, WidgetKind.COMBO_TONAL -> 270
-                else -> 180
-            }
+            val hDp = if (k == WidgetKind.STRIP) 90 else 180
             val w = (360 * d).toInt()
             val h = (hDp * d).toInt()
             val host = FrameLayout(this)

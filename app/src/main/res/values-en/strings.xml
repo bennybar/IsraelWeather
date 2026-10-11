@@ -85,9 +85,6 @@
     <string name="alerts_elsewhere">Elsewhere in Israel</string>
     <string name="alerts_none_mine">No active warnings for your places.</string>
     <string name="alerts_none">No active warnings.</string>
-    <string name="alerts_none_short">No warnings</string>
-    <string name="rain_expected">Rain expected %1$s · %2$d%%</string>
-    <string name="no_rain_48h">No rain expected in the next 48 hours</string>
 
     <string name="edit_cards">Edit forecast screen</string>
     <string name="edit_cards_hint">Reorder and hide cards</string>
@@ -123,13 +120,9 @@
     <string name="version">Version</string>
 
     <string name="widget_hourly">Hourly · Classic</string>
-    <string name="widget_daily">Daily · Classic</string>
     <string name="widget_strip">Daily strip</string>
-    <string name="widget_alerts">Alerts &amp; rain</string>
     <string name="widget_hourly_desc">Now and the next hours</string>
-    <string name="widget_daily_desc">The next five days</string>
     <string name="widget_strip_desc">Five days in one row</string>
-    <string name="widget_alerts_desc">IMS warnings and the next rain</string>
     <string name="widget_open_app">Open the app to load a forecast</string>
     <string name="refresh_now">Refresh now</string>
     <string name="show_refresh">Refresh button on widget</string>
@@ -167,12 +160,6 @@
     <string name="col_chance">Rain</string>
     <string name="days_5">5 days</string>
     <string name="col_wind">Wind</string>
-    <string name="widget_combo">Hourly + Daily · Classic</string>
-    <string name="widget_combo_table">Hourly + Daily · Table</string>
-    <string name="widget_combo_tonal">Hourly + Daily · Soft</string>
-    <string name="widget_combo_desc">The next hours and five days in one card</string>
-    <string name="widget_combo_table_desc">Tables of the next hours and the next five days</string>
-    <string name="widget_combo_tonal_desc">The next hours and five days in soft tones</string>
     <string name="source_line_ims">Source: Israel Meteorological Service</string>
     <string name="source_line_om">Source: Open-Meteo · exact location</string>
     <string name="source_om">Forecast: Open-Meteo (ECMWF, ICON) · Warnings &amp; radar: Israel Meteorological Service</string>
@@ -201,4 +188,7 @@
     <string name="aqi_unhealthy">Unhealthy</string>
     <string name="aqi_very">Very unhealthy</string>
     <string name="aqi_hazard">Hazardous</string>
+    <string name="widget_spectrum">Daily · Spectrum</string>
+    <string name="widget_spectrum_desc">Now on top, plus five days with colorful temperature ranges and rain chances</string>
+    <string name="color_twilight">Twilight</string>
 </resources>

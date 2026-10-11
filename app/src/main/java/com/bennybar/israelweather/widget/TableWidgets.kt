@@ -72,48 +72,32 @@ private fun NowStats(cur: Hour, size: TextUnit) {
 // ---- Hourly body: "now" panel beside a table of the next hours ----
 
 /**
- * The "now" panel + hourly table, without the card. [compact] (used by the combo) puts icon and
- * temperature on one line and shows 4 hours instead of 5, so it fits in about half a 4×3 card.
+ * The "now" panel + hourly table, without the card.
  * Callers check for missing data first; this draws nothing if the forecast is gone.
  */
 @Composable
-fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean = false) {
+fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier) {
     val context = LocalContext.current
     val f = data.forecast ?: return
     val now = israelNow()
     val cur = f.currentHour(now) ?: return
     val en = english(context)
     val s = app.settings.value
-    val rows = f.upcoming(if (compact) 5 else 6, now).drop(1)
+    val rows = f.upcoming(6, now).drop(1)
     val icon = ImageProvider(WeatherCodes.drawable(cur.code, WeatherCodes.isNight(cur.time)))
     Row(modifier) {
-        Column(GlanceModifier.width(112.dp).fillMaxHeight().background(NowBg).cornerRadius(20.dp).padding(if (compact) 8.dp else 10.dp)) {
-            if (compact) {
-                Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(24.dp))
-                    Spacer(GlanceModifier.width(4.dp))
-                    Text(temp(cur.temp, s), style = style(24.sp, Ink, bold = true), maxLines = 1)
-                    Spacer(GlanceModifier.defaultWeight())
-                    if (data.showRefresh) RefreshButton(Card, 24.dp)
-                }
+        Column(GlanceModifier.width(112.dp).fillMaxHeight().background(NowBg).cornerRadius(20.dp).padding(10.dp)) {
+            Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(26.dp))
                 Spacer(GlanceModifier.defaultWeight())
-                NowStats(cur, 10.sp)
-                Spacer(GlanceModifier.defaultWeight())
-                data.place?.name(en)?.let { Text(it, style = style(12.sp, Ink, bold = true), maxLines = 1) }
-                updatedText(context, data.updated)?.let { Text(it, style = style(10.sp, Muted), maxLines = 1) }
-            } else {
-                Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(26.dp))
-                    Spacer(GlanceModifier.defaultWeight())
-                    if (data.showRefresh) RefreshButton(Card, 28.dp)
-                }
-                Spacer(GlanceModifier.defaultWeight())
-                Text(temp(cur.temp, s), style = style(34.sp, Ink, bold = true), maxLines = 1)
-                NowStats(cur, 10.sp)
-                Spacer(GlanceModifier.defaultWeight())
-                data.place?.name(en)?.let { Text(it, style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                updatedText(context, data.updated)?.let { Text(it, style = style(10.sp, Muted), maxLines = 1) }
+                if (data.showRefresh) RefreshButton(Card, 28.dp)
             }
+            Spacer(GlanceModifier.defaultWeight())
+            Text(temp(cur.temp, s), style = style(34.sp, Ink, bold = true), maxLines = 1)
+            NowStats(cur, 10.sp)
+            Spacer(GlanceModifier.defaultWeight())
+            data.place?.name(en)?.let { Text(it, style = style(13.sp, Ink, bold = true), maxLines = 1) }
+            updatedText(context, data.updated)?.let { Text(it, style = style(10.sp, Muted), maxLines = 1) }
         }
         Spacer(GlanceModifier.width(10.dp))
         Column(GlanceModifier.defaultWeight().fillMaxHeight()) {
@@ -144,12 +128,11 @@ fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean
 // ---- Daily body: optional header + 5 rows with a min→max range bar ----
 
 /**
- * The 5-day table, without the card. [compact] (used by the combo) drops the place/updated/refresh
- * header (the hourly part already shows them) and uses smaller icons so 5 rows fit in half a 4×3 card.
+ * The 5-day table, without the card.
  * Callers check for missing data first; this draws nothing if there are no days.
  */
 @Composable
-fun TableDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean = false) {
+fun TableDailyBody(data: WidgetData, modifier: GlanceModifier) {
     val context = LocalContext.current
     val list = days(data)
     if (list.isEmpty()) return
@@ -161,24 +144,22 @@ fun TableDailyBody(data: WidgetData, modifier: GlanceModifier, compact: Boolean 
     // Glance has no percent sizes: the bar gets whatever the fixed columns leave over.
     val unit = context.getString(R.string.unit_mm)
     Column(modifier) {
-        if (!compact) {
-            Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                val title = listOfNotNull(data.place?.name(en), context.getString(R.string.days_5)).joinToString(" · ")
-                Text(title, style = style(13.sp, Ink, bold = true), maxLines = 1, modifier = GlanceModifier.defaultWeight())
-                updatedText(context, data.updated)?.let {
-                    Spacer(GlanceModifier.width(8.dp))
-                    Text(it, style = style(10.sp, Muted), maxLines = 1)
-                }
-                if (data.showRefresh) {
-                    Spacer(GlanceModifier.width(8.dp))
-                    RefreshButton(NowBg, 28.dp)
-                }
+        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            val title = listOfNotNull(data.place?.name(en), context.getString(R.string.days_5)).joinToString(" · ")
+            Text(title, style = style(13.sp, Ink, bold = true), maxLines = 1, modifier = GlanceModifier.defaultWeight())
+            updatedText(context, data.updated)?.let {
+                Spacer(GlanceModifier.width(8.dp))
+                Text(it, style = style(10.sp, Muted), maxLines = 1)
+            }
+            if (data.showRefresh) {
+                Spacer(GlanceModifier.width(8.dp))
+                RefreshButton(NowBg, 28.dp)
             }
         }
         list.forEach { d ->
             Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
                 Cell(44.dp) { Text(dayLabel(context, d), style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(if (compact) 18.dp else 22.dp)) }
+                Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, english(LocalContext.current)), GlanceModifier.size(22.dp)) }
                 Cell(36.dp) { Text("${pct(dayRainChance(data, d))}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
                 Cell(54.dp) { Text("${mm(dayRainMm(data, d))} $unit", style = style(11.sp, Blue), maxLines = 1) }
                 val (w, dir) = dayWind(data, d)
@@ -226,27 +207,5 @@ class DailyTableWidget : WeatherWidget() {
     }
 }
 
-// ---- Combo 4×3: hourly on top, 5-day table below ----
-
-class TableComboWidget : WeatherWidget() {
-    @Composable
-    override fun Content(data: WidgetData) {
-        val f = data.forecast ?: return NoData(Card, Ink)
-        f.currentHour(israelNow()) ?: return NoData(Card, Ink)
-        if (days(data).isEmpty()) return NoData(Card, Ink)
-        Shell(Card, 28.dp, 12.dp) {
-            Column(GlanceModifier.fillMaxSize()) {
-                // Glance weights are all equal, so the two halves split the height evenly.
-                TableHourlyBody(data, GlanceModifier.fillMaxWidth().defaultWeight(), compact = true)
-                Box(GlanceModifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Box(GlanceModifier.fillMaxWidth().height(1.dp).background(Line)) {}
-                }
-                TableDailyBody(data, GlanceModifier.fillMaxWidth().defaultWeight().padding(horizontal = 4.dp), compact = true)
-            }
-        }
-    }
-}
-
 class HourlyTableReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget: GlanceAppWidget = HourlyTableWidget() }
 class DailyTableReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget: GlanceAppWidget = DailyTableWidget() }
-class TableComboReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget: GlanceAppWidget = TableComboWidget() }
