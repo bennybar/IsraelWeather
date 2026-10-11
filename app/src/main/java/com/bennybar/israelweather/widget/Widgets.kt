@@ -30,6 +30,8 @@ enum class WidgetKind(val receiver: KClass<out GlanceAppWidgetReceiver>, val tit
     COMBO(ClassicComboReceiver::class, R.string.widget_combo, ::ClassicComboWidget),
     COMBO_TABLE(TableComboReceiver::class, R.string.widget_combo_table, ::TableComboWidget),
     COMBO_TONAL(SoftComboReceiver::class, R.string.widget_combo_tonal, ::SoftComboWidget),
+    QUIET(QuietWeekReceiver::class, R.string.widget_quiet, ::QuietWeekWidget),
+    RANGES(RangesReceiver::class, R.string.widget_ranges, ::RangesWidget),
     STRIP(StripWidgetReceiver::class, R.string.widget_strip, ::StripWidget),
     ALERTS(AlertsWidgetReceiver::class, R.string.widget_alerts, ::AlertsWidget),
 }
@@ -95,13 +97,14 @@ object Widgets {
     suspend fun load(context: Context, glanceId: GlanceId): WidgetData {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
         val showRefresh = app.settings.widgetShowRefresh(appWidgetId)
-        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null)
+        val color = app.settings.widgetColor(appWidgetId)
+        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, emptyList(), showRefresh, null, color)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         var cached = app.repo.cachedForecast(id)
         if (cached?.value == null && app.repo.refreshForecast(id)) cached = app.repo.cachedForecast(id)
         val forecast = cached?.value
         val warnings = place?.let { app.repo.warningsFor(it.rid) }.orEmpty()
-        return WidgetData(place, forecast, warnings, showRefresh, cached?.fetchedAt?.takeIf { it > 0 })
+        return WidgetData(place, forecast, warnings, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color)
     }
 }
 
@@ -112,7 +115,12 @@ data class WidgetData(
     val showRefresh: Boolean,
     /** When the forecast was last fetched (epoch millis). */
     val updated: Long?,
+    /** [WIDGET_COLOR_LAVENDER] or [WIDGET_COLOR_ORANGE] (Quiet week and Ranges widgets). */
+    val color: String = WIDGET_COLOR_LAVENDER,
 )
+
+const val WIDGET_COLOR_LAVENDER = "lavender"
+const val WIDGET_COLOR_ORANGE = "orange"
 
 /** The widgets' "refresh now" button: re-fetch this widget's place, then redraw every widget. */
 class RefreshCallback : ActionCallback {

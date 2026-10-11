@@ -134,6 +134,10 @@ class SettingsStore(context: Context) {
     fun widgetShowRefresh(appWidgetId: Int) = prefs.getBoolean("widget_refresh_$appWidgetId", true)
     fun setWidgetShowRefresh(appWidgetId: Int, show: Boolean) = prefs.edit().putBoolean("widget_refresh_$appWidgetId", show).apply()
 
+    /** Color of the Quiet week / Ranges widgets: "lavender" (default) or "orange". */
+    fun widgetColor(appWidgetId: Int): String = prefs.getString("widget_color_$appWidgetId", null) ?: "lavender"
+    fun setWidgetColor(appWidgetId: Int, color: String) = prefs.edit().putString("widget_color_$appWidgetId", color).apply()
+
     private fun <T> List<T>.moved(item: T, delta: Int): List<T> {
         val i = indexOf(item)
         val j = (i + delta).coerceIn(0, size - 1)

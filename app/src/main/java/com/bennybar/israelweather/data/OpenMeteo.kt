@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.util.Locale
 
 /**
  * Open-Meteo (https://open-meteo.com, CC BY 4.0): model forecasts (ECMWF, ICON…, best match)
@@ -41,7 +42,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     private data class Response(val hourly: Hourly, val daily: Daily)
 
     suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false): Forecast = withContext(Dispatchers.IO) {
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(lat, lon) +
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +

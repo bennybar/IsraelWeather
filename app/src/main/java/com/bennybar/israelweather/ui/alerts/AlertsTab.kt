@@ -34,7 +34,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.IsraelZone
 import com.bennybar.israelweather.data.Warning
+import com.bennybar.israelweather.ui.hhmm
+import java.time.Instant
+import java.time.LocalDateTime
 import com.bennybar.israelweather.ui.LocalUi
 import com.bennybar.israelweather.ui.appLocale
 import com.bennybar.israelweather.ui.forLevel
@@ -80,12 +84,18 @@ fun AlertsTab() {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { Text(stringResource(R.string.tab_alerts), Modifier.padding(start = 4.dp, top = 12.dp), fontSize = 26.sp, fontWeight = FontWeight.ExtraBold) }
-            item { SectionTitle(stringResource(R.string.alerts_mine)) }
-            if (mine.isEmpty()) item { Empty(stringResource(R.string.alerts_none_mine)) }
-            items(mine, key = { "m${it.id}" }) { WarningItem(it) }
-            item { SectionTitle(stringResource(R.string.alerts_elsewhere)) }
-            if (others.isEmpty()) item { Empty(stringResource(R.string.alerts_none)) }
-            items(others, key = { "o${it.id}" }) { WarningItem(it) }
+            if (warnings.value == null) {
+                // Never loaded: "no warnings" would be a claim we can't make.
+                item { Empty(stringResource(if (warnings.error != null) R.string.load_failed else R.string.loading)) }
+            } else {
+                if (warnings.error != null) item { Empty(stringResource(R.string.warnings_stale, hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(warnings.fetchedAt), IsraelZone)))) }
+                item { SectionTitle(stringResource(R.string.alerts_mine)) }
+                if (mine.isEmpty()) item { Empty(stringResource(R.string.alerts_none_mine)) }
+                items(mine, key = { "m${it.id}" }) { WarningItem(it) }
+                item { SectionTitle(stringResource(R.string.alerts_elsewhere)) }
+                if (others.isEmpty()) item { Empty(stringResource(R.string.alerts_none)) }
+                items(others, key = { "o${it.id}" }) { WarningItem(it) }
+            }
             item {
                 Text(
                     stringResource(R.string.source_ims),

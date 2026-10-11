@@ -177,4 +177,12 @@
     <string name="source_line_ims">Source: Israel Meteorological Service</string>
     <string name="source_line_om">Source: Open-Meteo · exact location</string>
     <string name="source_om">Forecast: Open-Meteo (ECMWF, ICON) · Warnings &amp; radar: Israel Meteorological Service</string>
+    <string name="warnings_stale">Couldn\'t refresh · last update %1$s</string>
+    <string name="widget_quiet">Daily · Quiet</string>
+    <string name="widget_quiet_desc">Five days in open columns: high, low and rain chance</string>
+    <string name="widget_ranges">Daily · Ranges</string>
+    <string name="widget_ranges_desc">Five days with each day\'s temperature range</string>
+    <string name="widget_color">Color</string>
+    <string name="color_lavender">Lavender</string>
+    <string name="color_orange">Orange</string>
 </resources>

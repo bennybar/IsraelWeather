@@ -71,10 +71,10 @@ data class Forecast(
         const val SOURCE_OPEN_METEO = "open-meteo"
     }
 
-    /** The hour slot covering now (or the first upcoming one). */
+    /** The hour slot covering now (or the first upcoming one); null once the forecast has run out. */
     fun currentHour(now: LocalDateTime = israelNow()): Hour? {
         val slot = now.withMinute(0).withSecond(0).withNano(0)
-        return hourly.firstOrNull { !it.time.isBefore(slot) } ?: hourly.lastOrNull()
+        return hourly.firstOrNull { !it.time.isBefore(slot) }
     }
 
     /** The next [count] hours starting at the current one. */

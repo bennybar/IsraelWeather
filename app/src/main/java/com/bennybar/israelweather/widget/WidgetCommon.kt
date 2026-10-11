@@ -147,9 +147,9 @@ fun dayLabel(context: Context, d: Day, short: Boolean = true): String =
 fun dayRainChance(data: WidgetData, d: Day): Int? =
     data.forecast?.hoursOn(d.localDate)?.mapNotNull { it.rainChance }?.maxOrNull()?.roundToInt()
 
-/** A day's rain amount: the sum of its hourly amounts (mm). */
-fun dayRainMm(data: WidgetData, d: Day): Double =
-    data.forecast?.hoursOn(d.localDate)?.sumOf { it.rain ?: 0.0 } ?: 0.0
+/** A day's rain amount: the sum of its hourly amounts (mm); null when no hour has one. */
+fun dayRainMm(data: WidgetData, d: Day): Double? =
+    data.forecast?.hoursOn(d.localDate)?.mapNotNull { it.rain }?.takeIf { it.isNotEmpty() }?.sum()
 
 /** A day's wind: its strongest hourly wind (km/h) and that hour's direction. */
 fun dayWind(data: WidgetData, d: Day): Pair<Double?, Double?> {
@@ -162,9 +162,9 @@ fun Hour.chance(): Int? = rainChance?.roundToInt()
 /** "70%", or "–" when IMS gives no chance (it gives amounts further ahead than chances). */
 fun pct(v: Int?): String = v?.let { "$it%" } ?: "–"
 
-/** "1.4", "12", "0" — one decimal below 10 mm. */
+/** "1.4", "12", "0" — one decimal below 10 mm; "–" when unknown. */
 fun mm(v: Double?): String {
-    val x = v ?: 0.0
+    val x = v ?: return "–"
     return when {
         x < 0.05 -> "0"
         x < 10 -> "%.1f".format(x)

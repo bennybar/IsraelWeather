@@ -66,6 +66,14 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily_tonal" />
         </receiver>
+        <receiver android:name=".widget.QuietWeekReceiver" android:exported="true" android:label="@string/widget_quiet">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quiet" />
+        </receiver>
+        <receiver android:name=".widget.RangesReceiver" android:exported="true" android:label="@string/widget_ranges">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_ranges" />
+        </receiver>
         <receiver android:name=".widget.ClassicComboReceiver" android:exported="true" android:label="@string/widget_combo">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo" />

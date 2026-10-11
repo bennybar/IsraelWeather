@@ -23,11 +23,12 @@ class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorke
         app.repo.refreshPlaces()
         val ids = s.places + listOfNotNull(app.settings.value.currentForecastId) + Widgets.placeIds(applicationContext)
         // Widgets are redrawn once below, not after every place.
-        ids.toSet().forEach { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
+        val ok = ids.toSet().map { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
         app.repo.refreshWarnings(force = true)
         Widgets.updateAll(applicationContext)
         Widgets.publishPreviews(applicationContext)
-        return Result.success()
+        // Nothing came through (e.g. a flaky network): let WorkManager retry with backoff.
+        return if (ok.isNotEmpty() && ok.none { it }) Result.retry() else Result.success()
     }
 
     companion object {

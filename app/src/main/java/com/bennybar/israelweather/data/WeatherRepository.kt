@@ -81,9 +81,14 @@ class WeatherRepository(
     /** IMS's national text forecast (the same for every place), for Open-Meteo pages too. */
     val country: StateFlow<Localized?> = _country.asStateFlow()
 
+    private var countryFetchedAt = 0L
+
     suspend fun refreshCountry() {
-        if (_country.value != null) return
-        runCatching { api.forecast(1).country }.onSuccess { _country.value = it }
+        if (_country.value != null && age(countryFetchedAt) < 60 * 60_000L) return
+        runCatching { api.forecast(1).country }.onSuccess {
+            _country.value = it
+            countryFetchedAt = System.currentTimeMillis()
+        }
     }
 
     /** The IMS location list changes rarely: refresh weekly. */

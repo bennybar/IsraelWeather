@@ -177,4 +177,12 @@
     <string name="source_line_ims">מקור: השירות המטאורולוגי הישראלי</string>
     <string name="source_line_om">מקור: Open-Meteo · מיקום מדויק</string>
     <string name="source_om">תחזית: Open-Meteo (ECMWF, ICON) · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
+    <string name="warnings_stale">לא ניתן לרענן · עדכון אחרון %1$s</string>
+    <string name="widget_quiet">יומי · שקט</string>
+    <string name="widget_quiet_desc">חמישה ימים בטורים פתוחים: מקסימום, מינימום וסיכוי גשם</string>
+    <string name="widget_ranges">יומי · טווחים</string>
+    <string name="widget_ranges_desc">חמישה ימים עם טווח הטמפרטורות של כל יום</string>
+    <string name="widget_color">צבע</string>
+    <string name="color_lavender">לבנדר</string>
+    <string name="color_orange">כתום</string>
 </resources>

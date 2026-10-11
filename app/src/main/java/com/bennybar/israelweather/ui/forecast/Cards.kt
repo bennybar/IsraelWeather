@@ -70,6 +70,7 @@ import com.bennybar.israelweather.ui.warningRange
 import com.bennybar.israelweather.ui.windShort
 import com.bennybar.israelweather.ui.windValue
 import com.bennybar.israelweather.widget.mm
+import java.time.temporal.ChronoUnit
 import com.bennybar.israelweather.widget.pct
 import kotlin.math.roundToInt
 
@@ -235,8 +236,8 @@ fun HourlyCard(f: Forecast, s: Settings) {
                 Row {
                     hours.forEach { h ->
                         val chance = h.rainChance?.roundToInt()
-                        val amount = h.rain ?: 0.0
-                        val color = if ((chance ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
+                        val amount = h.rain
+                        val color = if ((chance ?: 0) > 0 || (amount ?: 0.0) > 0) wc.rain else cs.onSurfaceVariant
                         Column(Modifier.width(colW), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(temp(h.temp, s), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             Text(hh(h.time), fontSize = 11.sp, color = cs.onSurfaceVariant)
@@ -279,8 +280,8 @@ fun WeekCard(f: Forecast, s: Settings) {
                 val dayHours = f.hoursOn(d.localDate)
                 // IMS gives hourly amounts further ahead than chances: no chance shows "–".
                 val rain = dayHours.mapNotNull { it.rainChance }.maxOrNull()?.roundToInt()
-                val amount = dayHours.sumOf { it.rain ?: 0.0 }
-                val rainColor = if ((rain ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
+                val amount = dayHours.mapNotNull { it.rain }.takeIf { it.isNotEmpty() }?.sum()
+                val rainColor = if ((rain ?: 0) > 0 || (amount ?: 0.0) > 0) wc.rain else cs.onSurfaceVariant
                 Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.width(68.dp)) {
                         Text(
@@ -324,14 +325,15 @@ fun DetailsCard(f: Forecast, s: Settings) {
     val today = f.daily.firstOrNull { it.localDate == now.toLocalDate() }
     val wc = LocalWeatherColors.current
     val uv = today?.uv ?: f.hoursOn(now.toLocalDate()).mapNotNull { it.uv }.maxOrNull()
-    val rainToday = f.hoursOn(now.toLocalDate()).filter { !it.time.isBefore(now.withMinute(0)) }.sumOf { it.rain ?: 0.0 }
+    val hourStart = now.truncatedTo(ChronoUnit.HOURS)
+    val rainToday = f.hoursOn(now.toLocalDate()).filter { !it.time.isBefore(hourStart) }.mapNotNull { it.rain }.takeIf { it.isNotEmpty() }?.sum()
     val gust = next24.mapNotNull { it.gust }.maxOrNull()
     val rainChance = next24.mapNotNull { it.rainChance }.maxOrNull()
     val tiles = listOf(
         Triple(stringResource(R.string.gusts), windValue(gust, s), windUnitLabel(s)) to null,
         Triple(stringResource(R.string.uv), uv?.roundToInt()?.toString() ?: "–", uvLabel(uv)) to wc.heat,
-        Triple(stringResource(R.string.rain_chance), "${rainChance?.roundToInt() ?: 0}%", stringResource(R.string.next_24h_short)) to wc.rain,
-        Triple(stringResource(R.string.rain_today), "%.1f".format(rainToday), stringResource(R.string.unit_mm)) to wc.rain,
+        Triple(stringResource(R.string.rain_chance), pct(rainChance?.roundToInt()), stringResource(R.string.next_24h_short)) to wc.rain,
+        Triple(stringResource(R.string.rain_today), rainToday?.let { "%.1f".format(it) } ?: "–", stringResource(R.string.unit_mm)) to wc.rain,
         Triple(stringResource(R.string.heat_stress), heatLabel(h.heat), "") to null,
         Triple(stringResource(R.string.pm10), h.pm10?.roundToInt()?.toString() ?: "–", stringResource(R.string.unit_ugm3)) to null,
     )

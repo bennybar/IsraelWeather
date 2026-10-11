@@ -83,6 +83,9 @@ fun RadarTab() {
                 index = r.frames.size - 1
                 // Newest first, so the latest picture appears right away.
                 for (i in r.frames.indices.reversed()) frames[i] = loadFrame(context, r.frames[i].url)
+            } else if (r != null) {
+                // Same frames: retry any that failed to load last time.
+                for (i in r.frames.indices.reversed()) if (frames.getOrNull(i) == null) frames[i] = loadFrame(context, r.frames[i].url)
             }
             delay(5 * 60_000L)
         }

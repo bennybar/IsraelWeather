@@ -9,6 +9,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +31,9 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.places.PlacePickerDialog
+import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
+import com.bennybar.israelweather.widget.WIDGET_COLOR_ORANGE
+import com.bennybar.israelweather.widget.WidgetKind
 import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.launch
 
@@ -41,6 +47,8 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     val scope = rememberCoroutineScope()
     var place by remember(appWidgetId) { mutableStateOf(app.settings.widgetPlace(appWidgetId) ?: "current") }
     var showRefresh by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowRefresh(appWidgetId)) }
+    var color by remember(appWidgetId) { mutableStateOf(app.settings.widgetColor(appWidgetId)) }
+    val hasColor = remember(appWidgetId) { Widgets.placed(context).firstOrNull { it.second == appWidgetId }?.first in setOf(WidgetKind.QUIET, WidgetKind.RANGES) }
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> places.value?.firstOrNull { it.id == id }?.name(english) ?: "$id" }
@@ -96,6 +104,24 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 app.settings.setWidgetShowRefresh(appWidgetId, it)
                 update()
             })
+        }
+        if (hasColor) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.widget_color), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                SingleChoiceSegmentedButtonRow {
+                    listOf(WIDGET_COLOR_LAVENDER to R.string.color_lavender, WIDGET_COLOR_ORANGE to R.string.color_orange).forEachIndexed { i, (key, label) ->
+                        SegmentedButton(
+                            selected = color == key,
+                            onClick = {
+                                color = key
+                                app.settings.setWidgetColor(appWidgetId, key)
+                                update()
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(i, 2),
+                        ) { Text(stringResource(label)) }
+                    }
+                }
+            }
         }
     }
 }
