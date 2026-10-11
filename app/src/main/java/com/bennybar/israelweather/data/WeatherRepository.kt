@@ -88,7 +88,7 @@ class WeatherRepository(
     }
 
     /** IMS issues forecasts a few times a day; 20 minutes keeps us current without hammering the proxy. */
-    suspend fun refreshForecast(id: Int, force: Boolean = false): Boolean {
+    suspend fun refreshForecast(id: Int, force: Boolean = false, updateWidgets: Boolean = true): Boolean {
         val cached = cachedForecast(id)
         if (!force && cached != null && age(cached.fetchedAt) < FORECAST_TTL) return true
         _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = true, error = null)) }
@@ -97,7 +97,7 @@ class WeatherRepository(
                 val now = System.currentTimeMillis()
                 _forecasts.update { m -> m + (id to Loadable(f, now)) }
                 withContext(Dispatchers.IO) { write("forecast-$id", Forecast.serializer(), Stamped(now, f)) }
-                scope.launch { Widgets.updateAll(context) }
+                if (updateWidgets) scope.launch { Widgets.updateAll(context) }
             }
             .onFailure { e -> _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = false, error = e)) } }
             .isSuccess

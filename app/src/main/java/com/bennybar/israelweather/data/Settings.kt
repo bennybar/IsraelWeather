@@ -97,6 +97,10 @@ class SettingsStore(context: Context) {
     fun widgetPlace(appWidgetId: Int): String? = prefs.getString("widget_$appWidgetId", null)
     fun setWidgetPlace(appWidgetId: Int, place: String) = prefs.edit().putString("widget_$appWidgetId", place).apply()
 
+    /** Whether we already explained and asked for "Allow all the time" (asked once; Settings can ask again). */
+    fun backgroundAsked() = prefs.getBoolean("backgroundAsked", false)
+    fun setBackgroundAsked() = prefs.edit().putBoolean("backgroundAsked", true).apply()
+
     /** Per-widget "refresh now" button (shown by default). */
     fun widgetShowRefresh(appWidgetId: Int) = prefs.getBoolean("widget_refresh_$appWidgetId", true)
     fun setWidgetShowRefresh(appWidgetId: Int, show: Boolean) = prefs.edit().putBoolean("widget_refresh_$appWidgetId", show).apply()

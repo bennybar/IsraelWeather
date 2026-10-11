@@ -1,8 +1,5 @@
 package com.bennybar.israelweather.ui.places
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +31,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,12 +45,11 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.israelNow
-import com.bennybar.israelweather.location.CurrentPlace
 import com.bennybar.israelweather.ui.LocalUi
 import com.bennybar.israelweather.ui.Overlay
 import com.bennybar.israelweather.ui.isEnglish
+import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.ui.temp
-import kotlinx.coroutines.launch
 
 /** Saved places: current location toggle, reorder, remove, add via search. */
 @Composable
@@ -64,10 +59,7 @@ fun PlacesTab() {
     val places by app.repo.places.collectAsStateWithLifecycle()
     val forecasts by app.repo.forecasts.collectAsStateWithLifecycle()
     val english = isEnglish()
-    val scope = rememberCoroutineScope()
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) scope.launch { CurrentPlace.resolve() }
-    }
+    val location = rememberLocationAccess()
     fun name(id: Int) = places.value?.firstOrNull { it.id == id }?.name(english) ?: "…"
 
     @Composable
@@ -109,13 +101,7 @@ fun PlacesTab() {
                 }
                 Switch(
                     checked = settings.useLocation,
-                    onCheckedChange = { on ->
-                        app.settings.setUseLocation(on)
-                        if (on) {
-                            if (app.location.hasPermission()) scope.launch { CurrentPlace.resolve() }
-                            else permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                        }
-                    },
+                    onCheckedChange = { on -> if (on) location.request() else app.settings.setUseLocation(false) },
                 )
             }
         }

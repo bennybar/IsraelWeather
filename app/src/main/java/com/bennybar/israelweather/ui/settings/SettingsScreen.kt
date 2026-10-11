@@ -50,7 +50,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.BuildConfig
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
@@ -74,8 +76,14 @@ fun SettingsScreen() {
     val settings by app.settings.state.collectAsStateWithLifecycle()
     val localeManager = remember { context.getSystemService(LocaleManager::class.java) }
     var language by remember { mutableStateOf(localeManager.applicationLocales.toLanguageTags()) }
-    // Bumped after pinning a widget so the placed-widgets list re-reads.
+    // Bumped after pinning a widget so the placed-widgets list re-reads; also on
+    // resume, since the system's "Add to home screen" dialog pauses us.
     var widgetsVersion by remember { mutableIntStateOf(0) }
+    LifecycleResumeEffect(Unit) {
+        widgetsVersion++
+        onPauseOrDispose { }
+    }
+    val location = rememberLocationAccess()
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
         Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -126,6 +134,31 @@ fun SettingsScreen() {
                             )
                         }
                     }
+                }
+            }
+            item {
+                Section(stringResource(R.string.section_location)) {
+                    // Re-read on resume: the user may have changed it in system settings.
+                    var perms by remember { mutableIntStateOf(0) }
+                    LifecycleResumeEffect(Unit) {
+                        perms++
+                        onPauseOrDispose { }
+                    }
+                    val access = remember(perms) {
+                        when {
+                            app.location.hasPrecise() -> R.string.loc_precise
+                            app.location.hasPermission() -> R.string.loc_approx
+                            else -> R.string.loc_denied
+                        }
+                    }
+                    val background = remember(perms) { app.location.hasBackground() }
+                    PermissionRow(stringResource(R.string.loc_access), stringResource(access), if (access == R.string.loc_denied) location.request else null)
+                    PermissionRow(
+                        stringResource(R.string.loc_background),
+                        stringResource(if (background) R.string.loc_allowed else R.string.loc_denied),
+                        if (background) null else location.requestBackground,
+                    )
+                    Text(stringResource(R.string.loc_background_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 }
             }
             item {
@@ -196,6 +229,17 @@ fun SettingsScreen() {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PermissionRow(label: String, state: String, onFix: (() -> Unit)?) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(label, fontWeight = FontWeight.SemiBold)
+            Text(state, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+        }
+        if (onFix != null) OutlinedButton(onClick = onFix) { Text(stringResource(R.string.grant)) }
     }
 }
 

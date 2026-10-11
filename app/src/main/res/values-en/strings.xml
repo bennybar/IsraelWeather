@@ -137,4 +137,21 @@
     <string name="widget_place">Place</string>
     <string name="widget_settings">Widget settings</string>
     <string name="done">Done</string>
+    <string name="location_off">Location services are off on this phone.</string>
+    <string name="turn_on_location">Turn on location</string>
+    <string name="bg_title">Allow location all the time?</string>
+    <string name="bg_body">So widgets and background refresh show the weather where you are even while the app is closed, choose “Allow all the time” on the next screen.</string>
+    <string name="bg_continue">Continue</string>
+    <string name="not_now">Not now</string>
+    <string name="section_location">Location</string>
+    <string name="loc_access">Location access</string>
+    <string name="loc_precise">Precise</string>
+    <string name="loc_approx">Approximate</string>
+    <string name="loc_denied">Not allowed</string>
+    <string name="loc_allowed">Allowed</string>
+    <string name="loc_background">Background location</string>
+    <string name="loc_background_hint">Needed for “My location” widgets to update as you move.</string>
+    <string name="grant">Allow</string>
+    <string name="other_place">Other place…</string>
+    <string name="cancel">Cancel</string>
 </resources>

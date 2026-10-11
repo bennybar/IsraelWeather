@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.isEnglish
+import com.bennybar.israelweather.ui.places.PlacePickerDialog
 import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.launch
 
@@ -41,8 +42,26 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var place by remember(appWidgetId) { mutableStateOf(app.settings.widgetPlace(appWidgetId) ?: "current") }
     var showRefresh by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowRefresh(appWidgetId)) }
     var open by remember { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> places.value?.firstOrNull { it.id == id }?.name(english) ?: "$id" }
     val update: () -> Unit = { scope.launch { Widgets.updateAll(context) } }
+    fun choose(key: String) {
+        place = key
+        app.settings.setWidgetPlace(appWidgetId, key)
+        update()
+    }
+    // Saved places, plus the widget's own pick when it isn't one of them.
+    val keys = (listOf("current") + settings.places.map { it.toString() } + place).distinct()
+
+    if (picking) {
+        PlacePickerDialog(
+            onPick = { p ->
+                picking = false
+                choose(p.id.toString())
+            },
+            onDismiss = { picking = false },
+        )
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (title != null) Text(title, fontWeight = FontWeight.Bold)
@@ -51,17 +70,22 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
             Box {
                 OutlinedButton(onClick = { open = true }) { Text(nameOf(place) ?: stringResource(R.string.current_location)) }
                 DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                    (listOf("current") + settings.places.map { it.toString() }).forEach { key ->
+                    keys.forEach { key ->
                         DropdownMenuItem(
                             text = { Text(nameOf(key) ?: stringResource(R.string.current_location)) },
                             onClick = {
                                 open = false
-                                place = key
-                                app.settings.setWidgetPlace(appWidgetId, key)
-                                update()
+                                choose(key)
                             },
                         )
                     }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.other_place)) },
+                        onClick = {
+                            open = false
+                            picking = true
+                        },
+                    )
                 }
             }
         }

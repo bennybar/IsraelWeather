@@ -137,4 +137,21 @@
     <string name="widget_place">מקום</string>
     <string name="widget_settings">הגדרות ווידג׳ט</string>
     <string name="done">סיום</string>
+    <string name="location_off">שירותי המיקום בטלפון כבויים.</string>
+    <string name="turn_on_location">הפעלת מיקום</string>
+    <string name="bg_title">לאפשר מיקום כל הזמן?</string>
+    <string name="bg_body">כדי שהווידג׳טים והרענון ברקע יציגו את מזג האוויר במקום שבו אתם נמצאים גם כשהאפליקציה סגורה, בחרו ״לאפשר כל הזמן״ במסך הבא.</string>
+    <string name="bg_continue">המשך</string>
+    <string name="not_now">לא עכשיו</string>
+    <string name="section_location">מיקום</string>
+    <string name="loc_access">גישה למיקום</string>
+    <string name="loc_precise">מדויק</string>
+    <string name="loc_approx">משוער</string>
+    <string name="loc_denied">לא מאושר</string>
+    <string name="loc_allowed">מאושר</string>
+    <string name="loc_background">מיקום ברקע</string>
+    <string name="loc_background_hint">נדרש כדי שווידג׳טים על ״המיקום שלי״ יתעדכנו כשאתם זזים.</string>
+    <string name="grant">אישור</string>
+    <string name="other_place">מקום אחר…</string>
+    <string name="cancel">ביטול</string>
 </resources>

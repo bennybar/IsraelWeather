@@ -16,12 +16,14 @@ import java.util.concurrent.TimeUnit
 class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val s = app.settings.value
-        // Background fixes need background-location permission, which we don't ask
-        // for: the last known location (from any app) is good enough here.
-        if (s.useLocation) runCatching { CurrentPlace.resolve(fresh = false) }
+        // A new fix needs "Allow all the time"; without it, the last known
+        // location (from any app) is the best we can do in the background.
+        // Either way it's low power and reuses anything from the last 30 min.
+        if (s.useLocation) runCatching { CurrentPlace.resolve(fresh = app.location.hasBackground(), background = true) }
         app.repo.refreshPlaces()
         val ids = s.places + listOfNotNull(app.settings.value.currentPlace) + Widgets.placeIds(applicationContext)
-        ids.toSet().forEach { app.repo.refreshForecast(it, force = true) }
+        // Widgets are redrawn once below, not after every place.
+        ids.toSet().forEach { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
         app.repo.refreshWarnings(force = true)
         Widgets.updateAll(applicationContext)
         return Result.success()
@@ -38,7 +40,9 @@ class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorke
                 return
             }
             val request = PeriodicWorkRequestBuilder<RefreshWorker>(minutes.toLong(), TimeUnit.MINUTES)
-                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .setConstraints(
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresBatteryNotLow(true).build(),
+                )
                 .build()
             wm.enqueueUniquePeriodicWork(NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
         }

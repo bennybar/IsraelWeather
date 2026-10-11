@@ -1,8 +1,5 @@
 package com.bennybar.israelweather.ui.forecast
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,7 +48,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import com.bennybar.israelweather.ui.openLocationSettings
+import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Card
@@ -73,18 +74,19 @@ fun ForecastTab() {
     val ui = LocalUi.current
     val settings by app.settings.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var locResult by remember { mutableStateOf<CurrentPlace.Result?>(null) }
+    val locStatus by CurrentPlace.status.collectAsStateWithLifecycle()
+    val location = rememberLocationAccess()
 
     LaunchedEffect(Unit) {
         app.repo.refreshPlaces()
         app.repo.refreshWarnings()
     }
-    // Locate on open (when allowed); the last fix keeps the page usable meanwhile.
-    LaunchedEffect(settings.useLocation) {
-        if (settings.useLocation && app.location.hasPermission()) locResult = CurrentPlace.resolve()
-    }
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        scope.launch { locResult = if (granted) CurrentPlace.resolve() else CurrentPlace.Result.NO_PERMISSION }
+    // Locate whenever the app comes to the foreground: this also picks up a
+    // permission granted in system settings, without restarting the app.
+    // The last fix keeps the page usable meanwhile.
+    LifecycleResumeEffect(settings.useLocation) {
+        if (settings.useLocation) scope.launch { CurrentPlace.resolve() }
+        onPauseOrDispose { }
     }
 
     val pages = buildList {
@@ -94,10 +96,7 @@ fun ForecastTab() {
     if (pages.isEmpty()) {
         EmptyState(
             onAdd = { ui.overlay = Overlay.SEARCH },
-            onLocate = {
-                app.settings.setUseLocation(true)
-                permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-            },
+            onLocate = location.request,
         )
         return
     }
@@ -116,10 +115,10 @@ fun ForecastTab() {
         val dots: @Composable () -> Unit = { PageDots(pages.size, pager.currentPage, pages.first().current) }
         if (page.id == null) {
             LocatePage(
-                result = locResult ?: if (app.location.hasPermission()) null else CurrentPlace.Result.NO_PERMISSION,
+                result = if (!app.location.hasPermission()) CurrentPlace.Result.NO_PERMISSION else locStatus,
                 dots = dots,
-                onAllow = { permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION) },
-                onRetry = { scope.launch { locResult = null; locResult = CurrentPlace.resolve() } },
+                onAllow = location.request,
+                onRetry = { scope.launch { CurrentPlace.resolve() } },
             )
         } else {
             ForecastPage(page.id, page.current, dots)
@@ -268,12 +267,16 @@ private fun LocatePage(result: CurrentPlace.Result?, dots: @Composable () -> Uni
     Column(Modifier.fillMaxSize()) {
         Header(stringResource(R.string.current_location), true, null, dots, { ui.editCards = true }, { ui.overlay = Overlay.SETTINGS })
         when (result) {
-            null -> Box(Modifier.fillMaxWidth().padding(top = 120.dp), contentAlignment = Alignment.Center) {
+            null, CurrentPlace.Result.LOCATING, CurrentPlace.Result.OK -> Box(Modifier.fillMaxWidth().padding(top = 120.dp), contentAlignment = Alignment.Center) {
                 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
                 LoadingIndicator(Modifier.size(64.dp))
             }
             CurrentPlace.Result.NO_PERMISSION -> Message(stringResource(R.string.location_why), stringResource(R.string.allow_location), onAllow)
             CurrentPlace.Result.OUTSIDE_ISRAEL -> Message(stringResource(R.string.outside_israel), stringResource(R.string.retry), onRetry)
+            CurrentPlace.Result.LOCATION_OFF -> {
+                val context = LocalContext.current
+                Message(stringResource(R.string.location_off), stringResource(R.string.turn_on_location)) { openLocationSettings(context) }
+            }
             else -> Message(stringResource(R.string.no_fix), stringResource(R.string.retry), onRetry)
         }
     }

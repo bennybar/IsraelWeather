@@ -30,8 +30,8 @@ android {
         applicationId = "com.bennybar.israelweather"
         minSdk = 35
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
     }
 
     dependenciesInfo {
@@ -103,6 +103,8 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
 }
