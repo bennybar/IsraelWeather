@@ -64,6 +64,8 @@ private data class Spectrum(
     val ring: Color,
     val gradient: List<Color>,
     val chip: Color,
+    /** Hairline around the light chips, so they don't melt into today's highlight. */
+    val chipBorder: Color,
     val chipInk: Color,
     val chipStrong: Color,
     val chipStrongInk: Color,
@@ -75,21 +77,21 @@ private val LavenderSpectrum = Spectrum(
     bg = Color(0xFFE6DCF7), bgImage = null, today = Color(0xFFF7F3FD), ink = Color(0xFF1E1633), muted = Color(0xFF5B5072),
     button = Color(0xFFF4F0FB), track = Color(0xFFD7CCEE), ring = Color(0xFF7259CC),
     gradient = listOf(Color(0xFF8FA8FF), Color(0xFFB48CFF), Color(0xFFFF9F6B)),
-    chip = Color(0xFFF4F0FB), chipInk = Color(0xFF2F5FC8), chipStrong = Color(0xFF2F5FC8), chipStrongInk = Color.White,
+    chip = Color(0xFFE6EBFC), chipBorder = Color(0xFFC3CEF4), chipInk = Color(0xFF2F5FC8), chipStrong = Color(0xFF2F5FC8), chipStrongInk = Color.White,
 )
 
 private val OrangeSpectrum = Spectrum(
     bg = Color(0xFFFFE3C4), bgImage = null, today = Color(0xFFFFF7EE), ink = Color(0xFF2A1B0E), muted = Color(0xFF6A4A2A),
     button = Color(0xFFFFF6EC), track = Color(0xFFF5CFA6), ring = Color(0xFFD5620B),
     gradient = listOf(Color(0xFF8FB4FF), Color(0xFFFFC07A), Color(0xFFF0703A)),
-    chip = Color(0xFFFFF6EC), chipInk = Color(0xFF1554B8), chipStrong = Color(0xFF1554B8), chipStrongInk = Color.White,
+    chip = Color(0xFFE8EEFB), chipBorder = Color(0xFFC6D3F2), chipInk = Color(0xFF1554B8), chipStrong = Color(0xFF1554B8), chipStrongInk = Color.White,
 )
 
 private val TwilightSpectrum = Spectrum(
     bg = Color(0xFF3E2F7A), bgImage = R.drawable.twilight_bg, today = Color(0x1FFFFFFF), ink = Color(0xFFF3EFFF), muted = Color(0xFFC9BFEA),
     button = Color(0xFFD9CFF2), track = Color(0x24FFFFFF), ring = Color(0xFFB79CFF),
     gradient = listOf(Color(0xFF7FA2FF), Color(0xFFC9A8FF), Color(0xFFFFB38A)),
-    chip = Color(0x1FFFFFFF), chipInk = Color(0xFFB9CCFF), chipStrong = Color(0xFF6F8BFF), chipStrongInk = Color.White,
+    chip = Color(0x2E8FA8FF), chipBorder = Color(0x5C8FA8FF), chipInk = Color(0xFFB9CCFF), chipStrong = Color(0xFF6F8BFF), chipStrongInk = Color.White,
     whiteDrop = true,
 )
 
@@ -121,17 +123,17 @@ class SpectrumWidget : WeatherWidget() {
         // The bar takes the row's leftover width; its bitmap is drawn for that width so the round
         // ends and the dot aren't stretched. (The picker preview reports the minimum size, so
         // assume a typical 4-cell width there.) Fixed: card + row padding, day, icon, min, max, chip, wind.
-        val fixed = 32.dp + 8.dp + 50.dp + 28.dp + 34.dp + 36.dp + 62.dp + (if (data.showWind) 42.dp else 0.dp)
+        val fixed = 20.dp + 20.dp + 50.dp + 28.dp + 34.dp + 36.dp + 62.dp + (if (data.showWind) 42.dp else 0.dp)
         val layoutWidth = if (size.width < 300.dp) 360.dp else size.width
         val barWidth = (layoutWidth - fixed).coerceAtLeast(24.dp)
 
         val bgModifier = if (p.bgImage != null) GlanceModifier.background(ImageProvider(p.bgImage)) else GlanceModifier.background(p.bg)
         Box(
-            GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = 16.dp, vertical = 12.dp)
+            GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = 10.dp, vertical = 12.dp)
                 .clickable(actionStartActivity<MainActivity>()),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
-                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(temp(now.temp, s), style = style(if (tall) 40.sp else 34.sp, p.ink, bold = true), maxLines = 1)
                     Spacer(GlanceModifier.width(10.dp))
                     Column(GlanceModifier.defaultWeight()) {
@@ -153,7 +155,7 @@ class SpectrumWidget : WeatherWidget() {
                     val today = i == 0
                     Row(
                         GlanceModifier.fillMaxWidth().defaultWeight().cornerRadius(14.dp)
-                            .background(if (today) p.today else Color.Transparent).padding(horizontal = 4.dp),
+                            .background(if (today) p.today else Color.Transparent).padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(GlanceModifier.width(50.dp)) {
@@ -188,8 +190,9 @@ class SpectrumWidget : WeatherWidget() {
                         val chance = dayRainChance(data, d)
                         val strong = (chance ?: 0) >= RAINY_PCT
                         Box(GlanceModifier.width(62.dp), contentAlignment = Alignment.CenterEnd) {
+                            Box(GlanceModifier.background(if (strong) p.chipStrong else p.chipBorder).cornerRadius(10.dp).padding(1.dp)) {
                             Row(
-                                GlanceModifier.background(if (strong) p.chipStrong else p.chip).cornerRadius(10.dp).padding(horizontal = 7.dp, vertical = 2.dp),
+                                GlanceModifier.background(if (strong) p.chipStrong else p.chip).cornerRadius(9.dp).padding(horizontal = 6.dp, vertical = 1.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Image(
@@ -198,6 +201,7 @@ class SpectrumWidget : WeatherWidget() {
                                 )
                                 Spacer(GlanceModifier.width(3.dp))
                                 Text(pct(chance), style = style(12.sp, if (strong) p.chipStrongInk else p.chipInk, bold = true), maxLines = 1)
+                            }
                             }
                         }
                     }
