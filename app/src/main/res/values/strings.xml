@@ -32,7 +32,7 @@
     <string name="remove">הסרה</string>
 
     <string name="measured_now">נמדד עכשיו</string>
-    <string name="forecast_now">תחזית לשעה זו</string>
+    <string name="forecast_now">עכשיו</string>
     <string name="humidity">לחות</string>
     <string name="wind">רוח</string>
     <string name="gusts">משבים</string>

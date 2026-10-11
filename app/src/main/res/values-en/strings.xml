@@ -32,7 +32,7 @@
     <string name="remove">Remove</string>
 
     <string name="measured_now">Measured now</string>
-    <string name="forecast_now">Forecast for this hour</string>
+    <string name="forecast_now">Now</string>
     <string name="humidity">Humidity</string>
     <string name="wind">Wind</string>
     <string name="gusts">Gusts</string>
