@@ -100,7 +100,7 @@ private fun HourlyContent(data: WidgetData) {
                             Text(if (on) context.getString(R.string.now) else hh(hour.time), style = style(11.sp, fg), maxLines = 1)
                             Image(ImageProvider(WeatherCodes.drawable(hour.code, WeatherCodes.isNight(hour.time))), null, GlanceModifier.size(22.dp))
                             Text(temp(hour.temp, s), style = style(14.sp, fg, bold = true), maxLines = 1)
-                            Text("${hour.chance()}%", style = style(11.sp, rainFg, bold = true), maxLines = 1)
+                            Text("${pct(hour.chance())}", style = style(11.sp, rainFg, bold = true), maxLines = 1)
                             Text("${mm(hour.rain)} $unit", style = style(9.sp, rainFg), maxLines = 1)
                         }
                     }
@@ -142,7 +142,7 @@ private fun DailyContent(data: WidgetData) {
                                 GlanceModifier.background(if (on) BurntDark else Cream).cornerRadius(10.dp).padding(horizontal = 6.dp, vertical = 2.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                Text("${dayRainChance(data, d)}%", style = style(11.sp, rainFg, bold = true), maxLines = 1)
+                                Text("${pct(dayRainChance(data, d))}", style = style(11.sp, rainFg, bold = true), maxLines = 1)
                                 Text("${mm(dayRainMm(data, d))} $unit", style = style(9.sp, rainFg), maxLines = 1)
                             }
                         }

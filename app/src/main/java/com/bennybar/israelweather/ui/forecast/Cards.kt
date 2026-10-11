@@ -65,6 +65,8 @@ import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 import com.bennybar.israelweather.ui.warningLabel
 import com.bennybar.israelweather.ui.warningRange
 import com.bennybar.israelweather.ui.windValue
+import com.bennybar.israelweather.widget.mm
+import com.bennybar.israelweather.widget.pct
 import kotlin.math.roundToInt
 
 private val cardShape = RoundedCornerShape(32.dp)
@@ -227,11 +229,19 @@ fun HourlyCard(f: Forecast, s: Settings) {
                     drawCircle(cs.primary, 3.5.dp.toPx(), Offset(x(i), y))
                 }
             }
+            val unit = stringResource(R.string.unit_mm)
             Row(Modifier.fillMaxWidth()) {
-                labelled.forEach { h ->
+                labelled.forEachIndexed { g, h ->
+                    // Rain for the whole 3-hour slot: its highest chance and total amount.
+                    val slot = hours.subList(g * 3, g * 3 + 3)
+                    val chance = slot.mapNotNull { it.rainChance }.maxOrNull()?.roundToInt()
+                    val amount = slot.sumOf { it.rain ?: 0.0 }
+                    val color = if ((chance ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(temp(h.temp, s), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Text(hh(h.time), fontSize = 11.sp, color = cs.onSurfaceVariant)
+                        Text(pct(chance), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
+                        Text("${mm(amount)} $unit", fontSize = 10.sp, color = color, maxLines = 1)
                     }
                 }
             }
@@ -263,7 +273,11 @@ fun WeekCard(f: Forecast, s: Settings) {
     CardBox {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 6.dp)) {
             days.forEach { d ->
-                val rain = f.hoursOn(d.localDate).mapNotNull { it.rainChance }.maxOrNull() ?: 0.0
+                val dayHours = f.hoursOn(d.localDate)
+                // IMS gives hourly amounts further ahead than chances: no chance shows "–".
+                val rain = dayHours.mapNotNull { it.rainChance }.maxOrNull()?.roundToInt()
+                val amount = dayHours.sumOf { it.rain ?: 0.0 }
+                val rainColor = if ((rain ?: 0) > 0 || amount > 0) wc.rain else cs.onSurfaceVariant
                 Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         // English full names ("Wednesday") don't fit the column; Hebrew ones do.
@@ -271,10 +285,11 @@ fun WeekCard(f: Forecast, s: Settings) {
                         Modifier.width(68.dp), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1,
                     )
                     Image(painterResource(WeatherCodes.drawable(d.code)), null, Modifier.size(28.dp))
-                    Text(
-                        if (rain >= 20) "${rain.roundToInt()}%" else "",
-                        Modifier.width(44.dp).padding(start = 6.dp), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = wc.rain,
-                    )
+                    // Chance (the day's highest hourly) over its total amount.
+                    Column(Modifier.width(60.dp).padding(start = 6.dp)) {
+                        Text(pct(rain), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = rainColor, maxLines = 1)
+                        Text("${mm(amount)} ${stringResource(R.string.unit_mm)}", fontSize = 11.sp, color = rainColor, maxLines = 1)
+                    }
                     Text(temp(d.min, s), Modifier.width(36.dp), fontSize = 15.sp, color = cs.onSurfaceVariant)
                     BoxWithConstraints(Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(wc.track)) {
                         val start = (((d.min ?: lo) - lo) / (hi - lo)).toFloat()

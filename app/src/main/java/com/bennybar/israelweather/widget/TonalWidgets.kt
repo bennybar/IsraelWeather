@@ -109,7 +109,7 @@ class HourlyTonalWidget : WeatherWidget() {
                 Spacer(GlanceModifier.width(3.dp))
                 Text(temp(h.temp, s), style = style(13.sp, Ink, bold = true))
             }
-            Text("${h.chance()}% · ${mm(h.rain)}", style = style(10.sp, Rain, bold = true), maxLines = 1)
+            Text("${pct(h.chance())} · ${mm(h.rain)}", style = style(10.sp, Rain, bold = true), maxLines = 1)
         }
     }
 }
@@ -150,7 +150,7 @@ class DailyTonalWidget : WeatherWidget() {
                             ) {
                                 Image(ImageProvider(if (today) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size(10.dp))
                                 Spacer(GlanceModifier.width(3.dp))
-                                Text("${dayRainChance(data, d)}% · ${mm(dayRainMm(data, d))} $unit", style = style(10.sp, rain, bold = true), maxLines = 1)
+                                Text("${pct(dayRainChance(data, d))} · ${mm(dayRainMm(data, d))} $unit", style = style(10.sp, rain, bold = true), maxLines = 1)
                             }
                         }
                         Spacer(GlanceModifier.width(6.dp))

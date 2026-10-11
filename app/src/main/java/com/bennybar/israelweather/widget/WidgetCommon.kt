@@ -113,15 +113,18 @@ fun dayLabel(context: Context, d: Day, short: Boolean = true): String =
     if (d.localDate == israelNow().toLocalDate()) context.getString(R.string.today)
     else dayName(d.localDate, context.resources.configuration.locales[0], short)
 
-/** A day's rain chance: its highest hourly chance (%). */
-fun dayRainChance(data: WidgetData, d: Day): Int =
-    data.forecast?.hoursOn(d.localDate)?.mapNotNull { it.rainChance }?.maxOrNull()?.roundToInt() ?: 0
+/** A day's rain chance: its highest hourly chance (%); null when IMS gives none (beyond ~5 days). */
+fun dayRainChance(data: WidgetData, d: Day): Int? =
+    data.forecast?.hoursOn(d.localDate)?.mapNotNull { it.rainChance }?.maxOrNull()?.roundToInt()
 
 /** A day's rain amount: the sum of its hourly amounts (mm). */
 fun dayRainMm(data: WidgetData, d: Day): Double =
     data.forecast?.hoursOn(d.localDate)?.sumOf { it.rain ?: 0.0 } ?: 0.0
 
-fun Hour.chance(): Int = (rainChance ?: 0.0).roundToInt()
+fun Hour.chance(): Int? = rainChance?.roundToInt()
+
+/** "70%", or "–" when IMS gives no chance (it gives amounts further ahead than chances). */
+fun pct(v: Int?): String = v?.let { "$it%" } ?: "–"
 
 /** "1.4", "12", "0" — one decimal below 10 mm. */
 fun mm(v: Double?): String {

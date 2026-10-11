@@ -96,7 +96,7 @@ class HourlyTableWidget : WeatherWidget() {
                             Cell(44.dp) { Text(hh(hr.time), style = style(13.sp, Muted), maxLines = 1) }
                             Cell(26.dp) { Image(ImageProvider(WeatherCodes.drawable(hr.code, WeatherCodes.isNight(hr.time))), null, GlanceModifier.size(20.dp)) }
                             Cell(30.dp) { Text(temp(hr.temp, s), style = style(13.sp, Ink, bold = true), maxLines = 1) }
-                            Cell(38.dp) { Text("${hr.chance()}%", style = style(13.sp, Blue, bold = true), maxLines = 1) }
+                            Cell(38.dp) { Text("${pct(hr.chance())}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
                             Text(mm(hr.rain), style = style(13.sp, Blue), maxLines = 1, modifier = GlanceModifier.defaultWeight())
                         }
                     }
@@ -139,7 +139,7 @@ class DailyTableWidget : WeatherWidget() {
                     Row(GlanceModifier.fillMaxWidth().defaultWeight(), verticalAlignment = Alignment.CenterVertically) {
                         Cell(48.dp) { Text(dayLabel(context, d), style = style(13.sp, Ink, bold = true), maxLines = 1) }
                         Cell(30.dp) { Image(ImageProvider(WeatherCodes.drawable(d.code)), null, GlanceModifier.size(22.dp)) }
-                        Cell(42.dp) { Text("${dayRainChance(data, d)}%", style = style(13.sp, Blue, bold = true), maxLines = 1) }
+                        Cell(42.dp) { Text("${pct(dayRainChance(data, d))}", style = style(13.sp, Blue, bold = true), maxLines = 1) }
                         Cell(48.dp) { Text("${mm(dayRainMm(data, d))} $unit", style = style(11.sp, Blue), maxLines = 1) }
                         Box(GlanceModifier.width(28.dp), contentAlignment = Alignment.Center) {
                             Text(temp(d.min, s), style = style(13.sp, Muted), maxLines = 1)
