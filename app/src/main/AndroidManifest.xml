@@ -66,6 +66,18 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily_tonal" />
         </receiver>
+        <receiver android:name=".widget.ClassicComboReceiver" android:exported="true" android:label="@string/widget_combo">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo" />
+        </receiver>
+        <receiver android:name=".widget.TableComboReceiver" android:exported="true" android:label="@string/widget_combo_table">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo_table" />
+        </receiver>
+        <receiver android:name=".widget.SoftComboReceiver" android:exported="true" android:label="@string/widget_combo_tonal">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_combo_tonal" />
+        </receiver>
         <receiver android:name=".widget.StripWidgetReceiver" android:exported="true" android:label="@string/widget_strip">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_strip" />

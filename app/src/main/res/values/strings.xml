@@ -168,4 +168,10 @@
     <string name="col_chance">סיכוי</string>
     <string name="days_5">5 ימים</string>
     <string name="col_wind">רוח</string>
+    <string name="widget_combo">שעתי ויומי · קלאסי</string>
+    <string name="widget_combo_table">שעתי ויומי · טבלה</string>
+    <string name="widget_combo_tonal">שעתי ויומי · רך</string>
+    <string name="widget_combo_desc">השעות הקרובות וחמשת הימים, בכרטיס אחד</string>
+    <string name="widget_combo_table_desc">טבלת השעות הקרובות וטבלת חמשת הימים</string>
+    <string name="widget_combo_tonal_desc">השעות הקרובות וחמשת הימים בגוונים רכים</string>
 </resources>

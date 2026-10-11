@@ -40,4 +40,13 @@ The release build uses `proxyUrl` from `gradle.properties`; debug builds can ove
 ./gradlew :app:assembleRelease   # needs key.properties + the keystore at the repo root (gitignored)
 ```
 
+### Widget picker previews
+
+Launchers that support Android 15's generated previews (Pixel) show each widget's live
+layout; others (e.g. Samsung) show the static images in `res/drawable-nodpi` (Hebrew) and
+`res/drawable-en-nodpi` (English). After changing a widget layout, regenerate them with the
+debug build: launch the app (it publishes the generated previews), then
+`adb shell am start -n com.bennybar.israelweather/.PreviewExportActivity` and pull
+`files/previews/*.webp` with `adb exec-out run-as com.bennybar.israelweather cat …`.
+
 Data: Israel Meteorological Service. Map tiles: © OpenStreetMap contributors.

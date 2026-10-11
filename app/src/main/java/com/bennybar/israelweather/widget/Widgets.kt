@@ -24,6 +24,9 @@ enum class WidgetKind(val receiver: KClass<out GlanceAppWidgetReceiver>, val tit
     DAILY(DailyWidgetReceiver::class, R.string.widget_daily, ::DailyWidget),
     DAILY_TABLE(DailyTableReceiver::class, R.string.widget_daily_table, ::DailyTableWidget),
     DAILY_TONAL(DailyTonalReceiver::class, R.string.widget_daily_tonal, ::DailyTonalWidget),
+    COMBO(ClassicComboReceiver::class, R.string.widget_combo, ::ClassicComboWidget),
+    COMBO_TABLE(TableComboReceiver::class, R.string.widget_combo_table, ::TableComboWidget),
+    COMBO_TONAL(SoftComboReceiver::class, R.string.widget_combo_tonal, ::SoftComboWidget),
     STRIP(StripWidgetReceiver::class, R.string.widget_strip, ::StripWidget),
     ALERTS(AlertsWidgetReceiver::class, R.string.widget_alerts, ::AlertsWidget),
 }

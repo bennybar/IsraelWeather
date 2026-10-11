@@ -168,4 +168,10 @@
     <string name="col_chance">Chance</string>
     <string name="days_5">5 days</string>
     <string name="col_wind">Wind</string>
+    <string name="widget_combo">Hourly + Daily · Classic</string>
+    <string name="widget_combo_table">Hourly + Daily · Table</string>
+    <string name="widget_combo_tonal">Hourly + Daily · Soft</string>
+    <string name="widget_combo_desc">The next hours and five days in one card</string>
+    <string name="widget_combo_table_desc">Tables of the next hours and the next five days</string>
+    <string name="widget_combo_tonal_desc">The next hours and five days in soft tones</string>
 </resources>
