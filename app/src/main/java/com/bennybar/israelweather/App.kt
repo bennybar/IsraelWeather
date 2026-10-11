@@ -11,6 +11,9 @@ import com.bennybar.israelweather.data.SettingsStore
 import com.bennybar.israelweather.data.WeatherRepository
 import com.bennybar.israelweather.location.LocationResolver
 import com.bennybar.israelweather.widget.RefreshWorker
+import com.bennybar.israelweather.widget.Widgets
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +32,12 @@ class WeatherApp : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         app = AppContainer(this)
         RefreshWorker.schedule(this, app.settings.value.refreshMinutes)
+        // A short delay: right after an install or update, Android is still reloading
+        // the widget list and would drop previews published meanwhile.
+        app.scope.launch {
+            delay(5_000)
+            Widgets.publishPreviews(this@WeatherApp)
+        }
     }
 
     /** Coil shares our OkHttp client (and its User-Agent, which OSM's tile servers require). */

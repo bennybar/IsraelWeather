@@ -123,8 +123,8 @@
     <string name="about_body">התחזיות, ההתראות ותמונות המכ״ם מגיעים מהשירות המטאורולוגי הישראלי. המפה: © OpenStreetMap.</string>
     <string name="version">גרסה</string>
 
-    <string name="widget_hourly">שעתי</string>
-    <string name="widget_daily">יומי</string>
+    <string name="widget_hourly">שעתי · קלאסי</string>
+    <string name="widget_daily">יומי · קלאסי</string>
     <string name="widget_strip">יומי מקוצר</string>
     <string name="widget_alerts">התראות וגשם</string>
     <string name="widget_hourly_desc">עכשיו והשעות הקרובות</string>
@@ -154,4 +154,17 @@
     <string name="grant">אישור</string>
     <string name="other_place">מקום אחר…</string>
     <string name="cancel">ביטול</string>
+    <string name="widget_hourly_table">שעתי · טבלה</string>
+    <string name="widget_daily_table">יומי · טבלה</string>
+    <string name="widget_hourly_tonal">שעתי · רך</string>
+    <string name="widget_daily_tonal">יומי · רך</string>
+    <string name="widget_hourly_table_desc">עכשיו וטבלת השעות הקרובות, עם סיכוי וכמות גשם</string>
+    <string name="widget_daily_table_desc">טבלת חמשת הימים הקרובים, עם סיכוי וכמות גשם</string>
+    <string name="widget_hourly_tonal_desc">הטמפרטורה בצורה מעוגלת והשעות הקרובות</string>
+    <string name="widget_daily_tonal_desc">חמשת הימים הקרובים בגוונים רכים</string>
+    <string name="preview_place">תל אביב - יפו</string>
+    <string name="col_hour">שעה</string>
+    <string name="col_temp">טמפ׳</string>
+    <string name="col_chance">סיכוי</string>
+    <string name="days_5">5 ימים</string>
 </resources>

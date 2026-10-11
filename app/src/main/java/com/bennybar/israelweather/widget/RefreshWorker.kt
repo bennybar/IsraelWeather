@@ -26,6 +26,7 @@ class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorke
         ids.toSet().forEach { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
         app.repo.refreshWarnings(force = true)
         Widgets.updateAll(applicationContext)
+        Widgets.publishPreviews(applicationContext)
         return Result.success()
     }
 

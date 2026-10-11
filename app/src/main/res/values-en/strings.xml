@@ -123,8 +123,8 @@
     <string name="about_body">Forecasts, warnings and radar images come from the Israel Meteorological Service. Map: © OpenStreetMap.</string>
     <string name="version">Version</string>
 
-    <string name="widget_hourly">Hourly</string>
-    <string name="widget_daily">Daily</string>
+    <string name="widget_hourly">Hourly · Classic</string>
+    <string name="widget_daily">Daily · Classic</string>
     <string name="widget_strip">Daily strip</string>
     <string name="widget_alerts">Alerts &amp; rain</string>
     <string name="widget_hourly_desc">Now and the next hours</string>
@@ -154,4 +154,17 @@
     <string name="grant">Allow</string>
     <string name="other_place">Other place…</string>
     <string name="cancel">Cancel</string>
+    <string name="widget_hourly_table">Hourly · Table</string>
+    <string name="widget_daily_table">Daily · Table</string>
+    <string name="widget_hourly_tonal">Hourly · Soft</string>
+    <string name="widget_daily_tonal">Daily · Soft</string>
+    <string name="widget_hourly_table_desc">Now plus a table of the next hours, with rain chance and amount</string>
+    <string name="widget_daily_table_desc">A table of the next five days, with rain chance and amount</string>
+    <string name="widget_hourly_tonal_desc">The temperature in a rounded shape, plus the next hours</string>
+    <string name="widget_daily_tonal_desc">The next five days in soft tones</string>
+    <string name="preview_place">Tel Aviv-Yafo</string>
+    <string name="col_hour">Hour</string>
+    <string name="col_temp">Temp</string>
+    <string name="col_chance">Chance</string>
+    <string name="days_5">5 days</string>
 </resources>
