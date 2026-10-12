@@ -90,7 +90,7 @@ fun TableHourlyBody(data: WidgetData, modifier: GlanceModifier) {
             Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Image(icon, WeatherCodes.describe(cur.code, en), GlanceModifier.size(26.dp))
                 Spacer(GlanceModifier.defaultWeight())
-                if (data.showRefresh) RefreshButton(Card, 28.dp)
+                if (data.showRefresh) RefreshButton(Card, 28.dp, touchMargin = 0.dp)
             }
             Spacer(GlanceModifier.defaultWeight())
             Text(temp(cur.temp, s), style = style(34.sp, Ink, bold = true), maxLines = 1)

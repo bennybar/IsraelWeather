@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
@@ -68,7 +69,11 @@ abstract class WeatherWidget : GlanceAppWidget() {
             val version by Widgets.version.collectAsState()
             val data by produceState(first, version) { if (version > 0) value = Widgets.load(context, id) }
             val refreshing by Widgets.refreshing.collectAsState()
-            CompositionLocalProvider(LocalRefreshing provides (appWidgetId in refreshing)) { Content(data) }
+            val failed by Widgets.failed.collectAsState()
+            CompositionLocalProvider(
+                LocalRefreshing provides (appWidgetId in refreshing),
+                LocalRefreshFailed provides (appWidgetId in failed),
+            ) { Content(data) }
         }
     }
 
@@ -110,21 +115,29 @@ fun NoData(bg: Color, ink: Color) {
 
 /** Optional "refresh now" button (per-widget setting); [bg] is the circle behind the dark refresh glyph. */
 @Composable
-fun RefreshButton(bg: Color, size: Dp = 32.dp) {
-    Box(
-        GlanceModifier.size(size).background(bg).cornerRadius(size / 2).clickable(actionRunCallback<RefreshCallback>()),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (LocalRefreshing.current) {
-            CircularProgressIndicator(GlanceModifier.size(size * 0.55f), color = ColorProvider(Color(0xFF1F1F1F)))
-        } else {
-            Image(ImageProvider(R.drawable.ic_refresh), LocalContext.current.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f))
+fun RefreshButton(bg: Color, size: Dp = 32.dp, touchMargin: Dp = 6.dp) {
+    val context = LocalContext.current
+    // The touch area reaches past the circle: a near miss shouldn't open the app instead.
+    Box(GlanceModifier.padding(touchMargin).clickable(actionRunCallback<RefreshCallback>()), contentAlignment = Alignment.Center) {
+        Box(GlanceModifier.size(size).background(bg).cornerRadius(size / 2), contentAlignment = Alignment.Center) {
+            when {
+                LocalRefreshing.current ->
+                    CircularProgressIndicator(GlanceModifier.size(size * 0.55f), color = ColorProvider(Color(0xFF1F1F1F)))
+                LocalRefreshFailed.current -> Image(
+                    ImageProvider(R.drawable.ic_refresh), context.getString(R.string.refresh_failed), GlanceModifier.size(size * 0.55f),
+                    colorFilter = ColorFilter.tint(ColorProvider(Color(0xFFD32F2F))),
+                )
+                else -> Image(ImageProvider(R.drawable.ic_refresh), context.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f))
+            }
         }
     }
 }
 
 /** True while this widget's "refresh now" is running (shows a spinner on the button). */
 val LocalRefreshing = staticCompositionLocalOf { false }
+
+/** True when this widget's last "refresh now" failed (red refresh icon). */
+val LocalRefreshFailed = staticCompositionLocalOf { false }
 
 /** "Updated 16:05". */
 fun updatedText(context: Context, updated: Long?): String? = updated?.let {

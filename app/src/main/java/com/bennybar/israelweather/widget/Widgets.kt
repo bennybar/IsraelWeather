@@ -6,6 +6,11 @@ import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidget
 import kotlin.reflect.KClass
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.async
+import kotlinx.coroutines.CancellationException
+import androidx.glance.ExperimentalGlanceApi
+import androidx.glance.appwidget.compose
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import androidx.glance.GlanceId
@@ -39,9 +44,34 @@ object Widgets {
     /** App widget ids whose "refresh now" is in progress. */
     val refreshing = MutableStateFlow(emptySet<Int>())
 
+    /** App widget ids whose last "refresh now" failed (red refresh icon until the next try). */
+    val failed = MutableStateFlow(emptySet<Int>())
+
     suspend fun updateAll(context: Context) {
         version.update { it + 1 }
+        placed(context).forEach { (_, id) -> pushNow(context, id) }
+        // Glance's own update too, for its running sessions.
         WidgetKind.entries.forEach { k -> runCatching { k.widget().updateAll(context) } }
+    }
+
+    /**
+     * Renders one widget right here and hands it to the home screen. Glance's own updates run
+     * as WorkManager jobs, which Samsung can hold back for a long time when the app is idle,
+     * so taps and settings changes could appear to do nothing there.
+     */
+    @OptIn(ExperimentalGlanceApi::class)
+    suspend fun pushNow(context: Context, appWidgetId: Int) {
+        val manager = AppWidgetManager.getInstance(context)
+        val provider = manager.getAppWidgetInfo(appWidgetId)?.provider?.className ?: return
+        val kind = WidgetKind.entries.firstOrNull { it.receiver.java.name == provider } ?: return
+        try {
+            val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(appWidgetId)
+            manager.updateAppWidget(appWidgetId, kind.widget().compose(context, glanceId, manager.getAppWidgetOptions(appWidgetId)))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Glance's regular update (in updateAll) still follows.
+        }
     }
 
     /** Every widget on the home screen, with its kind. */
@@ -126,18 +156,30 @@ const val WIDGET_COLOR_TWILIGHT = "twilight"
 class RefreshCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+        Widgets.failed.update { it - appWidgetId }
         Widgets.refreshing.update { it + appWidgetId }
-        // Redraw this widget now, so the spinner shows while we fetch.
-        val provider = AppWidgetManager.getInstance(context).getAppWidgetInfo(appWidgetId)?.provider?.className
-        WidgetKind.entries.firstOrNull { it.receiver.java.name == provider }?.let { runCatching { it.widget().update(context, glanceId) } }
+        // Spinner right away, drawn directly (no background job to wait for).
+        Widgets.pushNow(context, appWidgetId)
         val started = System.currentTimeMillis()
+        // Only this widget's forecast. The fetch runs in the app's scope, and we wait at most
+        // 8 s: a tap's callback gets limited time. If the answer comes later, it still redraws.
+        val fetch = app.scope.async {
+            val id = Widgets.placeIdFor(appWidgetId) ?: return@async false
+            app.repo.refreshForecast(app.settings.value.forecastIdFor(id), force = true, updateWidgets = false).also { ok ->
+                if (ok && appWidgetId in Widgets.failed.value) {
+                    Widgets.failed.update { it - appWidgetId }
+                    Widgets.updateAll(context)
+                }
+            }
+        }
+        var ok = false
         try {
-            Widgets.placeIdFor(appWidgetId)?.let { app.repo.refreshForecast(app.settings.value.forecastIdFor(it), force = true, updateWidgets = false) }
-            app.repo.refreshWarnings(force = true)
+            ok = withTimeoutOrNull(8_000) { fetch.await() } == true
             // Keep the spinner up long enough to be seen, even when the fetch is instant.
             delay(1_000 - (System.currentTimeMillis() - started))
         } finally {
             Widgets.refreshing.update { it - appWidgetId }
+            if (!ok) Widgets.failed.update { it + appWidgetId }
             Widgets.updateAll(context)
         }
     }
