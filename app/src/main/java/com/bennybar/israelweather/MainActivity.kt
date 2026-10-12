@@ -1,5 +1,6 @@
 package com.bennybar.israelweather
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -10,7 +11,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bennybar.israelweather.ui.EditCardsSheet
 import com.bennybar.israelweather.ui.HomeScreen
@@ -26,12 +30,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 
 class MainActivity : ComponentActivity() {
+    /** A place a widget tap asked to show; handed to the forecast pager once composed. */
+    private var openPlace by mutableStateOf<Int?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) openPlace = placeFrom(intent)
         enableEdgeToEdge()
         setContent {
             val settings by app.settings.state.collectAsStateWithLifecycle()
             val ui = remember { UiController() }
+            LaunchedEffect(openPlace) {
+                val id = openPlace ?: return@LaunchedEffect
+                ui.overlay = Overlay.NONE
+                ui.tab = 0
+                ui.focusPlace = id
+                openPlace = null
+            }
             WeatherTheme(settings.theme, settings.accent) {
                 // Surface sets the default content colour (onSurface) for every Text below.
                 CompositionLocalProvider(LocalUi provides ui) { Surface(color = MaterialTheme.colorScheme.surface) {
@@ -51,5 +66,17 @@ class MainActivity : ComponentActivity() {
                 } }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        placeFrom(intent)?.let { openPlace = it }
+    }
+
+    private fun placeFrom(intent: Intent?): Int? =
+        intent?.takeIf { it.hasExtra(EXTRA_PLACE) }?.getIntExtra(EXTRA_PLACE, 0)
+
+    companion object {
+        const val EXTRA_PLACE = "place"
     }
 }

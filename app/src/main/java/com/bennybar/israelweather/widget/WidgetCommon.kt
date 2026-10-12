@@ -1,6 +1,8 @@
 package com.bennybar.israelweather.widget
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -18,6 +20,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.action.Action
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
@@ -25,6 +28,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -73,6 +77,7 @@ abstract class WeatherWidget : GlanceAppWidget() {
             CompositionLocalProvider(
                 LocalRefreshing provides (appWidgetId in refreshing),
                 LocalRefreshFailed provides (appWidgetId in failed),
+                LocalPlaceId provides data.placeId,
             ) { Content(data) }
         }
     }
@@ -97,11 +102,25 @@ fun style(size: TextUnit, color: Color, bold: Boolean = false): TextStyle {
 
 fun english(context: Context) = context.resources.configuration.locales[0].language == "en"
 
+/**
+ * Opens the app on this widget's place. The place goes in the data URI too: the launcher's
+ * PendingIntents ignore extras when matching, so widgets for different places would share one.
+ */
+@Composable
+fun openApp(): Action {
+    val id = LocalPlaceId.current ?: return actionStartActivity<MainActivity>()
+    val intent = Intent(LocalContext.current, MainActivity::class.java)
+        .setData(Uri.parse("israelweather://place/$id"))
+        .putExtra(MainActivity.EXTRA_PLACE, id)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    return actionStartActivity(intent)
+}
+
 /** The whole widget opens the app; inner buttons (refresh) take their own clicks. */
 @Composable
 fun Shell(bg: Color, radius: Dp, padding: Dp, content: @Composable () -> Unit) {
     Box(
-        GlanceModifier.fillMaxSize().background(bg).cornerRadius(radius).padding(padding).clickable(actionStartActivity<MainActivity>()),
+        GlanceModifier.fillMaxSize().background(bg).cornerRadius(radius).padding(padding).clickable(openApp()),
         contentAlignment = Alignment.Center,
     ) { content() }
 }
@@ -135,6 +154,7 @@ fun RefreshButton(bg: Color, size: Dp = 32.dp, touchMargin: Dp = 6.dp) {
 
 /** True while this widget's "refresh now" is running (shows a spinner on the button). */
 val LocalRefreshing = staticCompositionLocalOf { false }
+val LocalPlaceId = staticCompositionLocalOf<Int?> { null }
 
 /** True when this widget's last "refresh now" failed (red refresh icon). */
 val LocalRefreshFailed = staticCompositionLocalOf { false }

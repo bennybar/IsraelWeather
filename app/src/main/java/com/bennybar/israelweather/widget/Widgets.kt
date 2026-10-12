@@ -132,7 +132,7 @@ object Widgets {
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id)
     }
 }
 
@@ -146,6 +146,8 @@ data class WidgetData(
     val color: String = WIDGET_COLOR_LAVENDER,
     /** Ranges widget: show each day's strongest wind. */
     val showWind: Boolean = false,
+    /** The app page a tap opens (a saved place id, or the current-location forecast id). */
+    val placeId: Int? = null,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"
