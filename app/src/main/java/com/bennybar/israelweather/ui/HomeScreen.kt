@@ -115,7 +115,7 @@ fun HomeScreen() {
 
     // Badge: active weather warnings (not news flashes) for the user's places.
     val myRegions = (settings.places + listOfNotNull(settings.currentPlace.takeIf { settings.useLocation }))
-        .mapNotNull { id -> places.value?.firstOrNull { it.id == id }?.rid }.toSet()
+        .mapNotNull { id -> app.repo.placeFor(id, places.value)?.rid }.toSet()
     val alertCount = warnings.value.orEmpty().count { w -> !w.isFlash && w.isActive() && w.regions.any { it in myRegions } }
 
     // Hide the nav while scrolling down a tab's list, reveal on scrolling up or at the top.

@@ -21,7 +21,7 @@ class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorke
         // Either way it's low power and reuses anything from the last 30 min.
         if (s.useLocation) runCatching { CurrentPlace.resolve(fresh = app.location.hasBackground(), background = true) }
         app.repo.refreshPlaces()
-        val ids = s.places + listOfNotNull(app.settings.value.currentForecastId) + Widgets.placeIds(applicationContext)
+        val ids = s.places.map { s.forecastIdFor(it) } + listOfNotNull(app.settings.value.currentForecastId) + Widgets.placeIds(applicationContext)
         // Widgets are redrawn once below, not after every place.
         val ok = ids.toSet().map { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
         app.repo.refreshWarnings(force = true)

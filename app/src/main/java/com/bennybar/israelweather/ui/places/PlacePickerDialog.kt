@@ -31,7 +31,7 @@ import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.ui.isEnglish
 
-/** Pick any of the IMS locations (for a widget), without adding it to the saved places. */
+/** Pick any IMS location or town in Israel (for a widget), without adding it to the saved places. */
 @Composable
 fun PlacePickerDialog(onPick: (Place) -> Unit, onDismiss: () -> Unit) {
     val places by app.repo.places.collectAsStateWithLifecycle()
@@ -42,6 +42,7 @@ fun PlacePickerDialog(onPick: (Place) -> Unit, onDismiss: () -> Unit) {
     val results = places.value.orEmpty()
         .filter { q.isEmpty() || normalize(it.he).contains(q) || normalize(it.en).contains(q) }
         .sortedWith(compareBy<Place> { p -> if (normalize(p.he).startsWith(q) || normalize(p.en).startsWith(q)) 0 else 1 }.thenBy { it.name(english) })
+    val more = moreTowns(query, results)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -61,6 +62,18 @@ fun PlacePickerDialog(onPick: (Place) -> Unit, onDismiss: () -> Unit) {
                         Column(Modifier.fillMaxWidth().clickable { onPick(p) }.padding(vertical = 10.dp, horizontal = 4.dp)) {
                             Text(p.name(english), fontWeight = FontWeight.SemiBold)
                             Text(p.name(!english), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    items(more, key = { "om${it.id}" }) { g ->
+                        Column(
+                            Modifier.fillMaxWidth().clickable {
+                                val custom = customPlaceFor(g, places.value.orEmpty())
+                                app.settings.rememberCustomPlace(custom)
+                                onPick(Place(custom.id, custom.he, custom.en, custom.lat, custom.lon, 0))
+                            }.padding(vertical = 10.dp, horizontal = 4.dp),
+                        ) {
+                            Text(if (english) g.en else g.he, fontWeight = FontWeight.SemiBold)
+                            Text(if (english) g.he else g.en, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

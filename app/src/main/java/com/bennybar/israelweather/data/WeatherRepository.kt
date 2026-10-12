@@ -63,6 +63,9 @@ class WeatherRepository(
      */
     fun placeFor(id: Int?, all: List<Place>? = _places.value.value): Place? {
         if (id == null) return null
+        settings.value.custom(id)?.let { c ->
+            return Place(c.id, c.he, c.en, c.lat, c.lon, all?.firstOrNull { it.id == c.nearest }?.rid ?: 0)
+        }
         if (id != CURRENT_ID) return all?.firstOrNull { it.id == id }
         val s = settings.value
         val nearest = all?.firstOrNull { it.id == s.currentPlace } ?: return null
@@ -129,10 +132,13 @@ class WeatherRepository(
         if (!force && cached != null && age(cached.fetchedAt) < FORECAST_TTL) return true
         _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = true, error = null)) }
         return runCatching {
+            val custom = settings.value.custom(id)
             if (id == CURRENT_ID) {
                 // "My location" far from any IMS point: model forecast for the exact spot.
                 val s = settings.value
                 openMeteo.forecast(s.currentLat ?: error("no location"), s.currentLon ?: error("no location"), fresh = force)
+            } else if (custom != null) {
+                openMeteo.forecast(custom.lat, custom.lon, fresh = force, id = id)
             } else {
                 api.forecast(id, fresh = force)
             }

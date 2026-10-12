@@ -140,15 +140,17 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
     val observations by app.repo.now.collectAsStateWithLifecycle()
     val places by app.repo.places.collectAsStateWithLifecycle()
     val place = app.repo.placeFor(id, places.value)
-    val f = forecasts[id]
+    // A custom place shows its nearby IMS point's forecast, or its own (Open-Meteo).
+    val fid = settings.forecastIdFor(id)
+    val f = forecasts[fid]
     val scope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
 
     val country by app.repo.country.collectAsStateWithLifecycle()
-    LaunchedEffect(id) {
+    LaunchedEffect(fid) {
         app.repo.refreshCountry()
-        app.repo.refreshForecast(id)
-        app.repo.refreshNow(id)
+        app.repo.refreshForecast(fid)
+        app.repo.refreshNow(fid)
     }
 
     PullToRefreshBox(
@@ -157,9 +159,9 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
             scope.launch {
                 refreshing = true
                 if (current) CurrentPlace.resolve()
-                app.repo.refreshForecast(id, force = true)
+                app.repo.refreshForecast(fid, force = true)
                 app.repo.refreshWarnings(force = true)
-                app.repo.refreshNow(id)
+                app.repo.refreshNow(fid)
                 refreshing = false
             }
         },
@@ -188,7 +190,7 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
             when {
                 data == null && f?.error != null && f.loading.not() -> item(key = "error") {
                     Message(stringResource(R.string.load_failed), stringResource(R.string.retry)) {
-                        scope.launch { app.repo.refreshForecast(id, force = true) }
+                        scope.launch { app.repo.refreshForecast(fid, force = true) }
                     }
                 }
                 data == null -> item(key = "loading") {
@@ -198,7 +200,7 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                     val local = place?.let { app.repo.warningsFor(it.rid, warnings.value) }.orEmpty()
                     items(settings.visibleCards, key = { it.name }) { card ->
                         when (card) {
-                            Card.HERO -> HeroCard(data, observations[id], settings, place)
+                            Card.HERO -> HeroCard(data, observations[fid], settings, place)
                             Card.ALERTS -> AlertsCard(local) { ui.tab = 2 }
                             Card.HOURLY -> HourlyCard(data, settings)
                             Card.WEEK -> WeekCard(data, settings)

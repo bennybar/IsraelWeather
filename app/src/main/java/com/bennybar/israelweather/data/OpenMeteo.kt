@@ -13,6 +13,9 @@ import java.util.Locale
  * for exact coordinates. Used where no IMS forecast point is near (see [IMS_RADIUS_KM]).
  * Called directly from the phone: free without a key, and each user has their own quota.
  */
+/** A place from Open-Meteo's search; [region] is the district, in Hebrew. */
+data class GeoPlace(val id: Int, val he: String, val en: String, val region: String?, val lat: Double, val lon: Double)
+
 /** US AQI (0–500) and particles in µg/m³. */
 data class AirQuality(val aqi: Int?, val pm10: Double?, val pm25: Double?, val dust: Double?)
 
@@ -44,7 +47,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     @Serializable
     private data class Response(val hourly: Hourly, val daily: Daily)
 
-    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false): Forecast = withContext(Dispatchers.IO) {
+    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID): Forecast = withContext(Dispatchers.IO) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index" +
@@ -76,7 +79,39 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val days = d.time.indices.map { i ->
             Day(d.time[i], imsCode(d.weather_code[i]), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
         }
-        Forecast(id = CURRENT_ID, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO)
+        Forecast(id = id, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO)
+    }
+
+    @Serializable
+    private data class GeoResult(
+        val id: Int,
+        val name: String,
+        val latitude: Double,
+        val longitude: Double,
+        val admin1: String? = null,
+        val feature_code: String? = null,
+    )
+
+    @Serializable
+    private data class GeoResponse(val results: List<GeoResult> = emptyList())
+
+    /**
+     * Places in Israel matching [query] (Open-Meteo / GeoNames), with Hebrew and English names:
+     * one lookup per language, merged by id.
+     */
+    suspend fun searchIsrael(query: String): List<GeoPlace> = withContext(Dispatchers.IO) {
+        fun lookup(lang: String): List<GeoResult> {
+            val url = okhttp3.HttpUrl.Builder().scheme("https").host("geocoding-api.open-meteo.com").addPathSegments("v1/search")
+                .addQueryParameter("name", query).addQueryParameter("count", "20")
+                .addQueryParameter("language", lang).addQueryParameter("countryCode", "IL").build()
+            return http.newCall(Request.Builder().url(url).build()).execute().use { res ->
+                if (!res.isSuccessful) throw HttpException(res.code)
+                json.decodeFromString(GeoResponse.serializer(), res.body.string()).results
+            }
+        }
+        val he = lookup("he")
+        val en = lookup("en").associateBy { it.id }
+        he.map { r -> GeoPlace(r.id, r.name, en[r.id]?.name ?: r.name, r.admin1, r.latitude, r.longitude) }
     }
 
     @Serializable

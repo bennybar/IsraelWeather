@@ -50,8 +50,9 @@ object Widgets {
         return WidgetKind.entries.flatMap { k -> m.getAppWidgetIds(ComponentName(context, k.receiver.java)).map { k to it } }
     }
 
-    /** IMS location ids that placed widgets show (resolving "current"). */
-    fun placeIds(context: Context): Set<Int> = placed(context).mapNotNull { (_, id) -> placeIdFor(id) }.toSet()
+    /** Forecast ids that placed widgets show (resolving "current" and custom places). */
+    fun placeIds(context: Context): Set<Int> =
+        placed(context).mapNotNull { (_, id) -> placeIdFor(id)?.let { app.settings.value.forecastIdFor(it) } }.toSet()
 
     fun requestPin(context: Context, kind: WidgetKind) {
         AppWidgetManager.getInstance(context).requestPinAppWidget(ComponentName(context, kind.receiver.java), null, null)
@@ -97,8 +98,9 @@ object Widgets {
         val showWind = app.settings.widgetShowWind(appWidgetId)
         val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, showRefresh, null, color, showWind)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
-        var cached = app.repo.cachedForecast(id)
-        if (cached?.value == null && app.repo.refreshForecast(id)) cached = app.repo.cachedForecast(id)
+        val forecastId = app.settings.value.forecastIdFor(id)
+        var cached = app.repo.cachedForecast(forecastId)
+        if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
         return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind)
     }
@@ -130,7 +132,7 @@ class RefreshCallback : ActionCallback {
         WidgetKind.entries.firstOrNull { it.receiver.java.name == provider }?.let { runCatching { it.widget().update(context, glanceId) } }
         val started = System.currentTimeMillis()
         try {
-            Widgets.placeIdFor(appWidgetId)?.let { app.repo.refreshForecast(it, force = true, updateWidgets = false) }
+            Widgets.placeIdFor(appWidgetId)?.let { app.repo.refreshForecast(app.settings.value.forecastIdFor(it), force = true, updateWidgets = false) }
             app.repo.refreshWarnings(force = true)
             // Keep the spinner up long enough to be seen, even when the fetch is instant.
             delay(1_000 - (System.currentTimeMillis() - started))

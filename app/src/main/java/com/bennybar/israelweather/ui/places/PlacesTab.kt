@@ -60,11 +60,11 @@ fun PlacesTab() {
     val forecasts by app.repo.forecasts.collectAsStateWithLifecycle()
     val english = isEnglish()
     val location = rememberLocationAccess()
-    fun name(id: Int) = places.value?.firstOrNull { it.id == id }?.name(english) ?: "…"
+    fun name(id: Int) = app.repo.placeFor(id, places.value)?.name(english) ?: "…"
 
     @Composable
     fun Summary(id: Int) {
-        val f = forecasts[id]?.value ?: return
+        val f = forecasts[settings.forecastIdFor(id)]?.value ?: return
         val h = f.currentHour(israelNow()) ?: return
         Image(painterResource(WeatherCodes.drawable(h.code, WeatherCodes.isNight(h.time))), WeatherCodes.describe(h.code, isEnglish()), Modifier.size(28.dp))
         Spacer(Modifier.width(6.dp))

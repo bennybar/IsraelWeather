@@ -1,5 +1,7 @@
 package com.bennybar.israelweather.data
 
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +23,10 @@ data class Settings(
     val refreshMinutes: Int = 60,
     val cards: List<Card> = Card.entries,
     val hiddenCards: Set<Card> = emptySet(),
-    /** Saved IMS location ids, in the user's order. */
+    /** Saved places in the user's order: IMS location ids, or [CustomPlace] ids (negative). */
     val places: List<Int> = emptyList(),
+    /** Saved places from Open-Meteo's search (kept after removal: widgets may still show them). */
+    val customPlaces: List<CustomPlace> = emptyList(),
     val useLocation: Boolean = true,
     /** The IMS location nearest the device, from the last successful fix. */
     val currentPlace: Int? = null,
@@ -45,6 +49,11 @@ data class Settings(
         }
 
     val visibleCards get() = cards.filter { it !in hiddenCards }
+
+    fun custom(id: Int?): CustomPlace? = customPlaces.firstOrNull { it.id == id }
+
+    /** The forecast behind a place: a custom place's nearby IMS point, or its own (Open-Meteo) id. */
+    fun forecastIdFor(id: Int): Int = custom(id)?.let { it.ims ?: it.id } ?: id
 }
 
 /** SharedPreferences-backed settings exposed as a StateFlow. */
@@ -73,6 +82,8 @@ class SettingsStore(context: Context) {
             currentLon = prefs.getString("currentLon", null)?.toDoubleOrNull(),
             currentKm = prefs.getInt("currentKm", -1).takeIf { it >= 0 },
             currentTown = prefs.getString("currentTownHe", null)?.let { Localized(it, prefs.getString("currentTownEn", null)) },
+            customPlaces = prefs.getString("customPlaces", null)
+                ?.let { runCatching { Json.decodeFromString(ListSerializer(CustomPlace.serializer()), it) }.getOrNull() }.orEmpty(),
         )
     }
 
@@ -98,6 +109,7 @@ class SettingsStore(context: Context) {
             .putInt("currentKm", s.currentKm ?: -1)
             .putString("currentTownHe", s.currentTown?.he)
             .putString("currentTownEn", s.currentTown?.en)
+            .putString("customPlaces", Json.encodeToString(ListSerializer(CustomPlace.serializer()), s.customPlaces))
             .apply()
     }
 
@@ -119,6 +131,11 @@ class SettingsStore(context: Context) {
     fun resetCards() = update { it.copy(cards = Card.entries, hiddenCards = emptySet()) }
 
     fun addPlace(id: Int) = update { if (id in it.places) it else it.copy(places = it.places + id) }
+    /** Known for widgets, without adding it to the saved places. */
+    fun rememberCustomPlace(p: CustomPlace) = update { it.copy(customPlaces = it.customPlaces.filter { c -> c.id != p.id } + p) }
+    fun addCustomPlace(p: CustomPlace) = update {
+        it.copy(customPlaces = it.customPlaces.filter { c -> c.id != p.id } + p, places = if (p.id in it.places) it.places else it.places + p.id)
+    }
     fun removePlace(id: Int) = update { it.copy(places = it.places - id) }
     fun movePlace(id: Int, delta: Int) = update { it.copy(places = it.places.moved(id, delta)) }
 

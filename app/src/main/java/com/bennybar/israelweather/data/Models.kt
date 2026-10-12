@@ -11,6 +11,15 @@ const val CURRENT_ID = -1
 /** Within this distance of an IMS forecast point, its (official) forecast is used; beyond it, Open-Meteo. */
 const val IMS_RADIUS_KM = 3
 
+/**
+ * A saved place that isn't one of IMS's points: a town from Open-Meteo's place search.
+ * Its id is minus the GeoNames id, so it never clashes with IMS ids or [CURRENT_ID].
+ * [ims]: the IMS point within [IMS_RADIUS_KM], whose official forecast is used; null means
+ * Open-Meteo for the exact spot. [nearest]: the closest IMS point, for its warning region.
+ */
+@Serializable
+data class CustomPlace(val id: Int, val he: String, val en: String, val lat: Double, val lon: Double, val ims: Int?, val nearest: Int?)
+
 /** All IMS times are Israel local time. */
 val IsraelZone: ZoneId = ZoneId.of("Asia/Jerusalem")
 

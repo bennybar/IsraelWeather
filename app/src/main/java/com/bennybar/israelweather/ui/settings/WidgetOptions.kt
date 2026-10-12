@@ -56,7 +56,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var showWind by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowWind(appWidgetId)) }
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
-    fun nameOf(key: String) = key.toIntOrNull()?.let { id -> places.value?.firstOrNull { it.id == id }?.name(english) ?: "$id" }
+    fun nameOf(key: String) = key.toIntOrNull()?.let { id -> app.repo.placeFor(id, places.value)?.name(english) ?: "$id" }
     val update: () -> Unit = { scope.launch { Widgets.updateAll(context) } }
     fun choose(key: String) {
         place = key

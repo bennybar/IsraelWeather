@@ -62,7 +62,7 @@ fun AlertsTab() {
     LaunchedEffect(ui.tab == 2) { if (ui.tab == 2) app.repo.refreshWarnings() }
 
     val myRegions = (settings.places + listOfNotNull(settings.currentPlace.takeIf { settings.useLocation }))
-        .mapNotNull { id -> places.value?.firstOrNull { it.id == id }?.rid }.toSet()
+        .mapNotNull { id -> app.repo.placeFor(id, places.value)?.rid }.toSet()
     val active = warnings.value.orEmpty().filter { it.isActive() }
     val mine = active.filter { w -> w.regions.any { it in myRegions } }
     val others = active - mine.toSet()
