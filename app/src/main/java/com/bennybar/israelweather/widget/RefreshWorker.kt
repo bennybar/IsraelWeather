@@ -16,10 +16,12 @@ import java.util.concurrent.TimeUnit
 class RefreshWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val s = app.settings.value
+        // Only widgets on "My location" need the device's place in the background; otherwise
+        // the app locates when opened. Retries reuse the first attempt's fix.
         // A new fix needs "Allow all the time"; without it, the last known
         // location (from any app) is the best we can do in the background.
         // Either way it's low power and reuses anything from the last 30 min.
-        if (s.useLocation) runCatching { CurrentPlace.resolve(fresh = app.location.hasBackground(), background = true) }
+        if (s.useLocation && runAttemptCount == 0 && Widgets.followsLocation(applicationContext)) runCatching { CurrentPlace.resolve(fresh = app.location.hasBackground(), background = true) }
         app.repo.refreshPlaces()
         val ids = s.places.map { s.forecastIdFor(it) } + listOfNotNull(app.settings.value.currentForecastId) + Widgets.placeIds(applicationContext)
         // Widgets are redrawn once below, not after every place.

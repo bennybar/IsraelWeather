@@ -107,16 +107,17 @@ class LocationResolver(private val context: Context) {
         awaitClose { cancel.cancel() }
     }.firstOrNull()
 
-    private var townCache: Pair<String, String?>? = null
+    /** Per language: the last ~1 km cell looked up and its town. */
+    private val townCache = HashMap<String, Pair<String, String?>>()
 
     /**
      * The town at a point in [locale] (e.g. "גדרה"), from the phone's geocoder; null when
-     * unavailable. Cached per ~1 km and language.
+     * unavailable. Cached per ~1 km, for each language.
      */
     suspend fun town(lat: Double, lon: Double, locale: Locale): String? {
         if (!Geocoder.isPresent()) return null
-        val key = "%.2f,%.2f,%s".format(lat, lon, locale.language)
-        townCache?.takeIf { it.first == key }?.let { return it.second }
+        val key = "%.2f,%.2f".format(Locale.ROOT, lat, lon)
+        townCache[locale.language]?.takeIf { it.first == key }?.let { return it.second }
         val name = withTimeoutOrNull(5_000) {
             suspendCancellableCoroutine { cont ->
                 try {
@@ -135,7 +136,7 @@ class LocationResolver(private val context: Context) {
                 }
             }
         }
-        townCache = key to name
+        townCache[locale.language] = key to name
         return name
     }
 

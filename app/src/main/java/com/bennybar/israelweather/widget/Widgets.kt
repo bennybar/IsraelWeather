@@ -80,6 +80,10 @@ object Widgets {
         return WidgetKind.entries.flatMap { k -> m.getAppWidgetIds(ComponentName(context, k.receiver.java)).map { k to it } }
     }
 
+    /** Whether any placed widget follows the device ("My location") rather than a set place. */
+    fun followsLocation(context: Context): Boolean =
+        placed(context).any { (_, id) -> app.settings.widgetPlace(id)?.toIntOrNull() == null }
+
     /** Forecast ids that placed widgets show (resolving "current" and custom places). */
     fun placeIds(context: Context): Set<Int> =
         placed(context).mapNotNull { (_, id) -> placeIdFor(id)?.let { app.settings.value.forecastIdFor(it) } }.toSet()
