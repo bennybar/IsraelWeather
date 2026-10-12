@@ -50,6 +50,7 @@ import com.bennybar.israelweather.data.Radar
 import com.bennybar.israelweather.data.parseImsTime
 import com.bennybar.israelweather.ui.LocalUi
 import com.bennybar.israelweather.ui.hhmm
+import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -103,7 +104,7 @@ fun RadarTab() {
         Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.ims_radar), Modifier.weight(1f), fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
             radar?.frames?.getOrNull(index)?.let {
-                Text(hhmm(parseImsTime(it.t)), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(hhmm(parseImsTime(it.t)), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalWeatherColors.current.accentInk)
             }
         }
         Box(

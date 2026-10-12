@@ -50,6 +50,7 @@ import com.bennybar.israelweather.ui.Overlay
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 
 /** Saved places: current location toggle, reorder, remove, add via search. */
 @Composable
@@ -92,7 +93,7 @@ fun PlacesTab() {
                     .padding(horizontal = 18.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.MyLocation, null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Rounded.MyLocation, null, tint = LocalWeatherColors.current.accentInk)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.current_location), fontSize = 17.sp, fontWeight = FontWeight.Bold)

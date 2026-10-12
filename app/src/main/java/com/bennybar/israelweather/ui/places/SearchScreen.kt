@@ -51,6 +51,7 @@ import com.bennybar.israelweather.location.LocationResolver
 import com.bennybar.israelweather.ui.LocalUi
 import com.bennybar.israelweather.ui.Overlay
 import com.bennybar.israelweather.ui.isEnglish
+import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 import kotlinx.coroutines.delay
 
 /** Hebrew/English names compared without punctuation, gershayim or case. */
@@ -149,7 +150,7 @@ fun SearchScreen() {
                         Text(p.name(english), fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         Text(p.name(!english), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
-                    if (saved) Icon(Icons.Rounded.Check, stringResource(R.string.saved), tint = MaterialTheme.colorScheme.primary)
+                    if (saved) Icon(Icons.Rounded.Check, stringResource(R.string.saved), tint = LocalWeatherColors.current.accentInk)
                 }
             }
             if (more.isNotEmpty()) item {
@@ -171,7 +172,7 @@ fun SearchScreen() {
                             color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp,
                         )
                     }
-                    if (saved) Icon(Icons.Rounded.Check, stringResource(R.string.saved), tint = MaterialTheme.colorScheme.primary)
+                    if (saved) Icon(Icons.Rounded.Check, stringResource(R.string.saved), tint = LocalWeatherColors.current.accentInk)
                 }
             }
         }

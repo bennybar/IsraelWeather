@@ -63,6 +63,7 @@ import com.bennybar.israelweather.ui.LocalUi
 import com.bennybar.israelweather.ui.Overlay
 import com.bennybar.israelweather.ui.hhmm
 import com.bennybar.israelweather.ui.isEnglish
+import com.bennybar.israelweather.ui.theme.LocalWeatherColors
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -239,12 +240,12 @@ private fun Header(
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (current) {
-                        Icon(Icons.Rounded.MyLocation, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Rounded.MyLocation, null, Modifier.size(20.dp), tint = LocalWeatherColors.current.accentInk)
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(name, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
                 }
-                if (source != null) Text(source, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                if (source != null) Text(source, style = MaterialTheme.typography.bodyMedium, color = LocalWeatherColors.current.accentInk)
                 if (updated != null) {
                     val t = LocalDateTime.ofInstant(Instant.ofEpochMilli(updated), IsraelZone)
                     Text(

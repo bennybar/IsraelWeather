@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -34,6 +35,8 @@ data class WeatherColors(
     val warningBg: Color,
     val onWarningBg: Color,
     val dark: Boolean,
+    /** The accent for text and small icons on the page background (darkened in light mode). */
+    val accentInk: Color = Color.Unspecified,
 )
 
 val LocalWeatherColors = staticCompositionLocalOf { darkWeather }
@@ -105,7 +108,9 @@ fun WeatherTheme(mode: ThemeMode, accent: Int, content: @Composable () -> Unit) 
         ThemeMode.DARK -> true
     }
     val a = Accents.getOrElse(accent) { Accents[0] }
-    CompositionLocalProvider(LocalWeatherColors provides if (dark) darkWeather else lightWeather) {
+    // The accents are all pale: on the light background they need darkening to stay readable.
+    val wc = if (dark) darkWeather.copy(accentInk = a) else lightWeather.copy(accentInk = lerp(a, Color.Black, 0.55f))
+    CompositionLocalProvider(LocalWeatherColors provides wc) {
         MaterialExpressiveTheme(
             colorScheme = if (dark) darkScheme(a) else lightScheme(a),
             typography = typography,
