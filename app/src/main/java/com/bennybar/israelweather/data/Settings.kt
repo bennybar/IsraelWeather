@@ -158,7 +158,7 @@ class SettingsStore(context: Context) {
     /** Wind column on the Ranges widget (off by default). */
     fun widgetShowWind(appWidgetId: Int) = prefs.getBoolean("widget_wind_$appWidgetId", false)
     fun setWidgetShowWind(appWidgetId: Int, show: Boolean) = prefs.edit().putBoolean("widget_wind_$appWidgetId", show).apply()
-    /** Spectrum: each day's wind as a small compass dial instead of an arrow. */
+    /** Spectrum: each day's wind as an arrow + speed capsule. */
     fun widgetWindDial(appWidgetId: Int) = prefs.getBoolean("widget_wind_dial_$appWidgetId", false)
     fun setWidgetWindDial(appWidgetId: Int, dial: Boolean) = prefs.edit().putBoolean("widget_wind_dial_$appWidgetId", dial).apply()
     /** Spectrum: rain pills all the same width, whatever the percentage. */

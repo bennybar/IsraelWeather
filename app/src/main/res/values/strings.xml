@@ -172,7 +172,7 @@
     <string name="color_lavender">לבנדר</string>
     <string name="color_orange">כתום</string>
     <string name="show_wind">הצגת רוח</string>
-    <string name="wind_dial">רוח כמצפן</string>
+    <string name="wind_dial">רוח בתגית עם חץ</string>
     <string name="equal_pills">תגיות גשם ברוחב אחיד</string>
     <string name="feels_like">מורגש כ-%1$s</string>
     <string name="rain_here">יורד גשם כאן עכשיו</string>

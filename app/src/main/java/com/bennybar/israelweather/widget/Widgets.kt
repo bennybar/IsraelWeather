@@ -155,7 +155,7 @@ data class WidgetData(
     val showWind: Boolean = false,
     /** The app page a tap opens (a saved place id, or the current-location forecast id). */
     val placeId: Int? = null,
-    /** Spectrum: wind as a compass dial per day. */
+    /** Spectrum: wind as an arrow + speed capsule per day. */
     val windDial: Boolean = false,
     /** Spectrum: rain pills all the same width. */
     val equalPills: Boolean = false,
