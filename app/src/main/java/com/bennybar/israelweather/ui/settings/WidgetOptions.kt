@@ -54,6 +54,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     val colors = listOf(WIDGET_COLOR_LAVENDER to R.string.color_lavender, WIDGET_COLOR_ORANGE to R.string.color_orange) +
         if (kind == WidgetKind.SPECTRUM) listOf(WIDGET_COLOR_TWILIGHT to R.string.color_twilight) else emptyList()
     var showWind by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowWind(appWidgetId)) }
+    var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> app.repo.placeFor(id, places.value)?.name(english) ?: "$id" }
@@ -116,6 +117,16 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 Switch(checked = showWind, onCheckedChange = {
                     showWind = it
                     app.settings.setWidgetShowWind(appWidgetId, it)
+                    update()
+                })
+            }
+        }
+        if (kind == WidgetKind.SPECTRUM && showWind) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.wind_dial), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Switch(checked = windDial, onCheckedChange = {
+                    windDial = it
+                    app.settings.setWidgetWindDial(appWidgetId, it)
                     update()
                 })
             }

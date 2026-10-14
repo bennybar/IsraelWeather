@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.LayoutDirection
@@ -42,6 +43,7 @@ import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.apparentTemp
 import com.bennybar.israelweather.ui.temp
 import com.bennybar.israelweather.ui.windShort
+import com.bennybar.israelweather.ui.windValue
 import java.time.Instant
 import java.time.LocalDateTime
 import com.bennybar.israelweather.data.IsraelZone
@@ -182,7 +184,15 @@ class SpectrumWidget : WeatherWidget() {
                         if (data.showWind) {
                             val (w, dir) = dayWind(data, d)
                             Box(GlanceModifier.width(42.dp), contentAlignment = Alignment.CenterEnd) {
-                                Text(windShort(w, dir, s), style = style(12.sp, p.muted), maxLines = 1)
+                                if (data.windDial && w != null && dir != null) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Image(ImageProvider(windDial(context.resources.displayMetrics.density, p, dir)), null, GlanceModifier.size(16.dp))
+                                        Spacer(GlanceModifier.width(3.dp))
+                                        Text(windValue(w, s), style = style(12.sp, p.muted), maxLines = 1)
+                                    }
+                                } else {
+                                    Text(windShort(w, dir, s), style = style(12.sp, p.muted), maxLines = 1)
+                                }
                             }
                         }
                         val chance = dayRainChance(data, d)
@@ -245,6 +255,42 @@ private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Fl
         paint.color = android.graphics.Color.WHITE
         c.drawCircle(cx, h / 2f, dotR - 3 * density, paint)
     }
+    return bmp
+}
+
+/**
+ * A tiny compass: a ring with a north tick and a pointer toward where the wind blows
+ * (like the arrows). North stays up in Hebrew too.
+ */
+private fun windDial(density: Float, p: Spectrum, fromDeg: Double): Bitmap {
+    val size = (16 * density).toInt()
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val c = Canvas(bmp)
+    val mid = size / 2f
+    val r = mid - density
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    paint.style = Paint.Style.STROKE
+    paint.strokeWidth = 1.2f * density
+    paint.color = p.muted.toArgb()
+    paint.alpha = 130
+    c.drawCircle(mid, mid, r, paint)
+    paint.alpha = 255
+    paint.strokeWidth = 1.5f * density
+    c.drawLine(mid, mid - r, mid, mid - r + 3 * density, paint)
+    c.rotate((fromDeg + 180).toFloat(), mid, mid)
+    paint.style = Paint.Style.FILL
+    paint.color = p.ring.toArgb()
+    val head = Path().apply {
+        moveTo(mid, mid - r + 1.5f * density)
+        lineTo(mid + 3.5f * density, mid - r + 6.5f * density)
+        lineTo(mid - 3.5f * density, mid - r + 6.5f * density)
+        close()
+    }
+    c.drawPath(head, paint)
+    paint.style = Paint.Style.STROKE
+    paint.strokeWidth = 1.6f * density
+    paint.strokeCap = Paint.Cap.ROUND
+    c.drawLine(mid, mid - r + 6 * density, mid, mid + r - 3 * density, paint)
     return bmp
 }
 

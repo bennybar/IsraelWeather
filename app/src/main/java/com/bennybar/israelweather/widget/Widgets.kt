@@ -130,13 +130,14 @@ object Widgets {
         val showRefresh = app.settings.widgetShowRefresh(appWidgetId)
         val color = app.settings.widgetColor(appWidgetId)
         val showWind = app.settings.widgetShowWind(appWidgetId)
-        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, showRefresh, null, color, showWind)
+        val windDial = app.settings.widgetWindDial(appWidgetId)
+        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         val forecastId = app.settings.value.forecastIdFor(id)
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial)
     }
 }
 
@@ -152,6 +153,8 @@ data class WidgetData(
     val showWind: Boolean = false,
     /** The app page a tap opens (a saved place id, or the current-location forecast id). */
     val placeId: Int? = null,
+    /** Spectrum: wind as a compass dial per day. */
+    val windDial: Boolean = false,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"

@@ -172,6 +172,7 @@
     <string name="color_lavender">Lavender</string>
     <string name="color_orange">Orange</string>
     <string name="show_wind">Show wind</string>
+    <string name="wind_dial">Wind as compass</string>
     <string name="feels_like">Feels like %1$s</string>
     <string name="rain_here">Raining here now</string>
     <string name="rain_here_heavy">Heavy rain here now</string>
