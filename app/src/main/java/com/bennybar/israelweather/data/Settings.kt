@@ -161,6 +161,9 @@ class SettingsStore(context: Context) {
     /** Spectrum: each day's wind as a small compass dial instead of an arrow. */
     fun widgetWindDial(appWidgetId: Int) = prefs.getBoolean("widget_wind_dial_$appWidgetId", false)
     fun setWidgetWindDial(appWidgetId: Int, dial: Boolean) = prefs.edit().putBoolean("widget_wind_dial_$appWidgetId", dial).apply()
+    /** Spectrum: rain pills all the same width, whatever the percentage. */
+    fun widgetEqualPills(appWidgetId: Int) = prefs.getBoolean("widget_equal_pills_$appWidgetId", false)
+    fun setWidgetEqualPills(appWidgetId: Int, equal: Boolean) = prefs.edit().putBoolean("widget_equal_pills_$appWidgetId", equal).apply()
 
     private fun <T> List<T>.moved(item: T, delta: Int): List<T> {
         val i = indexOf(item)

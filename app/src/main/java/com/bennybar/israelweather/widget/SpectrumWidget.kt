@@ -183,12 +183,14 @@ class SpectrumWidget : WeatherWidget() {
                         }
                         if (data.showWind) {
                             val (w, dir) = dayWind(data, d)
-                            Box(GlanceModifier.width(42.dp), contentAlignment = Alignment.CenterEnd) {
-                                if (data.windDial && w != null && dir != null) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Image(ImageProvider(windDial(context.resources.displayMetrics.density, p, dir)), null, GlanceModifier.size(16.dp))
-                                        Spacer(GlanceModifier.width(3.dp))
-                                        Text(windValue(w, s), style = style(12.sp, p.muted), maxLines = 1)
+                            val dial = data.windDial && w != null && dir != null
+                            // Centered, so an arrowhead pointing sideways stays clear of its neighbours.
+                            Box(GlanceModifier.width(42.dp), contentAlignment = if (dial) Alignment.Center else Alignment.CenterEnd) {
+                                if (dial) {
+                                    // The speed inside a ring; the arrowhead on the rim points where the wind blows.
+                                    Box(GlanceModifier.size(30.dp), contentAlignment = Alignment.Center) {
+                                        Image(ImageProvider(windDial(context.resources.displayMetrics.density, p, dir)), null, GlanceModifier.size(30.dp))
+                                        Text(windValue(w, s), style = style(10.sp, p.ink, bold = true), maxLines = 1)
                                     }
                                 } else {
                                     Text(windShort(w, dir, s), style = style(12.sp, p.muted), maxLines = 1)
@@ -198,9 +200,12 @@ class SpectrumWidget : WeatherWidget() {
                         val chance = dayRainChance(data, d)
                         val strong = (chance ?: 0) >= RAINY_PCT
                         Box(GlanceModifier.width(62.dp), contentAlignment = Alignment.CenterEnd) {
-                            Box(GlanceModifier.background(if (strong) p.chipStrong else p.chipBorder).cornerRadius(10.dp).padding(1.dp)) {
+                            val pillWidth = if (data.equalPills) GlanceModifier.width(58.dp) else GlanceModifier
+                            Box(pillWidth.background(if (strong) p.chipStrong else p.chipBorder).cornerRadius(10.dp).padding(1.dp)) {
                             Row(
-                                GlanceModifier.background(if (strong) p.chipStrong else p.chip).cornerRadius(9.dp).padding(horizontal = 6.dp, vertical = 1.dp),
+                                (if (data.equalPills) GlanceModifier.fillMaxWidth() else GlanceModifier)
+                                    .background(if (strong) p.chipStrong else p.chip).cornerRadius(9.dp).padding(horizontal = 6.dp, vertical = 1.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Image(
@@ -259,38 +264,34 @@ private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Fl
 }
 
 /**
- * A tiny compass: a ring with a north tick and a pointer toward where the wind blows
- * (like the arrows). North stays up in Hebrew too.
+ * The wind dial's ring (the speed is drawn over it as text): a soft disc, and an arrowhead
+ * on the rim pointing where the wind blows (like the arrows). North stays up in Hebrew too.
  */
 private fun windDial(density: Float, p: Spectrum, fromDeg: Double): Bitmap {
-    val size = (16 * density).toInt()
+    val size = (30 * density).toInt()
     val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val c = Canvas(bmp)
     val mid = size / 2f
-    val r = mid - density
+    val r = 11 * density
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    paint.color = p.track.toArgb()
+    c.drawCircle(mid, mid, r, paint)
     paint.style = Paint.Style.STROKE
     paint.strokeWidth = 1.2f * density
     paint.color = p.muted.toArgb()
-    paint.alpha = 130
+    paint.alpha = 90
     c.drawCircle(mid, mid, r, paint)
-    paint.alpha = 255
-    paint.strokeWidth = 1.5f * density
-    c.drawLine(mid, mid - r, mid, mid - r + 3 * density, paint)
-    c.rotate((fromDeg + 180).toFloat(), mid, mid)
     paint.style = Paint.Style.FILL
     paint.color = p.ring.toArgb()
+    c.rotate((fromDeg + 180).toFloat(), mid, mid)
+    // Sits on the rim and points outward, clear of the number.
     val head = Path().apply {
-        moveTo(mid, mid - r + 1.5f * density)
-        lineTo(mid + 3.5f * density, mid - r + 6.5f * density)
-        lineTo(mid - 3.5f * density, mid - r + 6.5f * density)
+        moveTo(mid, mid - r - 3.5f * density)
+        lineTo(mid + 3.5f * density, mid - r + 1.5f * density)
+        lineTo(mid - 3.5f * density, mid - r + 1.5f * density)
         close()
     }
     c.drawPath(head, paint)
-    paint.style = Paint.Style.STROKE
-    paint.strokeWidth = 1.6f * density
-    paint.strokeCap = Paint.Cap.ROUND
-    c.drawLine(mid, mid - r + 6 * density, mid, mid + r - 3 * density, paint)
     return bmp
 }
 

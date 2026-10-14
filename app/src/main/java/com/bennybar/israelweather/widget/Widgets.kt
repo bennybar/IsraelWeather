@@ -131,13 +131,15 @@ object Widgets {
         val color = app.settings.widgetColor(appWidgetId)
         val showWind = app.settings.widgetShowWind(appWidgetId)
         val windDial = app.settings.widgetWindDial(appWidgetId)
-        val id = placeIdFor(appWidgetId) ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial)
+        val equalPills = app.settings.widgetEqualPills(appWidgetId)
+        val id = placeIdFor(appWidgetId)
+            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         val forecastId = app.settings.value.forecastIdFor(id)
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills)
     }
 }
 
@@ -155,6 +157,8 @@ data class WidgetData(
     val placeId: Int? = null,
     /** Spectrum: wind as a compass dial per day. */
     val windDial: Boolean = false,
+    /** Spectrum: rain pills all the same width. */
+    val equalPills: Boolean = false,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"
