@@ -45,13 +45,25 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     )
 
     @Serializable
-    private data class Response(val hourly: Hourly, val daily: Daily)
+    private data class Current(
+        val time: String,
+        val temperature_2m: Double? = null,
+        val relative_humidity_2m: Double? = null,
+        val weather_code: Int? = null,
+        val wind_speed_10m: Double? = null,
+        val wind_direction_10m: Double? = null,
+        val wind_gusts_10m: Double? = null,
+    )
+
+    @Serializable
+    private data class Response(val hourly: Hourly, val daily: Daily, val current: Current? = null)
 
     suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID): Forecast = withContext(Dispatchers.IO) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
+            "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m" +
             "&timezone=Asia%2FJerusalem&forecast_days=7"
         val request = Request.Builder().url(url)
             .apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }
@@ -79,7 +91,24 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val days = d.time.indices.map { i ->
             Day(d.time[i], imsCode(d.weather_code[i]), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
         }
-        Forecast(id = id, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO)
+        // Current conditions (15-minutely); rain chance and UV come from the hour they fall in.
+        val now = r.current?.let { c ->
+            val t = c.time.replace('T', ' ')
+            val slot = hours.lastOrNull { it.t <= t }
+            Hour(
+                t = t,
+                code = imsCode(c.weather_code),
+                temp = c.temperature_2m,
+                rainChance = slot?.rainChance,
+                rain = slot?.rain,
+                rh = c.relative_humidity_2m,
+                wind = c.wind_speed_10m,
+                gust = c.wind_gusts_10m,
+                windDir = c.wind_direction_10m,
+                uv = slot?.uv,
+            )
+        }
+        Forecast(id = id, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO, now = now)
     }
 
     @Serializable

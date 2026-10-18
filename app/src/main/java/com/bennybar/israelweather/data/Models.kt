@@ -74,14 +74,20 @@ data class Forecast(
     val daily: List<Day> = emptyList(),
     /** Where it came from: [SOURCE_IMS] (a nearby IMS point) or [SOURCE_OPEN_METEO] (exact location). */
     val source: String = SOURCE_IMS,
+    /** Current conditions where the source has them (Open-Meteo, every 15 minutes). */
+    val now: Hour? = null,
 ) {
     companion object {
         const val SOURCE_IMS = "ims"
         const val SOURCE_OPEN_METEO = "open-meteo"
     }
 
-    /** The hour slot covering now (or the first upcoming one); null once the forecast has run out. */
+    /**
+     * Conditions for now: the source's current conditions while under an hour old, else the
+     * hour slot covering now (or the first upcoming one); null once the forecast has run out.
+     */
     fun currentHour(now: LocalDateTime = israelNow()): Hour? {
+        this.now?.takeIf { !it.time.isAfter(now) && it.time.isAfter(now.minusHours(1)) }?.let { return it }
         val slot = now.withMinute(0).withSecond(0).withNano(0)
         return hourly.firstOrNull { !it.time.isBefore(slot) }
     }

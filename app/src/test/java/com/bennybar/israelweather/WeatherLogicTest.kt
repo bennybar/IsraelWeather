@@ -86,4 +86,15 @@ class WeatherLogicTest {
         assertFalse(WeatherCodes.isNight(LocalDateTime.of(2026, 12, 5, 7, 0)))
         assertTrue(WeatherCodes.isNight(LocalDateTime.of(2026, 12, 5, 5, 0)))
     }
+
+    // Current conditions (Open-Meteo) stand in for "now" while under an hour old.
+    @Test fun currentHourPrefersFreshReading() {
+        val f = Forecast(
+            id = 1,
+            hourly = listOf(Hour("2026-10-18 09:00", 1230, temp = 20.0), Hour("2026-10-18 10:00", 1230, temp = 22.0)),
+            now = Hour("2026-10-18 09:15", 1250, temp = 24.0),
+        )
+        assertEquals(24.0, f.currentHour(LocalDateTime.of(2026, 10, 18, 9, 40))!!.temp!!, 0.0)
+        assertEquals(22.0, f.currentHour(LocalDateTime.of(2026, 10, 18, 10, 20))!!.temp!!, 0.0)
+    }
 }

@@ -42,12 +42,13 @@ object WeatherCodes {
     fun icon(code: Int): Icon = codes[code]?.icon ?: Icon.CLOUDY
 
     /**
-     * Whether an hour slot is mostly after sunset or before sunrise (central Israel's times:
+     * Whether an hour slot (or reading) is mostly after sunset or before sunrise (central Israel's times:
      * they differ by only a few minutes across the country).
      */
     fun isNight(t: LocalDateTime): Boolean {
         val (rise, set) = sunTimes(t.toLocalDate(), 31.5, 34.9) ?: return t.hour < 6 || t.hour >= 18
-        val mid = t.toLocalTime().plusMinutes(30)
+        // Hour slots are judged by their middle; a current reading (e.g. 13:15) by itself.
+        val mid = if (t.minute == 0) t.toLocalTime().plusMinutes(30) else t.toLocalTime()
         return mid.isBefore(rise) || !mid.isBefore(set)
     }
 
