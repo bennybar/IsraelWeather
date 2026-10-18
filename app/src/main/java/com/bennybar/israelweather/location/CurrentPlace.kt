@@ -7,7 +7,7 @@ import com.bennybar.israelweather.data.IMS_RADIUS_KM
 import com.bennybar.israelweather.data.Localized
 import com.bennybar.israelweather.data.Place
 import java.util.Locale
-import kotlin.math.roundToInt
+import kotlin.math.ceil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -99,7 +99,8 @@ object CurrentPlace {
         // ~100 m precision is plenty, and keeps the exact spot out of storage.
         val lat = Math.round(loc.latitude * 1000) / 1000.0
         val lon = Math.round(loc.longitude * 1000) / 1000.0
-        val km = LocationResolver.distanceKm(place, lat, lon).roundToInt()
+        // Rounded up, so the IMS_RADIUS_KM cutoff matches searched places' (3.4 km is beyond 3).
+        val km = ceil(LocationResolver.distanceKm(place, lat, lon)).toInt()
         val before = app.settings.value
         // Beyond IMS_RADIUS_KM the forecast is Open-Meteo's for this exact spot, named after its town.
         val town = if (km > IMS_RADIUS_KM) {

@@ -4,6 +4,7 @@ import com.bennybar.israelweather.data.Forecast
 import com.bennybar.israelweather.data.Hour
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Warning
+import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.apparentTemp
 import com.bennybar.israelweather.data.sunTimes
 import com.bennybar.israelweather.location.LocationResolver
@@ -75,5 +76,14 @@ class WeatherLogicTest {
     @Test fun apparentTempMatchesOpenMeteo() {
         assertEquals(26.3, apparentTemp(22.6, 87.0, 2.6)!!, 0.4)
         assertNull(apparentTemp(20.0, null, 5.0))
+    }
+
+    // Night icons follow the real sunset: ~19:47 late June, ~16:37 early December.
+    @Test fun nightFollowsSunset() {
+        assertFalse(WeatherCodes.isNight(LocalDateTime.of(2026, 6, 21, 19, 0)))
+        assertTrue(WeatherCodes.isNight(LocalDateTime.of(2026, 6, 21, 20, 0)))
+        assertTrue(WeatherCodes.isNight(LocalDateTime.of(2026, 12, 5, 17, 0)))
+        assertFalse(WeatherCodes.isNight(LocalDateTime.of(2026, 12, 5, 7, 0)))
+        assertTrue(WeatherCodes.isNight(LocalDateTime.of(2026, 12, 5, 5, 0)))
     }
 }

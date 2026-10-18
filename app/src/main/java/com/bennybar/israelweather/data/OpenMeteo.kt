@@ -146,7 +146,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         66, 67 -> 1080
         71, 73, 77 -> 1070
         75, 85, 86 -> 1060
-        95, 96, 99 -> 1020
+        95, 96, 97, 99 -> 1020
         else -> 1230
     }
 }

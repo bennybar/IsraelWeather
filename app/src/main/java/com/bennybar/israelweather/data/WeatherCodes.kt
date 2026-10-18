@@ -41,8 +41,15 @@ object WeatherCodes {
 
     fun icon(code: Int): Icon = codes[code]?.icon ?: Icon.CLOUDY
 
-    /** Rough night: before 6:00 or from 18:00 (Israel's sunset is ~17–19:45 over the year). */
-    fun isNight(t: LocalDateTime) = t.hour < 6 || t.hour >= 18
+    /**
+     * Whether an hour slot is mostly after sunset or before sunrise (central Israel's times:
+     * they differ by only a few minutes across the country).
+     */
+    fun isNight(t: LocalDateTime): Boolean {
+        val (rise, set) = sunTimes(t.toLocalDate(), 31.5, 34.9) ?: return t.hour < 6 || t.hour >= 18
+        val mid = t.toLocalTime().plusMinutes(30)
+        return mid.isBefore(rise) || !mid.isBefore(set)
+    }
 
     @DrawableRes
     fun drawable(code: Int, night: Boolean = false): Int = when (icon(code)) {
