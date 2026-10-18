@@ -33,6 +33,9 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val wind_direction_10m: List<Double?>,
         val wind_gusts_10m: List<Double?>,
         val uv_index: List<Double?>,
+        val cloud_cover_low: List<Double?> = emptyList(),
+        val cloud_cover_mid: List<Double?> = emptyList(),
+        val cloud_cover_high: List<Double?> = emptyList(),
     )
 
     @Serializable
@@ -53,6 +56,9 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val wind_speed_10m: Double? = null,
         val wind_direction_10m: Double? = null,
         val wind_gusts_10m: Double? = null,
+        val cloud_cover_low: Double? = null,
+        val cloud_cover_mid: Double? = null,
+        val cloud_cover_high: Double? = null,
     )
 
     @Serializable
@@ -61,9 +67,10 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID): Forecast = withContext(Dispatchers.IO) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
-            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index" +
+            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
-            "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m" +
+            "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
+            "cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
             "&timezone=Asia%2FJerusalem&forecast_days=7"
         val request = Request.Builder().url(url)
             .apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }
@@ -73,10 +80,11 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             json.decodeFromString(Response.serializer(), res.body.string())
         }
         val h = r.hourly
+        val sky = h.time.indices.map { i -> effectiveCloud(h.cloud_cover_low.getOrNull(i), h.cloud_cover_mid.getOrNull(i), h.cloud_cover_high.getOrNull(i)) }
         val hours = h.time.indices.map { i ->
             Hour(
                 t = h.time[i].replace('T', ' '),
-                code = imsCode(h.weather_code[i]),
+                code = skyCode(h.weather_code[i], sky[i]),
                 temp = h.temperature_2m[i],
                 rainChance = h.precipitation_probability[i],
                 rain = h.precipitation[i],
@@ -89,7 +97,11 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         val d = r.daily
         val days = d.time.indices.map { i ->
-            Day(d.time[i], imsCode(d.weather_code[i]), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
+            // Open-Meteo's daily code is the day's worst hour: one overcast hour makes the whole day
+            // "cloudy". For plain sky codes, use the daytime (07–17) average cloud instead.
+            val daytime = h.time.indices.filter { j -> h.time[j].startsWith(d.time[i]) && h.time[j].substring(11, 13).toInt() in 7..17 }
+            val dayCloud = daytime.mapNotNull { sky[it] }.takeIf { it.isNotEmpty() }?.average()
+            Day(d.time[i], skyCode(d.weather_code[i], dayCloud), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
         }
         // Current conditions (15-minutely); rain chance and UV come from the hour they fall in.
         val now = r.current?.let { c ->
@@ -97,7 +109,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val slot = hours.lastOrNull { it.t <= t }
             Hour(
                 t = t,
-                code = imsCode(c.weather_code),
+                code = skyCode(c.weather_code, effectiveCloud(c.cloud_cover_low, c.cloud_cover_mid, c.cloud_cover_high)),
                 temp = c.temperature_2m,
                 rainChance = slot?.rainChance,
                 rain = slot?.rain,
@@ -162,6 +174,21 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             json.decodeFromString(AirResponse.serializer(), res.body.string()).current
         }
         AirQuality(c.us_aqi?.toInt(), c.pm10, c.pm2_5, c.dust).also { air = Triple(key, System.currentTimeMillis(), it) }
+    }
+
+    /**
+     * Cloud as it looks from the ground (%): the thickest layer, with high cloud at half weight,
+     * since thin cirrus lets the sun through (Open-Meteo counts it fully, so its codes run cloudy).
+     */
+    private fun effectiveCloud(low: Double?, mid: Double?, high: Double?): Double? =
+        if (low == null && mid == null && high == null) null else maxOf(low ?: 0.0, mid ?: 0.0, (high ?: 0.0) / 2)
+
+    /** Plain sky codes (0–3) from [cloud] (when known); rain, fog, snow and storms as Open-Meteo says. */
+    private fun skyCode(wmo: Int?, cloud: Double?): Int = when {
+        wmo == null || wmo > 3 || cloud == null -> imsCode(wmo)
+        cloud < 20 -> 1250
+        cloud < 60 -> 1220
+        else -> 1230
     }
 
     /** WMO weather codes → the IMS codes the app's icons and texts use. */
