@@ -157,11 +157,15 @@ class SpectrumWidget : WeatherWidget() {
                             style = style(13.sp, p.muted), maxLines = 1,
                         )
                     }
-                    Image(
-                        ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
-                        GlanceModifier.size(if (tall) 42.dp else 38.dp),
-                    )
-                    Spacer(GlanceModifier.width(4.dp))
+                    // The icon sits in a soft circle, like the refresh button.
+                    val circle = if (tall) 50.dp else 46.dp
+                    Box(GlanceModifier.size(circle).background(p.button).cornerRadius(circle / 2), contentAlignment = Alignment.Center) {
+                        Image(
+                            ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
+                            GlanceModifier.size(if (tall) 36.dp else 33.dp),
+                        )
+                    }
+                    Spacer(GlanceModifier.width(8.dp))
                     Text(temp(now.temp, s), style = style(if (tall) 38.sp else 34.sp, p.ink, bold = true), maxLines = 1)
                     if (data.showRefresh) {
                         Spacer(GlanceModifier.width(8.dp))
@@ -259,7 +263,8 @@ class SpectrumWidget : WeatherWidget() {
 @Composable
 private fun StatPill(p: Spectrum, label: String, value: String, arrow: Bitmap? = null) {
     Row(
-        GlanceModifier.background(p.button).cornerRadius(11.dp).padding(horizontal = 8.dp, vertical = 2.dp),
+        // Today's row tone: light on lavender/orange, see-through on Twilight (where the button tone is too light).
+        GlanceModifier.background(p.today).cornerRadius(11.dp).padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("$label ", style = style(11.sp, p.muted), maxLines = 1)
