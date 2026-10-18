@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
@@ -37,6 +38,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.Text
+import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.WeatherCodes
@@ -134,21 +136,33 @@ class SpectrumWidget : WeatherWidget() {
                 .clickable(openApp()),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
-                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Now: a big icon beside the temperature; place, condition and today's range beside them.
+                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
+                        GlanceModifier.size(if (tall) 50.dp else 44.dp),
+                    )
+                    Spacer(GlanceModifier.width(6.dp))
                     Text(temp(now.temp, s), style = style(if (tall) 40.sp else 34.sp, p.ink, bold = true), maxLines = 1)
                     Spacer(GlanceModifier.width(10.dp))
                     Column(GlanceModifier.defaultWeight()) {
-                        Text(data.place?.name(en) ?: "", style = style(16.sp, p.ink, bold = true), maxLines = 1)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(ImageProvider(R.drawable.w_pin), null, GlanceModifier.size(11.dp), colorFilter = ColorFilter.tint(ColorProvider(p.muted)))
+                            Spacer(GlanceModifier.width(2.dp))
+                            Text(data.place?.name(en) ?: "", style = style(11.sp, p.muted, bold = true), maxLines = 1)
+                        }
+                        Text(WeatherCodes.describe(now.code, en), style = style(15.sp, p.ink, bold = true), maxLines = 1)
+                        val today = list.first()
                         val line = listOfNotNull(
-                            WeatherCodes.describe(now.code, en),
+                            "↑${temp(today.max, s)} ↓${temp(today.min, s)}",
                             apparentTemp(now.temp, now.rh, now.wind)?.let { context.getString(R.string.feels_like, temp(it, s)).lowercaseFirstIfEnglish(en) },
-                            data.updated?.let { hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) },
                         ).joinToString(" · ")
                         Text(line, style = style(11.sp, p.muted), maxLines = 1)
                     }
-                    if (data.showRefresh) {
-                        Spacer(GlanceModifier.width(6.dp))
-                        RefreshButton(p.button, 30.dp)
+                    // Refresh, with the update time tucked under it.
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (data.showRefresh) RefreshButton(p.button, 30.dp)
+                        data.updated?.let { Text(hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)), style = style(9.sp, p.muted), maxLines = 1) }
                     }
                 }
                 Spacer(GlanceModifier.height(4.dp))
