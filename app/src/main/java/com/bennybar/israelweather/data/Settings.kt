@@ -12,7 +12,7 @@ enum class WindUnit { KMH, MS }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /** Which weather icon set the app and widgets draw. */
-enum class IconStyle { MATERIAL, METEOCONS, METEOCONS_LINE, FLUENT, NOTO }
+enum class IconStyle { MATERIAL, METEOCONS, FLUENT, NOTO, GLASS, ONEUI }
 
 /** The forecast page's sections, in their default order. */
 enum class Card { HERO, ALERTS, HOURLY, WEEK, DETAILS, RADAR, SUMMARY }

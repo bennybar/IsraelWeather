@@ -198,7 +198,8 @@
     <string name="weather_icons">אייקוני מזג אוויר</string>
     <string name="icons_material">Material</string>
     <string name="icons_meteocons">Meteocons</string>
-    <string name="icons_meteocons_line">Meteocons קו</string>
+    <string name="icons_glass">זכוכית</string>
+    <string name="icons_oneui">בסגנון One UI</string>
     <string name="icons_fluent">Fluent</string>
     <string name="icons_noto">Noto</string>
 </resources>

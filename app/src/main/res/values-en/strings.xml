@@ -198,7 +198,8 @@
     <string name="weather_icons">Weather icons</string>
     <string name="icons_material">Material</string>
     <string name="icons_meteocons">Meteocons</string>
-    <string name="icons_meteocons_line">Meteocons Line</string>
+    <string name="icons_glass">Glass</string>
+    <string name="icons_oneui">One UI style</string>
     <string name="icons_fluent">Fluent</string>
     <string name="icons_noto">Noto</string>
 </resources>

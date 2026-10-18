@@ -59,9 +59,10 @@ object WeatherCodes {
         val set = when (style) {
             IconStyle.MATERIAL -> MATERIAL
             IconStyle.METEOCONS -> METEOCONS
-            IconStyle.METEOCONS_LINE -> METEOCONS_LINE
             IconStyle.FLUENT -> FLUENT
             IconStyle.NOTO -> NOTO
+            IconStyle.GLASS -> GLASS
+            IconStyle.ONEUI -> ONEUI
         }
         return when (icon(code)) {
             Icon.CLEAR -> if (night) set.moon else set.sun
@@ -94,11 +95,6 @@ object WeatherCodes {
         R.drawable.wi_mfill_cloud, R.drawable.wi_mfill_partly_rain, R.drawable.wi_mfill_rain, R.drawable.wi_mfill_storm,
         R.drawable.wi_mfill_snow, R.drawable.wi_mfill_fog, R.drawable.wi_mfill_dust, R.drawable.wi_mfill_wind,
     )
-    private val METEOCONS_LINE = IconSet(
-        R.drawable.wi_mline_sun, R.drawable.wi_mline_moon, R.drawable.wi_mline_partly, R.drawable.wi_mline_partly_night,
-        R.drawable.wi_mline_cloud, R.drawable.wi_mline_partly_rain, R.drawable.wi_mline_rain, R.drawable.wi_mline_storm,
-        R.drawable.wi_mline_snow, R.drawable.wi_mline_fog, R.drawable.wi_mline_dust, R.drawable.wi_mline_wind,
-    )
     private val FLUENT = IconSet(
         R.drawable.wi_fluent_sun, R.drawable.wi_fluent_moon, R.drawable.wi_fluent_partly, R.drawable.wi_fluent_partly_night,
         R.drawable.wi_fluent_cloud, R.drawable.wi_fluent_partly_rain, R.drawable.wi_fluent_rain, R.drawable.wi_fluent_storm,
@@ -108,5 +104,17 @@ object WeatherCodes {
         R.drawable.wi_noto_sun, R.drawable.wi_noto_moon, R.drawable.wi_noto_partly, R.drawable.wi_noto_partly_night,
         R.drawable.wi_noto_cloud, R.drawable.wi_noto_partly_rain, R.drawable.wi_noto_rain, R.drawable.wi_noto_storm,
         R.drawable.wi_noto_snow, R.drawable.wi_noto_fog, R.drawable.wi_noto_dust, R.drawable.wi_noto_wind,
+    )
+
+    // Our own sets (tools/icons/gen_icons.py): frosted "glass", and flat rounded One UI–style.
+    private val GLASS = IconSet(
+        R.drawable.wi_glass_sun, R.drawable.wi_glass_moon, R.drawable.wi_glass_partly, R.drawable.wi_glass_partly_night,
+        R.drawable.wi_glass_cloud, R.drawable.wi_glass_partly_rain, R.drawable.wi_glass_rain, R.drawable.wi_glass_storm,
+        R.drawable.wi_glass_snow, R.drawable.wi_glass_fog, R.drawable.wi_glass_dust, R.drawable.wi_glass_wind,
+    )
+    private val ONEUI = IconSet(
+        R.drawable.wi_oneui_sun, R.drawable.wi_oneui_moon, R.drawable.wi_oneui_partly, R.drawable.wi_oneui_partly_night,
+        R.drawable.wi_oneui_cloud, R.drawable.wi_oneui_partly_rain, R.drawable.wi_oneui_rain, R.drawable.wi_oneui_storm,
+        R.drawable.wi_oneui_snow, R.drawable.wi_oneui_fog, R.drawable.wi_oneui_dust, R.drawable.wi_oneui_wind,
     )
 }

@@ -129,9 +129,10 @@ fun SettingsScreen() {
                     val styles = listOf(
                         IconStyle.MATERIAL to R.string.icons_material,
                         IconStyle.METEOCONS to R.string.icons_meteocons,
-                        IconStyle.METEOCONS_LINE to R.string.icons_meteocons_line,
                         IconStyle.FLUENT to R.string.icons_fluent,
                         IconStyle.NOTO to R.string.icons_noto,
+                        IconStyle.GLASS to R.string.icons_glass,
+                        IconStyle.ONEUI to R.string.icons_oneui,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         styles.forEach { (style, label) ->
