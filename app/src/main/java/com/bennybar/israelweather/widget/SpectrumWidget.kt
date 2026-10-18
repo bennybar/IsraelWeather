@@ -1,5 +1,6 @@
 package com.bennybar.israelweather.widget
 
+import android.app.LocaleManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
@@ -7,14 +8,14 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
-import android.util.LayoutDirection
+import android.text.TextUtils
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
@@ -38,7 +39,6 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.Text
-import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.WeatherCodes
@@ -48,6 +48,7 @@ import com.bennybar.israelweather.ui.windShort
 import com.bennybar.israelweather.ui.windValue
 import java.time.Instant
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 import com.bennybar.israelweather.data.IsraelZone
 import com.bennybar.israelweather.ui.hhmm
 
@@ -120,7 +121,11 @@ class SpectrumWidget : WeatherWidget() {
         val tall = size.height >= 210.dp
         val lo = list.mapNotNull { it.min }.minOrNull() ?: 0.0
         val hi = (list.mapNotNull { it.max }.maxOrNull() ?: lo).coerceAtLeast(lo + 1)
-        val rtl = context.resources.configuration.layoutDirection == LayoutDirection.RTL
+        // The home screen lays the widget out in the phone's language direction, not the app's
+        // (they differ when the app's language is set separately), so the bars follow the phone.
+        // Resources.getSystem() won't do: it picks up the app's language too.
+        val phoneLocale = context.getSystemService(LocaleManager::class.java).systemLocales.get(0)
+        val rtl = TextUtils.getLayoutDirectionFromLocale(phoneLocale) == View.LAYOUT_DIRECTION_RTL
         val text = if (tall) 15.sp else 14.sp
         // The bar takes the row's leftover width; its bitmap is drawn for that width so the round
         // ends and the dot aren't stretched. (The picker preview reports the minimum size, so
@@ -136,34 +141,38 @@ class SpectrumWidget : WeatherWidget() {
                 .clickable(openApp()),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
-                // Now: a big icon beside the temperature; place, condition and today's range beside them.
-                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Now: place and condition on the left (aligned with the day names), icon and temperature
+                // on the right, then small pills like the rain ones.
+                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(GlanceModifier.defaultWeight()) {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(data.place?.name(en) ?: "", style = style(17.sp, p.ink, bold = true), maxLines = 1)
+                            data.updated?.let {
+                                Text(" · " + hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)), style = style(11.sp, p.muted), maxLines = 1)
+                            }
+                        }
+                        val today = list.first()
+                        Text(
+                            "${WeatherCodes.describe(now.code, en)} · ↑${temp(today.max, s)} ↓${temp(today.min, s)}",
+                            style = style(13.sp, p.muted), maxLines = 1,
+                        )
+                    }
                     Image(
                         ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
-                        GlanceModifier.size(if (tall) 50.dp else 44.dp),
+                        GlanceModifier.size(if (tall) 42.dp else 38.dp),
                     )
-                    Spacer(GlanceModifier.width(6.dp))
-                    Text(temp(now.temp, s), style = style(if (tall) 40.sp else 34.sp, p.ink, bold = true), maxLines = 1)
-                    Spacer(GlanceModifier.width(10.dp))
-                    Column(GlanceModifier.defaultWeight()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(ImageProvider(R.drawable.w_pin), null, GlanceModifier.size(11.dp), colorFilter = ColorFilter.tint(ColorProvider(p.muted)))
-                            Spacer(GlanceModifier.width(2.dp))
-                            Text(data.place?.name(en) ?: "", style = style(11.sp, p.muted, bold = true), maxLines = 1)
-                        }
-                        Text(WeatherCodes.describe(now.code, en), style = style(15.sp, p.ink, bold = true), maxLines = 1)
-                        val today = list.first()
-                        val line = listOfNotNull(
-                            "↑${temp(today.max, s)} ↓${temp(today.min, s)}",
-                            apparentTemp(now.temp, now.rh, now.wind)?.let { context.getString(R.string.feels_like, temp(it, s)).lowercaseFirstIfEnglish(en) },
-                        ).joinToString(" · ")
-                        Text(line, style = style(11.sp, p.muted), maxLines = 1)
+                    Spacer(GlanceModifier.width(4.dp))
+                    Text(temp(now.temp, s), style = style(if (tall) 38.sp else 34.sp, p.ink, bold = true), maxLines = 1)
+                    if (data.showRefresh) {
+                        Spacer(GlanceModifier.width(8.dp))
+                        RefreshButton(p.button, 30.dp)
                     }
-                    // Refresh, with the update time tucked under it.
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (data.showRefresh) RefreshButton(p.button, 30.dp)
-                        data.updated?.let { Text(hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)), style = style(9.sp, p.muted), maxLines = 1) }
-                    }
+                }
+                Spacer(GlanceModifier.height(4.dp))
+                Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s)) }
+                    now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%") }
+                    now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }) }
                 }
                 Spacer(GlanceModifier.height(4.dp))
                 list.forEachIndexed { i, d ->
@@ -246,7 +255,22 @@ class SpectrumWidget : WeatherWidget() {
     }
 }
 
-private fun String.lowercaseFirstIfEnglish(en: Boolean) = if (en) replaceFirstChar { it.lowercase() } else this
+/** "Humidity 73%": a soft pill under the header, label muted and value bold (optional arrow before the value). */
+@Composable
+private fun StatPill(p: Spectrum, label: String, value: String, arrow: Bitmap? = null) {
+    Row(
+        GlanceModifier.background(p.button).cornerRadius(11.dp).padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("$label ", style = style(11.sp, p.muted), maxLines = 1)
+        if (arrow != null) {
+            Image(ImageProvider(arrow), null, GlanceModifier.size(10.dp))
+            Spacer(GlanceModifier.width(3.dp))
+        }
+        Text(value, style = style(11.sp, p.ink, bold = true), maxLines = 1)
+    }
+    Spacer(GlanceModifier.width(6.dp))
+}
 
 /**
  * One day's range as a bitmap: a rounded track, the min→max part filled with the
