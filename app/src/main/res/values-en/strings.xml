@@ -195,4 +195,10 @@
     <string name="color_twilight">Twilight</string>
     <string name="search_more">More places</string>
     <string name="refresh_failed">Couldn\'t refresh, tap to retry</string>
+    <string name="weather_icons">Weather icons</string>
+    <string name="icons_material">Material</string>
+    <string name="icons_meteocons">Meteocons</string>
+    <string name="icons_meteocons_line">Meteocons Line</string>
+    <string name="icons_fluent">Fluent</string>
+    <string name="icons_noto">Noto</string>
 </resources>

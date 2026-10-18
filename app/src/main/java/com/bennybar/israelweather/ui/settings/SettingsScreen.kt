@@ -4,6 +4,7 @@ import android.app.LocaleManager
 import android.content.Intent
 import android.net.Uri
 import android.os.LocaleList
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,9 @@ import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.BuildConfig
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.IconStyle
 import com.bennybar.israelweather.data.TempUnit
+import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.ThemeMode
 import com.bennybar.israelweather.data.WindUnit
 import com.bennybar.israelweather.ui.LocalUi
@@ -65,6 +69,7 @@ import com.bennybar.israelweather.ui.theme.Accents
 import com.bennybar.israelweather.widget.RefreshWorker
 import com.bennybar.israelweather.widget.WidgetKind
 import com.bennybar.israelweather.widget.Widgets
+import kotlinx.coroutines.launch
 
 private val refreshOptions = listOf(15, 30, 60, 180, 0)
 
@@ -118,6 +123,30 @@ fun SettingsScreen() {
                             ) {
                                 if (i == settings.accent) Icon(Icons.Rounded.Check, null, tint = MaterialTheme.colorScheme.onPrimary)
                             }
+                        }
+                    }
+                    Label(stringResource(R.string.weather_icons))
+                    val styles = listOf(
+                        IconStyle.MATERIAL to R.string.icons_material,
+                        IconStyle.METEOCONS to R.string.icons_meteocons,
+                        IconStyle.METEOCONS_LINE to R.string.icons_meteocons_line,
+                        IconStyle.FLUENT to R.string.icons_fluent,
+                        IconStyle.NOTO to R.string.icons_noto,
+                    )
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        styles.forEach { (style, label) ->
+                            FilterChip(
+                                selected = settings.iconStyle == style,
+                                onClick = {
+                                    app.settings.setIconStyle(style)
+                                    // Widgets draw the same set.
+                                    app.scope.launch { Widgets.updateAll(context) }
+                                },
+                                label = { Text(stringResource(label)) },
+                                leadingIcon = {
+                                    Image(painterResource(WeatherCodes.drawable(1220, style = style)), null, Modifier.size(22.dp))
+                                },
+                            )
                         }
                     }
                     Label(stringResource(R.string.language))

@@ -2,6 +2,7 @@ package com.bennybar.israelweather.data
 
 import androidx.annotation.DrawableRes
 import com.bennybar.israelweather.R
+import com.bennybar.israelweather.app
 import java.time.LocalDateTime
 
 /** IMS weather codes (https://ims.gov.il/he/weather_codes) → text and icon. */
@@ -52,17 +53,60 @@ object WeatherCodes {
         return mid.isBefore(rise) || !mid.isBefore(set)
     }
 
+    /** The icon for [code] in the chosen set (Settings → Weather icons), used by the app and widgets alike. */
     @DrawableRes
-    fun drawable(code: Int, night: Boolean = false): Int = when (icon(code)) {
-        Icon.CLEAR -> if (night) R.drawable.w_moon else R.drawable.w_sun
-        Icon.PARTLY -> if (night) R.drawable.w_partly_night else R.drawable.w_partly
-        Icon.CLOUDY -> R.drawable.w_cloud
-        Icon.PARTLY_RAIN -> R.drawable.w_partly_rain
-        Icon.RAIN -> R.drawable.w_rain
-        Icon.STORM -> R.drawable.w_storm
-        Icon.SNOW -> R.drawable.w_snow
-        Icon.FOG -> R.drawable.w_fog
-        Icon.DUST -> R.drawable.w_dust
-        Icon.WIND -> R.drawable.w_wind
+    fun drawable(code: Int, night: Boolean = false, style: IconStyle = app.settings.value.iconStyle): Int {
+        val set = when (style) {
+            IconStyle.MATERIAL -> MATERIAL
+            IconStyle.METEOCONS -> METEOCONS
+            IconStyle.METEOCONS_LINE -> METEOCONS_LINE
+            IconStyle.FLUENT -> FLUENT
+            IconStyle.NOTO -> NOTO
+        }
+        return when (icon(code)) {
+            Icon.CLEAR -> if (night) set.moon else set.sun
+            Icon.PARTLY -> if (night) set.partlyNight else set.partly
+            Icon.CLOUDY -> set.cloud
+            Icon.PARTLY_RAIN -> set.partlyRain
+            Icon.RAIN -> set.rain
+            Icon.STORM -> set.storm
+            Icon.SNOW -> set.snow
+            Icon.FOG -> set.fog
+            Icon.DUST -> set.dust
+            Icon.WIND -> set.wind
+        }
     }
+
+    private class IconSet(
+        val sun: Int, val moon: Int, val partly: Int, val partlyNight: Int, val cloud: Int, val partlyRain: Int,
+        val rain: Int, val storm: Int, val snow: Int, val fog: Int, val dust: Int, val wind: Int,
+    )
+
+    private val MATERIAL = IconSet(
+        R.drawable.w_sun, R.drawable.w_moon, R.drawable.w_partly, R.drawable.w_partly_night, R.drawable.w_cloud, R.drawable.w_partly_rain,
+        R.drawable.w_rain, R.drawable.w_storm, R.drawable.w_snow, R.drawable.w_fog, R.drawable.w_dust, R.drawable.w_wind,
+    )
+
+    // Meteocons (Bas Milius, MIT), Fluent Emoji (Microsoft, MIT), Noto Emoji (Google, Apache 2.0):
+    // 192 px WebPs; the emoji sets' partly-cloudy night, fog and dust are composed from their parts.
+    private val METEOCONS = IconSet(
+        R.drawable.wi_mfill_sun, R.drawable.wi_mfill_moon, R.drawable.wi_mfill_partly, R.drawable.wi_mfill_partly_night,
+        R.drawable.wi_mfill_cloud, R.drawable.wi_mfill_partly_rain, R.drawable.wi_mfill_rain, R.drawable.wi_mfill_storm,
+        R.drawable.wi_mfill_snow, R.drawable.wi_mfill_fog, R.drawable.wi_mfill_dust, R.drawable.wi_mfill_wind,
+    )
+    private val METEOCONS_LINE = IconSet(
+        R.drawable.wi_mline_sun, R.drawable.wi_mline_moon, R.drawable.wi_mline_partly, R.drawable.wi_mline_partly_night,
+        R.drawable.wi_mline_cloud, R.drawable.wi_mline_partly_rain, R.drawable.wi_mline_rain, R.drawable.wi_mline_storm,
+        R.drawable.wi_mline_snow, R.drawable.wi_mline_fog, R.drawable.wi_mline_dust, R.drawable.wi_mline_wind,
+    )
+    private val FLUENT = IconSet(
+        R.drawable.wi_fluent_sun, R.drawable.wi_fluent_moon, R.drawable.wi_fluent_partly, R.drawable.wi_fluent_partly_night,
+        R.drawable.wi_fluent_cloud, R.drawable.wi_fluent_partly_rain, R.drawable.wi_fluent_rain, R.drawable.wi_fluent_storm,
+        R.drawable.wi_fluent_snow, R.drawable.wi_fluent_fog, R.drawable.wi_fluent_dust, R.drawable.wi_fluent_wind,
+    )
+    private val NOTO = IconSet(
+        R.drawable.wi_noto_sun, R.drawable.wi_noto_moon, R.drawable.wi_noto_partly, R.drawable.wi_noto_partly_night,
+        R.drawable.wi_noto_cloud, R.drawable.wi_noto_partly_rain, R.drawable.wi_noto_rain, R.drawable.wi_noto_storm,
+        R.drawable.wi_noto_snow, R.drawable.wi_noto_fog, R.drawable.wi_noto_dust, R.drawable.wi_noto_wind,
+    )
 }

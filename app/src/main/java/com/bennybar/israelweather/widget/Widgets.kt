@@ -21,6 +21,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.updateAll
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.IconStyle
 import com.bennybar.israelweather.data.Forecast
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Warning
@@ -133,13 +134,13 @@ object Widgets {
         val windDial = app.settings.widgetWindDial(appWidgetId)
         val equalPills = app.settings.widgetEqualPills(appWidgetId)
         val id = placeIdFor(appWidgetId)
-            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills)
+            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills, iconStyle = app.settings.value.iconStyle)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         val forecastId = app.settings.value.forecastIdFor(id)
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills, app.settings.value.iconStyle)
     }
 }
 
@@ -159,6 +160,8 @@ data class WidgetData(
     val windDial: Boolean = false,
     /** Spectrum: rain pills all the same width. */
     val equalPills: Boolean = false,
+    /** The app's icon set: part of the data so a running widget redraws when it changes. */
+    val iconStyle: IconStyle = IconStyle.MATERIAL,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"

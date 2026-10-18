@@ -11,6 +11,9 @@ enum class TempUnit { C, F }
 enum class WindUnit { KMH, MS }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Which weather icon set the app and widgets draw. */
+enum class IconStyle { MATERIAL, METEOCONS, METEOCONS_LINE, FLUENT, NOTO }
+
 /** The forecast page's sections, in their default order. */
 enum class Card { HERO, ALERTS, HOURLY, WEEK, DETAILS, RADAR, SUMMARY }
 
@@ -36,6 +39,7 @@ data class Settings(
     val currentKm: Int? = null,
     /** The town at the device's location (reverse geocoded), named when Open-Meteo is used. */
     val currentTown: Localized? = null,
+    val iconStyle: IconStyle = IconStyle.MATERIAL,
 ) {
     /**
      * The forecast to show for "my location": the nearest IMS point's when it is within
@@ -82,6 +86,7 @@ class SettingsStore(context: Context) {
             currentLon = prefs.getString("currentLon", null)?.toDoubleOrNull(),
             currentKm = prefs.getInt("currentKm", -1).takeIf { it >= 0 },
             currentTown = prefs.getString("currentTownHe", null)?.let { Localized(it, prefs.getString("currentTownEn", null)) },
+            iconStyle = enumOr(prefs.getString("iconStyle", null), d.iconStyle),
             customPlaces = prefs.getString("customPlaces", null)
                 ?.let { runCatching { Json.decodeFromString(ListSerializer(CustomPlace.serializer()), it) }.getOrNull() }.orEmpty(),
         )
@@ -109,6 +114,7 @@ class SettingsStore(context: Context) {
             .putInt("currentKm", s.currentKm ?: -1)
             .putString("currentTownHe", s.currentTown?.he)
             .putString("currentTownEn", s.currentTown?.en)
+            .putString("iconStyle", s.iconStyle.name)
             .putString("customPlaces", Json.encodeToString(ListSerializer(CustomPlace.serializer()), s.customPlaces))
             .apply()
     }
@@ -117,6 +123,7 @@ class SettingsStore(context: Context) {
     fun setWindUnit(v: WindUnit) = update { it.copy(windUnit = v) }
     fun setTheme(v: ThemeMode) = update { it.copy(theme = v) }
     fun setAccent(v: Int) = update { it.copy(accent = v) }
+    fun setIconStyle(v: IconStyle) = update { it.copy(iconStyle = v) }
     fun setRefreshMinutes(v: Int) = update { it.copy(refreshMinutes = v) }
     fun setUseLocation(v: Boolean) = update { it.copy(useLocation = v) }
     fun setCurrentPlace(id: Int?) = update { it.copy(currentPlace = id) }

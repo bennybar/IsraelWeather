@@ -195,4 +195,10 @@
     <string name="color_twilight">דמדומים</string>
     <string name="search_more">מקומות נוספים</string>
     <string name="refresh_failed">הרענון נכשל, נסו שוב</string>
+    <string name="weather_icons">אייקוני מזג אוויר</string>
+    <string name="icons_material">Material</string>
+    <string name="icons_meteocons">Meteocons</string>
+    <string name="icons_meteocons_line">Meteocons קו</string>
+    <string name="icons_fluent">Fluent</string>
+    <string name="icons_noto">Noto</string>
 </resources>
