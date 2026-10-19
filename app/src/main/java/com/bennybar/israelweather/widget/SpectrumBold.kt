@@ -141,9 +141,11 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
             } else {
                 Text(dayLabel(context, d), style = style(12.sp * fw, if (today) p.ring else ink, bold = true), maxLines = 1)
             }
+            // Always some air between the day (or Today pill) and its icon.
+            Spacer(GlanceModifier.width(6.dp))
             Spacer(GlanceModifier.defaultWeight())
             val iconSize = when {
-                today && !framed && !roomy -> 16.dp * fw
+                today && !framed -> (if (roomy) 18.dp else 16.dp) * fw
                 else -> 20.dp * fw
             }
             Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(iconSize))
