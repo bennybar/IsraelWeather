@@ -174,8 +174,12 @@ class SettingsStore(context: Context) {
     /** Spectrum: how many days to show (2, 3 or 5); fewer days get bigger rows. */
     fun widgetDays(appWidgetId: Int) = prefs.getInt("widget_days_$appWidgetId", 5)
     fun setWidgetDays(appWidgetId: Int, days: Int) = prefs.edit().putInt("widget_days_$appWidgetId", days).apply()
-    /** Spectrum: "classic", or one of the three-day layouts ("refined", "breathing", "tiles"). */
-    fun widgetLayout(appWidgetId: Int) = prefs.getString("widget_layout_$appWidgetId", null) ?: "classic"
+    /** Spectrum: "classic", or a three-day layout ("refined", "tiles"; the retired "breathing" reads as refined). */
+    fun widgetLayout(appWidgetId: Int) = when (val l = prefs.getString("widget_layout_$appWidgetId", null)) {
+        null -> "classic"
+        "breathing" -> "refined"
+        else -> l
+    }
     fun setWidgetLayout(appWidgetId: Int, layout: String) = prefs.edit().putString("widget_layout_$appWidgetId", layout).apply()
 
     private fun <T> List<T>.moved(item: T, delta: Int): List<T> {

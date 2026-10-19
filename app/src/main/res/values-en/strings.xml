@@ -197,8 +197,6 @@
     <string name="widget_layout">Layout</string>
     <string name="layout_classic">Classic</string>
     <string name="layout_refined">Refined</string>
-    <string name="layout_breathing">Breathing room</string>
     <string name="layout_tiles">Three tiles</string>
     <string name="layout_three_day_hint">Three days, with wind and same-size rain pills.</string>
-    <string name="layout_tall_hint">Three days, with wind and same-size rain pills. Needs a tall widget (4×3); a shorter one shows Refined.</string>
 </resources>

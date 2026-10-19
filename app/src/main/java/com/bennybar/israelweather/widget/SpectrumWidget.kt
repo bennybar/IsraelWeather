@@ -157,13 +157,20 @@ class SpectrumWidget : WeatherWidget() {
             Column(GlanceModifier.fillMaxSize()) {
                 // Now: place, then condition and update time, on the left (aligned with the day names);
                 // icon, temperature and today's range under it on the right; then small pills.
+                // Today's high/low goes under the temperature when there's room (fewer days, or 4×3);
+                // with 5 days on a short widget (Samsung's 4×2) it stays in the condition line, and the
+                // update time moves next to the place, so the header is only two lines tall.
+                val rangeUnder = k > 1f || roomy
+                val today = list.first()
+                val range = "↑${temp(today.max, s)} ↓${temp(today.min, s)}"
+                val time = data.updated?.let { hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) }
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(GlanceModifier.defaultWeight()) {
-                        Text(data.place?.name(en) ?: "", style = style((if (roomy) 19.sp else 17.sp) * k, p.ink, bold = true), maxLines = 1)
-                        val line = listOfNotNull(
-                            WeatherCodes.describe(now.code, en),
-                            data.updated?.let { hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) },
-                        ).joinToString(" · ")
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(data.place?.name(en) ?: "", style = style((if (roomy) 19.sp else 17.sp) * k, p.ink, bold = true), maxLines = 1)
+                            if (!rangeUnder && time != null) Text(" · $time", style = style(11.sp, p.muted), maxLines = 1)
+                        }
+                        val line = listOfNotNull(WeatherCodes.describe(now.code, en), if (rangeUnder) time else range).joinToString(" · ")
                         Text(line, style = style((if (roomy) 14.sp else 13.sp) * k, p.muted), maxLines = 1)
                     }
                     Image(
@@ -173,18 +180,17 @@ class SpectrumWidget : WeatherWidget() {
                     Spacer(GlanceModifier.width(4.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(temp(now.temp, s), style = style((if (roomy) 40.sp else 34.sp) * k, p.ink, bold = true), maxLines = 1)
-                        val today = list.first()
-                        Text("↑${temp(today.max, s)} ↓${temp(today.min, s)}", style = style(11.sp * k, p.muted), maxLines = 1)
+                        if (rangeUnder) Text(range, style = style(11.sp * k, p.muted), maxLines = 1)
                     }
                     if (data.showRefresh) {
                         Spacer(GlanceModifier.width(8.dp))
                         RefreshButton(p.button, 30.dp * k)
                     }
                 }
-                // The pills sit with the same visible space above and below them; the header's last
-                // line (today's high/low) already brings ~5dp of text padding, so less is added above.
+                // The pills sit with the same visible space above and below them; a high/low line under
+                // the temperature already brings ~5dp of text padding, so less is added above then.
                 val pillSpace = (if (roomy) 10.dp else 7.dp) * k
-                Spacer(GlanceModifier.height(pillSpace - 5.dp * k))
+                Spacer(GlanceModifier.height(if (rangeUnder) pillSpace - 5.dp * k else pillSpace))
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s), scale = k) }
                     now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%", scale = k) }

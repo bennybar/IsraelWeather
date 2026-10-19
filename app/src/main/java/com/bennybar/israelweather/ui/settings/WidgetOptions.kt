@@ -35,7 +35,6 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.places.PlacePickerDialog
-import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_BREATHING
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
@@ -131,7 +130,6 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 listOf(
                     SPECTRUM_LAYOUT_CLASSIC to R.string.layout_classic,
                     SPECTRUM_LAYOUT_REFINED to R.string.layout_refined,
-                    SPECTRUM_LAYOUT_BREATHING to R.string.layout_breathing,
                     SPECTRUM_LAYOUT_TILES to R.string.layout_tiles,
                 ).forEach { (key, label) ->
                     FilterChip(
@@ -146,10 +144,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 }
             }
             if (!classic) {
-                Text(
-                    stringResource(if (layout == SPECTRUM_LAYOUT_REFINED) R.string.layout_three_day_hint else R.string.layout_tall_hint),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp,
-                )
+                Text(stringResource(R.string.layout_three_day_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
             }
         }
         if (kind == WidgetKind.RANGES || (kind == WidgetKind.SPECTRUM && classic)) {
