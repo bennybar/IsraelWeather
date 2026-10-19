@@ -73,7 +73,8 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
     // Text grows fully; icons and the bottom line a bit less, since they're also width-bound.
     val header = if (compact) 48.dp else 56.dp
     val columns = size.height - 20.dp - header - (if (tall) 8.dp else 3.dp)
-    val f = (columns / 104.dp).coerceIn(1f, 1.5f)
+    // Half of what would fill the height exactly: the full amount read too big.
+    val f = 1f + ((columns / 104.dp).coerceIn(1f, 1.5f) - 1f) / 2
     val fw = minOf(f, if (inner >= 72.dp) 1.3f else 1.15f)
 
     Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
