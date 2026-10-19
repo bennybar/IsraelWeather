@@ -122,12 +122,19 @@ class SpectrumWidget : WeatherWidget() {
         // text, icons, bars and pills, never more data. Columns widen less than the text (capped),
         // so the bars keep their room. A tall widget also gets a roomier header.
         val roomy = size.height >= 250.dp
-        val baseHeader = if (roomy) 100.dp else 80.dp
-        // The header and its pills grow with the rows (a little less), so the two halves match;
-        // the condition line keeps its size so it still fits beside the bigger temperature.
-        val hk = minOf(((size.height - baseHeader - 12.dp) / list.size / 36.dp).coerceAtLeast(1f), 1.12f)
+        val baseHeader = if (roomy) 92.dp else 72.dp
+        // Growth is measured against this widget's own 5-day rows (capped at 36dp, so a tall 4×3
+        // grows too): launchers' cell heights differ a lot (Samsung's 4×2 is ~25dp shorter than
+        // Pixel's), so fewer days always means bigger rows. Rows never outgrow their height.
+        fun scale(rows: Dp): Float {
+            val fiveDayRow = minOf((size.height - baseHeader - 12.dp) / 5, 36.dp)
+            return minOf(rows / fiveDayRow, rows / 26.dp, 1.4f).coerceAtLeast(1f)
+        }
+        // The header and its pills grow with the rows (half as much, at most 1.12×), so the two
+        // halves match; the condition line keeps its size so it still fits beside the temperature.
+        val hk = minOf(1f + (scale((size.height - baseHeader - 12.dp) / list.size) - 1f) / 2, 1.12f)
         val rowHeight = (size.height - baseHeader * hk - 12.dp) / list.size
-        val k = (rowHeight / 36.dp).coerceIn(1f, 1.4f)
+        val k = scale(rowHeight)
         val kw = minOf(k, 1.25f)
         val lo = list.mapNotNull { it.min }.minOrNull() ?: 0.0
         val hi = (list.mapNotNull { it.max }.maxOrNull() ?: lo).coerceAtLeast(lo + 1)
@@ -184,7 +191,7 @@ class SpectrumWidget : WeatherWidget() {
                     now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%", scale = hk) }
                     now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }, hk) }
                 }
-                Spacer(GlanceModifier.height(if (roomy) 10.dp else 4.dp))
+                Spacer(GlanceModifier.height(if (roomy) 12.dp else 8.dp))
                 // Rows keep a natural height (so today's highlight doesn't balloon); extra room becomes gaps.
                 // With lots of room (few days on a tall widget) the gaps stay moderate and the rows sit
                 // together, centered under the header.
