@@ -42,6 +42,16 @@ class WeatherApp : Application(), SingletonImageLoader.Factory {
             delay(5_000)
             Widgets.publishPreviews(this@WeatherApp)
         }
+        // Places searched in Hebrew used to be saved with their Hebrew name as the English one.
+        app.scope.launch {
+            val hebrew = Regex("[\\u0590-\\u05FF]")
+            app.settings.value.customPlaces.filter { hebrew.containsMatchIn(it.en) }.forEach { c ->
+                runCatching { app.openMeteo.nameById(-c.id, "en") }.getOrNull()
+                    ?.takeUnless { hebrew.containsMatchIn(it) }
+                    ?.let { app.settings.setCustomPlaceEnglish(c.id, it) }
+            }
+            Widgets.updateAll(this@WeatherApp)
+        }
     }
 
     /** Coil shares our OkHttp client (and its User-Agent, which OSM's tile servers require). */

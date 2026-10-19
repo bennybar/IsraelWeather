@@ -1,6 +1,9 @@
 package com.bennybar.israelweather.data
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -152,7 +155,24 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         val he = lookup("he")
         val en = lookup("en").associateBy { it.id }
-        he.map { r -> GeoPlace(r.id, r.name, en[r.id]?.name ?: r.name, r.admin1, r.latitude, r.longitude) }
+        // A Hebrew query finds nothing in English: look those names up by id (in parallel).
+        coroutineScope {
+            he.map { r ->
+                async {
+                    val english = en[r.id]?.name ?: runCatching { nameById(r.id, "en") }.getOrNull() ?: r.name
+                    GeoPlace(r.id, r.name, english, r.admin1, r.latitude, r.longitude)
+                }
+            }.awaitAll()
+        }
+    }
+
+    /** A place's name in [lang] by its GeoNames id; null if unknown. */
+    suspend fun nameById(id: Int, lang: String): String? = withContext(Dispatchers.IO) {
+        val url = "https://geocoding-api.open-meteo.com/v1/get?id=$id&language=$lang"
+        http.newCall(Request.Builder().url(url).build()).execute().use { res ->
+            if (!res.isSuccessful) return@use null
+            json.decodeFromString(GeoResult.serializer(), res.body.string()).name
+        }
     }
 
     @Serializable

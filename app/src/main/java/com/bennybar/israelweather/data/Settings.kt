@@ -143,6 +143,10 @@ class SettingsStore(context: Context) {
     fun addCustomPlace(p: CustomPlace) = update {
         it.copy(customPlaces = it.customPlaces.filter { c -> c.id != p.id } + p, places = if (p.id in it.places) it.places else it.places + p.id)
     }
+    /** Fixes a saved place's English name (places searched in Hebrew were saved with the Hebrew one). */
+    fun setCustomPlaceEnglish(id: Int, en: String) = update {
+        it.copy(customPlaces = it.customPlaces.map { c -> if (c.id == id) c.copy(en = en) else c })
+    }
     fun removePlace(id: Int) = update { it.copy(places = it.places - id) }
     fun movePlace(id: Int, delta: Int) = update { it.copy(places = it.places.moved(id, delta)) }
 
