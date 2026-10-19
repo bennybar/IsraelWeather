@@ -208,5 +208,6 @@
     <string name="color_wallpaper">לפי הטפט</string>
     <string name="layout_aurora">זוהר</string>
     <string name="layout_bold">מודגשת</string>
+    <string name="layout_bold_lines">מודגשת עם קווים</string>
     <string name="color_aurora">זוהר</string>
 </resources>

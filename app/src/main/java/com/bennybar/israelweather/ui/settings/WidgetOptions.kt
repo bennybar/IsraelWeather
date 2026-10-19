@@ -46,6 +46,7 @@ import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.places.PlacePickerDialog
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_AURORA
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_BOLD
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_BOLD_LINES
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
@@ -169,6 +170,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                     SPECTRUM_LAYOUT_TILES to R.string.layout_tiles,
                     SPECTRUM_LAYOUT_AURORA to R.string.layout_aurora,
                     SPECTRUM_LAYOUT_BOLD to R.string.layout_bold,
+                    SPECTRUM_LAYOUT_BOLD_LINES to R.string.layout_bold_lines,
                 ).forEach { (key, label) ->
                     FilterChip(
                         selected = layout == key,

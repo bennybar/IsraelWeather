@@ -208,5 +208,6 @@
     <string name="color_wallpaper">Wallpaper</string>
     <string name="layout_aurora">Aurora</string>
     <string name="layout_bold">Bold</string>
+    <string name="layout_bold_lines">Bold lines</string>
     <string name="color_aurora">Aurora</string>
 </resources>

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.text.TextUtils
 import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
@@ -31,6 +32,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.Text
+import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Day
@@ -47,7 +49,7 @@ import com.bennybar.israelweather.ui.windValue
 // when tall.
 
 @Composable
-internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<Day>) {
+internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<Day>, lines: Boolean = false) {
     val context = LocalContext.current
     val s = app.settings.value
     val en = english(context)
@@ -76,7 +78,16 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
                 Spacer(GlanceModifier.height(if (tall) 10.dp else 6.dp))
                 Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     list.forEachIndexed { i, d ->
-                        if (i > 0) Spacer(GlanceModifier.width(gap))
+                        if (i > 0) {
+                            // "Bold lines": a hairline between days instead of separate tiles.
+                            if (lines) {
+                                Box(GlanceModifier.width(gap).fillMaxHeight().padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                                    Box(GlanceModifier.width(1.dp).fillMaxHeight().background(p.chipBorder)) {}
+                                }
+                            } else {
+                                Spacer(GlanceModifier.width(gap))
+                            }
+                        }
                         val today = i == 0
                         val bar = rangeBar(
                             density, inner, p,
@@ -86,7 +97,7 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
                             rtl = rtl,
                             scale = if (tall) 0.9f else 0.75f,
                         )
-                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp)
+                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp, framed = today || !lines)
                     }
                 }
             }
@@ -95,12 +106,12 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
 }
 
 @Composable
-private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean) {
+private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean, framed: Boolean) {
     val context = LocalContext.current
     val ink = if (today) p.todayInk ?: p.ink else p.ink
     val muted = if (today) p.todayInk ?: p.muted else p.muted
     Column(
-        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(18.dp).background(if (today) p.today else p.soft)
+        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(18.dp).background(if (today) p.today else if (framed) p.soft else ColorProvider(Color.Transparent))
             .padding(horizontal = 8.dp, vertical = if (tall) 10.dp else 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

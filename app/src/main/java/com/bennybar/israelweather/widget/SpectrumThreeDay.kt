@@ -54,12 +54,14 @@ const val SPECTRUM_LAYOUT_REFINED = "refined"
 const val SPECTRUM_LAYOUT_TILES = "tiles"
 const val SPECTRUM_LAYOUT_AURORA = "aurora"
 const val SPECTRUM_LAYOUT_BOLD = "bold"
+/** Bold with only today framed and hairlines between the other days. */
+const val SPECTRUM_LAYOUT_BOLD_LINES = "bold_lines"
 
 /** Days shown for a layout: Classic 2/3/5, Tiles 3/4/5 (from the Days setting), Refined always 3. */
 fun spectrumDays(layout: String, dayCount: Int): Int = when (layout) {
     SPECTRUM_LAYOUT_CLASSIC -> dayCount
     SPECTRUM_LAYOUT_TILES -> dayCount.coerceIn(3, 5)
-    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD -> dayCount.coerceIn(3, 4)
+    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD, SPECTRUM_LAYOUT_BOLD_LINES -> dayCount.coerceIn(3, 4)
     else -> 3
 }
 
@@ -67,7 +69,7 @@ fun spectrumDays(layout: String, dayCount: Int): Int = when (layout) {
 fun spectrumDayChoices(layout: String): List<Int> = when (layout) {
     SPECTRUM_LAYOUT_CLASSIC -> listOf(2, 3, 5)
     SPECTRUM_LAYOUT_TILES -> listOf(3, 4, 5)
-    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD -> listOf(3, 4)
+    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD, SPECTRUM_LAYOUT_BOLD_LINES -> listOf(3, 4)
     else -> emptyList()
 }
 
@@ -77,7 +79,9 @@ private val TALL_LAYOUT_MIN_HEIGHT = 250.dp
 @Composable
 internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: List<Day>) {
     if (data.layout == SPECTRUM_LAYOUT_AURORA) return SpectrumAurora(data, p, now, list)
-    if (data.layout == SPECTRUM_LAYOUT_BOLD) return SpectrumBold(data, p, now, list)
+    if (data.layout == SPECTRUM_LAYOUT_BOLD || data.layout == SPECTRUM_LAYOUT_BOLD_LINES) {
+        return SpectrumBold(data, p, now, list, lines = data.layout == SPECTRUM_LAYOUT_BOLD_LINES)
+    }
     val context = LocalContext.current
     val s = app.settings.value
     val en = english(context)
