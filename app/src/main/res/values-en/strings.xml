@@ -199,4 +199,8 @@
     <string name="layout_refined">Refined</string>
     <string name="layout_tiles">Tiles</string>
     <string name="layout_three_day_hint">Wind and same-size rain pills on every day.</string>
+    <string name="color_sky">Sky</string>
+    <string name="color_mint">Mint</string>
+    <string name="color_rose">Rose</string>
+    <string name="color_wallpaper">Wallpaper</string>
 </resources>

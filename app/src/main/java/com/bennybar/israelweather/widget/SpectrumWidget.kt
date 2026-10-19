@@ -1,6 +1,7 @@
 package com.bennybar.israelweather.widget
 
 import android.app.LocaleManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
@@ -98,9 +99,50 @@ private val TwilightSpectrum = Spectrum(
     whiteDrop = true,
 )
 
-internal fun spectrum(color: String) = when (color) {
+private val SkySpectrum = Spectrum(
+    bg = Color(0xFFDCEBFA), bgImage = null, today = Color(0xFFF4F9FF), ink = Color(0xFF10243A), muted = Color(0xFF4E6178),
+    button = Color(0xFFEEF5FD), track = Color(0xFFC7DAF0), ring = Color(0xFF2F6FD0),
+    gradient = listOf(Color(0xFF7FB0F0), Color(0xFFA79AEE), Color(0xFFF2A07C)),
+    chip = Color(0xFFE2EBFB), chipBorder = Color(0xFFBCCFF0), chipInk = Color(0xFF1F56B8), chipStrong = Color(0xFF1F56B8), chipStrongInk = Color.White,
+)
+
+private val MintSpectrum = Spectrum(
+    bg = Color(0xFFDDF1E6), bgImage = null, today = Color(0xFFF4FBF7), ink = Color(0xFF10291C), muted = Color(0xFF4C6656),
+    button = Color(0xFFEEF8F2), track = Color(0xFFC3E2D0), ring = Color(0xFF2E8A5C),
+    gradient = listOf(Color(0xFF86B4EE), Color(0xFF9BCFB4), Color(0xFFF0A57E)),
+    chip = Color(0xFFE2EEF9), chipBorder = Color(0xFFBED2EA), chipInk = Color(0xFF2A5DAE), chipStrong = Color(0xFF2F62B8), chipStrongInk = Color.White,
+)
+
+private val RoseSpectrum = Spectrum(
+    bg = Color(0xFFF8E1E7), bgImage = null, today = Color(0xFFFFF5F7), ink = Color(0xFF34151F), muted = Color(0xFF75505C),
+    button = Color(0xFFFDF0F3), track = Color(0xFFEFC9D3), ring = Color(0xFFC2416E),
+    gradient = listOf(Color(0xFF93A9EE), Color(0xFFC79BE0), Color(0xFFF0907E)),
+    chip = Color(0xFFE5EAFA), chipBorder = Color(0xFFC6D0F0), chipInk = Color(0xFF2E57AE), chipStrong = Color(0xFF3D5FBF), chipStrongInk = Color.White,
+)
+
+/**
+ * Material You: the system's wallpaper-based tones (accent 1 for surfaces and accents, accent 2 for
+ * secondary text). Rain stays blue and the bars keep their cool-to-warm ends, so meaning holds;
+ * only the middle of the gradient follows the wallpaper.
+ */
+private fun wallpaperSpectrum(context: Context): Spectrum {
+    fun c(id: Int) = Color(context.getColor(id))
+    return Spectrum(
+        bg = c(android.R.color.system_accent1_100), bgImage = null, today = c(android.R.color.system_accent1_10),
+        ink = c(android.R.color.system_accent1_900), muted = c(android.R.color.system_accent2_700),
+        button = c(android.R.color.system_accent1_50), track = c(android.R.color.system_accent1_200), ring = c(android.R.color.system_accent1_600),
+        gradient = listOf(Color(0xFF8FA8FF), c(android.R.color.system_accent1_300), Color(0xFFFF9F6B)),
+        chip = Color(0xFFE6EBFC), chipBorder = Color(0xFFC3CEF4), chipInk = Color(0xFF2F5FC8), chipStrong = Color(0xFF2F5FC8), chipStrongInk = Color.White,
+    )
+}
+
+internal fun spectrum(color: String, context: Context) = when (color) {
     WIDGET_COLOR_ORANGE -> OrangeSpectrum
     WIDGET_COLOR_TWILIGHT -> TwilightSpectrum
+    WIDGET_COLOR_SKY -> SkySpectrum
+    WIDGET_COLOR_MINT -> MintSpectrum
+    WIDGET_COLOR_ROSE -> RoseSpectrum
+    WIDGET_COLOR_WALLPAPER -> wallpaperSpectrum(context)
     else -> LavenderSpectrum
 }
 
@@ -110,7 +152,7 @@ internal const val RAINY_PCT = 30
 class SpectrumWidget : WeatherWidget() {
     @Composable
     override fun Content(data: WidgetData) {
-        val p = spectrum(data.color)
+        val p = spectrum(data.color, LocalContext.current)
         val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
         val list = days(data, spectrumDays(data.layout, data.dayCount))
         val now = data.forecast?.currentHour()

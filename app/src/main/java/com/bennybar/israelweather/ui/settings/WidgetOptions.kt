@@ -1,5 +1,7 @@
 package com.bennybar.israelweather.ui.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +9,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -25,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,13 +43,18 @@ import com.bennybar.israelweather.ui.places.PlacePickerDialog
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
-import com.bennybar.israelweather.widget.spectrumDays
-import com.bennybar.israelweather.widget.spectrumDayChoices
 import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
+import com.bennybar.israelweather.widget.WIDGET_COLOR_MINT
 import com.bennybar.israelweather.widget.WIDGET_COLOR_ORANGE
+import com.bennybar.israelweather.widget.WIDGET_COLOR_ROSE
+import com.bennybar.israelweather.widget.WIDGET_COLOR_SKY
 import com.bennybar.israelweather.widget.WIDGET_COLOR_TWILIGHT
+import com.bennybar.israelweather.widget.WIDGET_COLOR_WALLPAPER
 import com.bennybar.israelweather.widget.WidgetKind
 import com.bennybar.israelweather.widget.Widgets
+import com.bennybar.israelweather.widget.spectrum
+import com.bennybar.israelweather.widget.spectrumDayChoices
+import com.bennybar.israelweather.widget.spectrumDays
 import kotlinx.coroutines.launch
 
 /** One widget's options: which place it shows and whether it has a "refresh now" button. */
@@ -62,7 +72,17 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     val kind = remember(appWidgetId) { Widgets.placed(context).firstOrNull { it.second == appWidgetId }?.first }
     val hasColor = kind in setOf(WidgetKind.QUIET, WidgetKind.RANGES, WidgetKind.SPECTRUM)
     val colors = listOf(WIDGET_COLOR_LAVENDER to R.string.color_lavender, WIDGET_COLOR_ORANGE to R.string.color_orange) +
-        if (kind == WidgetKind.SPECTRUM) listOf(WIDGET_COLOR_TWILIGHT to R.string.color_twilight) else emptyList()
+        if (kind == WidgetKind.SPECTRUM) {
+            listOf(
+                WIDGET_COLOR_TWILIGHT to R.string.color_twilight,
+                WIDGET_COLOR_SKY to R.string.color_sky,
+                WIDGET_COLOR_MINT to R.string.color_mint,
+                WIDGET_COLOR_ROSE to R.string.color_rose,
+                WIDGET_COLOR_WALLPAPER to R.string.color_wallpaper,
+            )
+        } else {
+            emptyList()
+        }
     var showWind by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowWind(appWidgetId)) }
     var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var equalPills by remember(appWidgetId) { mutableStateOf(app.settings.widgetEqualPills(appWidgetId)) }
@@ -200,20 +220,25 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
             }
         }
         if (hasColor) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.widget_color), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                SingleChoiceSegmentedButtonRow {
-                    colors.forEachIndexed { i, (key, label) ->
-                        SegmentedButton(
-                            selected = color == key,
-                            onClick = {
-                                color = key
-                                app.settings.setWidgetColor(appWidgetId, key)
-                                update()
-                            },
-                            shape = SegmentedButtonDefaults.itemShape(i, colors.size),
-                        ) { Text(stringResource(label)) }
-                    }
+            Text(stringResource(R.string.widget_color), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                colors.forEach { (key, label) ->
+                    FilterChip(
+                        selected = color == key,
+                        onClick = {
+                            color = key
+                            app.settings.setWidgetColor(appWidgetId, key)
+                            update()
+                        },
+                        label = { Text(stringResource(label)) },
+                        // A swatch of the palette: its background with its accent inside.
+                        leadingIcon = {
+                            val swatch = spectrum(key, context)
+                            Box(
+                                Modifier.size(18.dp).clip(CircleShape).background(swatch.bg).border(1.dp, swatch.ring, CircleShape),
+                            )
+                        },
+                    )
                 }
             }
         }

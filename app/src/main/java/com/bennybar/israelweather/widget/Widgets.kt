@@ -147,7 +147,7 @@ data class WidgetData(
     val showRefresh: Boolean,
     /** When the forecast was last fetched (epoch millis). */
     val updated: Long?,
-    /** [WIDGET_COLOR_LAVENDER], [WIDGET_COLOR_ORANGE] or (Spectrum only) [WIDGET_COLOR_TWILIGHT]. */
+    /** [WIDGET_COLOR_LAVENDER], [WIDGET_COLOR_ORANGE], or (Spectrum only) twilight, sky, mint, rose or wallpaper. */
     val color: String = WIDGET_COLOR_LAVENDER,
     /** Ranges widget: show each day's strongest wind. */
     val showWind: Boolean = false,
@@ -168,6 +168,11 @@ data class WidgetData(
 const val WIDGET_COLOR_LAVENDER = "lavender"
 const val WIDGET_COLOR_ORANGE = "orange"
 const val WIDGET_COLOR_TWILIGHT = "twilight"
+const val WIDGET_COLOR_SKY = "sky"
+const val WIDGET_COLOR_MINT = "mint"
+const val WIDGET_COLOR_ROSE = "rose"
+/** Material You: the phone's wallpaper-based palette. */
+const val WIDGET_COLOR_WALLPAPER = "wallpaper"
 
 /** The widgets' "refresh now" button: re-fetch this widget's place, then redraw every widget. */
 class RefreshCallback : ActionCallback {
