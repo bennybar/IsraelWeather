@@ -6,6 +6,7 @@ import com.bennybar.israelweather.data.CURRENT_ID
 import com.bennybar.israelweather.data.IMS_RADIUS_KM
 import com.bennybar.israelweather.data.Localized
 import com.bennybar.israelweather.data.Place
+import com.bennybar.israelweather.widget.Widgets
 import java.util.Locale
 import kotlin.math.ceil
 import kotlinx.coroutines.CompletableDeferred
@@ -115,6 +116,9 @@ object CurrentPlace {
         val moved = before.currentLat == null || before.currentLon == null ||
             LocationResolver.distanceKm(Place(0, "", "", before.currentLat, before.currentLon, 0), lat, lon) > 1.0
         if (moved && app.settings.value.currentForecastId == CURRENT_ID) app.repo.refreshForecast(CURRENT_ID, force = true)
+        // "My location" widgets now point at another forecast (or had none yet, e.g. added before the
+        // first fix): redraw them, even when that forecast is already cached and nothing is fetched.
+        if (before.currentForecastId != app.settings.value.currentForecastId) Widgets.updateAll(app.context)
         return Result.OK
     }
 }

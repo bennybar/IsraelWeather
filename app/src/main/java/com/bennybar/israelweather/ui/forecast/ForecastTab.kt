@@ -64,6 +64,7 @@ import com.bennybar.israelweather.ui.Overlay
 import com.bennybar.israelweather.ui.hhmm
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.theme.LocalWeatherColors
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -86,9 +87,20 @@ fun ForecastTab() {
     // Locate whenever the app comes to the foreground: this also picks up a
     // permission granted in system settings, without restarting the app.
     // The last fix keeps the page usable meanwhile.
+    // A first fix can fail right after install (the phone has none yet): retry a few times while
+    // the app stays open, rather than waiting for the next time it comes to the foreground.
     LifecycleResumeEffect(settings.useLocation) {
-        if (settings.useLocation) scope.launch { CurrentPlace.resolve() }
-        onPauseOrDispose { }
+        val job = if (settings.useLocation) {
+            scope.launch {
+                for (wait in listOf(5_000L, 10_000L, 15_000L)) {
+                    if (CurrentPlace.resolve() != CurrentPlace.Result.NO_FIX) break
+                    delay(wait)
+                }
+            }
+        } else {
+            null
+        }
+        onPauseOrDispose { job?.cancel() }
     }
 
     val pages = buildList {
