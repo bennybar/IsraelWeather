@@ -4,6 +4,8 @@ import android.app.LocaleManager
 import android.text.TextUtils
 import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -67,9 +69,15 @@ fun spectrumDayChoices(layout: String): List<Int> = when (layout) {
     else -> emptyList()
 }
 
-/** The card's corners, and the tiles' inside it: close enough that the curves read as one family. */
-internal val WIDGET_CORNER = 24.dp
-private val TILE_CORNER = 20.dp
+/**
+ * The card's corners: the launcher's own widget radius, since it clips the widget to that anyway
+ * (Samsung's is larger than Pixel's; a smaller radius here got cut at the corners).
+ */
+internal val WIDGET_CORNER_RES = android.R.dimen.system_app_widget_background_radius
+
+/** The launcher's widget radius in dp. */
+internal fun widgetCorner(context: android.content.Context): Dp =
+    (context.resources.getDimension(WIDGET_CORNER_RES) / context.resources.displayMetrics.density).dp
 
 /** From this height (4×3) everything gets a little bigger and roomier. */
 private val TALL_LAYOUT_MIN_HEIGHT = 250.dp
@@ -106,10 +114,13 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
     // The preview reports the minimum size; assume a typical 4-cell width there.
     val width = if (size.width < 300.dp) 360.dp else size.width
     val pad = 12.dp
+    // Tiles concentric with the card: its radius minus the padding between them.
+    val tileCorner = (widgetCorner(context) - pad).coerceIn(10.dp, 22.dp)
 
     // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
-    Box(GlanceModifier.fillMaxSize().cornerRadius(WIDGET_CORNER).background(p.bg).clickable(openApp())) {
-    Box(GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(WIDGET_CORNER).padding(horizontal = pad, vertical = pad)) {
+    CompositionLocalProvider(LocalTileCorner provides tileCorner) {
+    Box(GlanceModifier.fillMaxSize().cornerRadius(WIDGET_CORNER_RES).background(p.bg).clickable(openApp())) {
+    Box(GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(WIDGET_CORNER_RES).padding(horizontal = pad, vertical = pad)) {
         Column(GlanceModifier.fillMaxSize()) {
             ThreeDayHeader(data, p, now, s, en, k, compact)
             if (!bare) {
@@ -166,7 +177,10 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
         }
     }
     }
+    }
 }
+
+private val LocalTileCorner = staticCompositionLocalOf { 16.dp }
 
 /** Place and condition; current icon and temperature; refresh. No high/low: the days show it. */
 @Composable
@@ -284,7 +298,7 @@ private fun DayIcon(d: Day, en: Boolean, size: Dp) =
 private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, height: GlanceModifier) {
     val context = LocalContext.current
     Row(
-        GlanceModifier.fillMaxWidth().then(height).cornerRadius(TILE_CORNER - 4.dp).background(if (today) p.today else ColorProvider(Color.Transparent))
+        GlanceModifier.fillMaxWidth().then(height).cornerRadius(LocalTileCorner.current).background(if (today) p.today else ColorProvider(Color.Transparent))
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -303,7 +317,7 @@ private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s:
 @Composable
 private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
-    TileFrame(p, today, TILE_CORNER) {
+    TileFrame(p, today, LocalTileCorner.current) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -334,7 +348,7 @@ private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, 
 @Composable
 private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
-    TileFrame(p, today, TILE_CORNER) {
+    TileFrame(p, today, LocalTileCorner.current) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -368,7 +382,7 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
 @Composable
 private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, inner: Dp) {
     val context = LocalContext.current
-    TileFrame(p, today, TILE_CORNER - 4.dp) {
+    TileFrame(p, today, LocalTileCorner.current) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
