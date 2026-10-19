@@ -235,7 +235,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                         leadingIcon = {
                             val swatch = spectrum(key, context)
                             Box(
-                                Modifier.size(18.dp).clip(CircleShape).background(swatch.bg).border(1.dp, swatch.ring, CircleShape),
+                                Modifier.size(18.dp).clip(CircleShape).background(swatch.bgColor).border(1.dp, swatch.swatchRing, CircleShape),
                             )
                         },
                     )

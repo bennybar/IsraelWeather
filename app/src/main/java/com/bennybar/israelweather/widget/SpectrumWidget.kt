@@ -40,6 +40,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.Text
+import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.WeatherCodes
@@ -56,42 +57,75 @@ import com.bennybar.israelweather.ui.hhmm
 // "Spectrum": now on top, five days with cool→warm gradient bars (a dot marks the current
 // temperature on today's bar) and rain chips that turn solid on rainy days.
 
-internal data class Spectrum(
-    val bg: Color,
+/**
+ * A Spectrum palette. Glance colors are [ColorProvider]s so the Wallpaper palette can use the
+ * system's dynamic color resources, which the home screen re-resolves the moment the wallpaper
+ * changes. What's drawn into bitmaps (bars, arrows) needs plain colors: [barTrack], [accent], [gradient].
+ */
+internal class Spectrum(
+    val bg: ColorProvider,
     /** Drawn background (gradient) instead of [bg], if any. */
     val bgImage: Int?,
-    val today: Color,
-    val ink: Color,
-    val muted: Color,
-    val button: Color,
-    val track: Color,
-    val ring: Color,
-    val gradient: List<Color>,
-    val chip: Color,
+    val today: ColorProvider,
+    /** The other days' tiles: a softer version of [today]. */
+    val soft: ColorProvider,
+    val ink: ColorProvider,
+    val muted: ColorProvider,
+    val button: ColorProvider,
+    val track: ColorProvider,
+    val ring: ColorProvider,
+    val chip: ColorProvider,
+    /** Rain pills below [RAINY_PCT]: quieter than [chip]/[chipInk]. */
+    val chipQuiet: ColorProvider,
+    val chipQuietInk: ColorProvider,
     /** Hairline around the light chips, so they don't melt into today's highlight. */
-    val chipBorder: Color,
-    val chipInk: Color,
-    val chipStrong: Color,
-    val chipStrongInk: Color,
+    val chipBorder: ColorProvider,
+    val chipInk: ColorProvider,
+    val chipStrong: ColorProvider,
+    val chipStrongInk: ColorProvider,
+    /** Outline of Classic's wind capsules. */
+    val capsuleBorder: ColorProvider,
+    val barTrack: Color,
+    /** Today's dot and the wind arrows. */
+    val accent: Color,
+    val gradient: List<Color>,
     /** White drop on the light chips too (dark cards). */
     val whiteDrop: Boolean = false,
+    /** Plain values for the placeholder and the settings swatch. */
+    val bgColor: Color,
+    val inkColor: Color,
+    val swatchRing: Color,
 )
 
-private val LavenderSpectrum = Spectrum(
+/** A fixed palette; the softer shades are derived from the main ones. */
+private fun fixed(
+    bg: Color, bgImage: Int?, today: Color, ink: Color, muted: Color, button: Color, track: Color, ring: Color, gradient: List<Color>,
+    chip: Color, chipBorder: Color, chipInk: Color, chipStrong: Color, chipStrongInk: Color, whiteDrop: Boolean = false,
+) = Spectrum(
+    bg = ColorProvider(bg), bgImage = bgImage, today = ColorProvider(today), soft = ColorProvider(today.copy(alpha = today.alpha * 0.55f)),
+    ink = ColorProvider(ink), muted = ColorProvider(muted), button = ColorProvider(button), track = ColorProvider(track), ring = ColorProvider(ring),
+    chip = ColorProvider(chip), chipQuiet = ColorProvider(chip.copy(alpha = chip.alpha * 0.7f)), chipQuietInk = ColorProvider(chipInk.copy(alpha = 0.75f)),
+    chipBorder = ColorProvider(chipBorder), chipInk = ColorProvider(chipInk), chipStrong = ColorProvider(chipStrong), chipStrongInk = ColorProvider(chipStrongInk),
+    capsuleBorder = ColorProvider(muted.copy(alpha = 0.3f)),
+    barTrack = track, accent = ring, gradient = gradient, whiteDrop = whiteDrop,
+    bgColor = bg, inkColor = ink, swatchRing = ring,
+)
+
+private val LavenderSpectrum = fixed(
     bg = Color(0xFFE6DCF7), bgImage = null, today = Color(0xFFF7F3FD), ink = Color(0xFF1E1633), muted = Color(0xFF5B5072),
     button = Color(0xFFF4F0FB), track = Color(0xFFD7CCEE), ring = Color(0xFF7259CC),
     gradient = listOf(Color(0xFF8FA8FF), Color(0xFFB48CFF), Color(0xFFFF9F6B)),
     chip = Color(0xFFE6EBFC), chipBorder = Color(0xFFC3CEF4), chipInk = Color(0xFF2F5FC8), chipStrong = Color(0xFF2F5FC8), chipStrongInk = Color.White,
 )
 
-private val OrangeSpectrum = Spectrum(
+private val OrangeSpectrum = fixed(
     bg = Color(0xFFFFE3C4), bgImage = null, today = Color(0xFFFFF7EE), ink = Color(0xFF2A1B0E), muted = Color(0xFF6A4A2A),
     button = Color(0xFFFFF6EC), track = Color(0xFFF5CFA6), ring = Color(0xFFD5620B),
     gradient = listOf(Color(0xFF8FB4FF), Color(0xFFFFC07A), Color(0xFFF0703A)),
     chip = Color(0xFFE8EEFB), chipBorder = Color(0xFFC6D3F2), chipInk = Color(0xFF1554B8), chipStrong = Color(0xFF1554B8), chipStrongInk = Color.White,
 )
 
-private val TwilightSpectrum = Spectrum(
+private val TwilightSpectrum = fixed(
     bg = Color(0xFF3E2F7A), bgImage = R.drawable.twilight_bg, today = Color(0x1FFFFFFF), ink = Color(0xFFF3EFFF), muted = Color(0xFFC9BFEA),
     button = Color(0xFFD9CFF2), track = Color(0x24FFFFFF), ring = Color(0xFFB79CFF),
     gradient = listOf(Color(0xFF7FA2FF), Color(0xFFC9A8FF), Color(0xFFFFB38A)),
@@ -99,21 +133,21 @@ private val TwilightSpectrum = Spectrum(
     whiteDrop = true,
 )
 
-private val SkySpectrum = Spectrum(
+private val SkySpectrum = fixed(
     bg = Color(0xFFDCEBFA), bgImage = null, today = Color(0xFFF4F9FF), ink = Color(0xFF10243A), muted = Color(0xFF4E6178),
     button = Color(0xFFEEF5FD), track = Color(0xFFC7DAF0), ring = Color(0xFF2F6FD0),
     gradient = listOf(Color(0xFF7FB0F0), Color(0xFFA79AEE), Color(0xFFF2A07C)),
     chip = Color(0xFFE2EBFB), chipBorder = Color(0xFFBCCFF0), chipInk = Color(0xFF1F56B8), chipStrong = Color(0xFF1F56B8), chipStrongInk = Color.White,
 )
 
-private val MintSpectrum = Spectrum(
+private val MintSpectrum = fixed(
     bg = Color(0xFFDDF1E6), bgImage = null, today = Color(0xFFF4FBF7), ink = Color(0xFF10291C), muted = Color(0xFF4C6656),
     button = Color(0xFFEEF8F2), track = Color(0xFFC3E2D0), ring = Color(0xFF2E8A5C),
     gradient = listOf(Color(0xFF86B4EE), Color(0xFF9BCFB4), Color(0xFFF0A57E)),
     chip = Color(0xFFE2EEF9), chipBorder = Color(0xFFBED2EA), chipInk = Color(0xFF2A5DAE), chipStrong = Color(0xFF2F62B8), chipStrongInk = Color.White,
 )
 
-private val RoseSpectrum = Spectrum(
+private val RoseSpectrum = fixed(
     bg = Color(0xFFF8E1E7), bgImage = null, today = Color(0xFFFFF5F7), ink = Color(0xFF34151F), muted = Color(0xFF75505C),
     button = Color(0xFFFDF0F3), track = Color(0xFFEFC9D3), ring = Color(0xFFC2416E),
     gradient = listOf(Color(0xFF93A9EE), Color(0xFFC79BE0), Color(0xFFF0907E)),
@@ -122,17 +156,26 @@ private val RoseSpectrum = Spectrum(
 
 /**
  * Material You: the system's wallpaper-based tones (accent 1 for surfaces and accents, accent 2 for
- * secondary text). Rain stays blue and the bars keep their cool-to-warm ends, so meaning holds;
- * only the middle of the gradient follows the wallpaper.
+ * secondary text), as color resources, so the home screen updates them as soon as the wallpaper
+ * changes, without the app running. Rain stays blue and the bars and arrows use neutral fixed
+ * colors, since bitmaps can't follow the wallpaper.
  */
 private fun wallpaperSpectrum(context: Context): Spectrum {
+    fun r(id: Int) = ColorProvider(id)
     fun c(id: Int) = Color(context.getColor(id))
     return Spectrum(
-        bg = c(android.R.color.system_accent1_100), bgImage = null, today = c(android.R.color.system_accent1_10),
-        ink = c(android.R.color.system_accent1_900), muted = c(android.R.color.system_accent2_700),
-        button = c(android.R.color.system_accent1_50), track = c(android.R.color.system_accent1_200), ring = c(android.R.color.system_accent1_600),
-        gradient = listOf(Color(0xFF8FA8FF), c(android.R.color.system_accent1_300), Color(0xFFFF9F6B)),
-        chip = Color(0xFFE6EBFC), chipBorder = Color(0xFFC3CEF4), chipInk = Color(0xFF2F5FC8), chipStrong = Color(0xFF2F5FC8), chipStrongInk = Color.White,
+        bg = r(android.R.color.system_accent1_100), bgImage = null,
+        today = r(android.R.color.system_accent1_10), soft = r(android.R.color.system_accent1_50),
+        ink = r(android.R.color.system_accent1_900), muted = r(android.R.color.system_accent2_700),
+        button = r(android.R.color.system_accent1_50), track = r(android.R.color.system_accent1_200), ring = r(android.R.color.system_accent1_600),
+        chip = ColorProvider(Color(0xFFE6EBFC)), chipQuiet = ColorProvider(Color(0xB3E6EBFC)), chipQuietInk = ColorProvider(Color(0xBF2F5FC8)),
+        chipBorder = ColorProvider(Color(0xFFC3CEF4)), chipInk = ColorProvider(Color(0xFF2F5FC8)),
+        chipStrong = ColorProvider(Color(0xFF2F5FC8)), chipStrongInk = ColorProvider(Color.White),
+        capsuleBorder = r(android.R.color.system_accent2_300),
+        barTrack = Color(0x1F000000), accent = Color(0xFF4A4E5C),
+        gradient = listOf(Color(0xFF8FA8FF), Color(0xFFB48CFF), Color(0xFFFF9F6B)),
+        bgColor = c(android.R.color.system_accent1_100), inkColor = c(android.R.color.system_accent1_900),
+        swatchRing = c(android.R.color.system_accent1_600),
     )
 }
 
@@ -156,7 +199,7 @@ class SpectrumWidget : WeatherWidget() {
         val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
         val list = days(data, spectrumDays(data.layout, data.dayCount))
         val now = data.forecast?.currentHour()
-        if (list.isEmpty() || now == null) return NoData(p.bg, p.ink)
+        if (list.isEmpty() || now == null) return NoData(p.bgColor, p.inkColor)
         if (threeDay) return SpectrumThreeDay(data, p, now, list)
         val context = LocalContext.current
         val s = app.settings.value
@@ -254,7 +297,7 @@ class SpectrumWidget : WeatherWidget() {
                     Row(
                         GlanceModifier.fillMaxWidth().then(if (grouped) GlanceModifier.height(34.dp * k) else GlanceModifier.defaultWeight())
                             .cornerRadius(14.dp * kw)
-                            .background(if (today) p.today else Color.Transparent).padding(horizontal = 10.dp),
+                            .background(if (today) p.today else ColorProvider(Color.Transparent)).padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(GlanceModifier.width(50.dp * kw)) {
@@ -287,7 +330,7 @@ class SpectrumWidget : WeatherWidget() {
                             Box(GlanceModifier.width(windWidth), contentAlignment = if (dial) Alignment.Center else Alignment.CenterEnd) {
                                 if (dial) {
                                     // A capsule like the rain pills: an arrow toward where the wind blows, then the speed.
-                                    Box(GlanceModifier.background(p.muted.copy(alpha = 0.3f)).cornerRadius(11.dp).padding(1.dp)) {
+                                    Box(GlanceModifier.background(p.capsuleBorder).cornerRadius(11.dp).padding(1.dp)) {
                                         Row(
                                             GlanceModifier.background(p.track).cornerRadius(10.dp).padding(start = 5.dp, end = 6.dp, top = 1.dp, bottom = 1.dp),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -368,7 +411,7 @@ internal fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: F
     val span = w - 2 * dotR
     fun x(f: Float) = x0 + span * (if (rtl) 1 - f.coerceIn(0f, 1f) else f.coerceIn(0f, 1f))
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    paint.color = p.track.toArgb()
+    paint.color = p.barTrack.toArgb()
     c.drawRoundRect(RectF(x0, top, x0 + span, top + thick), thick / 2, thick / 2, paint)
     val colors = p.gradient.map { it.toArgb() }.let { if (rtl) it.reversed() else it }.toIntArray()
     // Opaque again: the paint's alpha (Twilight's see-through track) would dim the gradient.
@@ -380,7 +423,7 @@ internal fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: F
     paint.shader = null
     if (dot != null) {
         val cx = x(dot)
-        paint.color = p.ring.toArgb()
+        paint.color = p.accent.toArgb()
         c.drawCircle(cx, h / 2f, dotR, paint)
         paint.color = android.graphics.Color.WHITE
         c.drawCircle(cx, h / 2f, dotR - 3 * scale * density, paint)
@@ -402,7 +445,7 @@ internal fun windArrow(density: Float, p: Spectrum, fromDeg: Double): Bitmap {
         lineTo(1f * u, 10.5f * u)
         close()
     }
-    c.drawPath(arrow, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = p.ring.toArgb() })
+    c.drawPath(arrow, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = p.accent.toArgb() })
     return bmp
 }
 

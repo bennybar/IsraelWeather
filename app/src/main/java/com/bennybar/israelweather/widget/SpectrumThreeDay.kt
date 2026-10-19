@@ -31,6 +31,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.action.clickable
 import androidx.glance.text.Text
+import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Day
@@ -231,7 +232,7 @@ private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Fl
 private fun RainPill(p: Spectrum, chance: Int?, width: Dp, k: Float) {
     val strong = (chance ?: 0) >= RAINY_PCT
     Row(
-        GlanceModifier.width(width).background(if (strong) p.chipStrong else p.chip.copy(alpha = p.chip.alpha * 0.7f)).cornerRadius(10.dp).padding(vertical = 3.dp * k),
+        GlanceModifier.width(width).background(if (strong) p.chipStrong else p.chipQuiet).cornerRadius(10.dp).padding(vertical = 3.dp * k),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -240,7 +241,7 @@ private fun RainPill(p: Spectrum, chance: Int?, width: Dp, k: Float) {
         Spacer(GlanceModifier.width(3.dp))
         Text(
             pct(chance),
-            style = style((if (strong) 12.sp else 11.sp) * k, if (strong) p.chipStrongInk else p.chipInk.copy(alpha = 0.75f), bold = strong),
+            style = style((if (strong) 12.sp else 11.sp) * k, if (strong) p.chipStrongInk else p.chipQuietInk, bold = strong),
             maxLines = 1,
         )
     }
@@ -255,7 +256,7 @@ private fun DayIcon(d: Day, en: Boolean, size: Dp) =
 private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, height: GlanceModifier) {
     val context = LocalContext.current
     Row(
-        GlanceModifier.fillMaxWidth().then(height).cornerRadius(14.dp).background(if (today) p.today else Color.Transparent)
+        GlanceModifier.fillMaxWidth().then(height).cornerRadius(14.dp).background(if (today) p.today else ColorProvider(Color.Transparent))
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -356,7 +357,8 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
             Text(temp(d.min, s), style = style(11.sp * k, p.muted), maxLines = 1)
         }
         Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 2.dp).height(10.dp), contentScale = ContentScale.FillBounds)
-        Wind(p, d, data, s, density, 10.5.sp * k, 1f)
+        // The unit only where it fits (4 tiles yes, 5 on a narrow phone no); the footer names it otherwise.
+        Wind(p, d, data, s, density, 10.5.sp * k, 1f, unit = inner >= 60.dp)
         Box(GlanceModifier.padding(top = 2.dp)) { RainPill(p, dayRainChance(data, d), minOf(inner, 48.dp), 1f) }
     }
     }
@@ -368,8 +370,8 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
  */
 @Composable
 private fun androidx.glance.layout.RowScope.TileFrame(p: Spectrum, today: Boolean, radius: Dp, content: @Composable () -> Unit) {
-    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.ring else Color.Transparent).padding(if (today) 1.5.dp else 0.dp)) {
-        Box(GlanceModifier.fillMaxSize().cornerRadius(radius).background(if (today) p.today else p.today.copy(alpha = p.today.alpha * 0.55f))) {
+    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.ring else ColorProvider(Color.Transparent)).padding(if (today) 1.5.dp else 0.dp)) {
+        Box(GlanceModifier.fillMaxSize().cornerRadius(radius).background(if (today) p.today else p.soft)) {
             content()
         }
     }

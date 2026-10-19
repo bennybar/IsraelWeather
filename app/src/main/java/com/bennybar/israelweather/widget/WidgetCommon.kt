@@ -94,10 +94,13 @@ abstract class WeatherWidget : GlanceAppWidget() {
  * Widget text style. Small sizes are lifted (+1.5sp, at least 10.5sp): layouts were drawn with
  * 8–11sp labels that read too small on a real home screen. Headline sizes are unchanged.
  */
-fun style(size: TextUnit, color: Color, bold: Boolean = false): TextStyle {
+fun style(size: TextUnit, color: Color, bold: Boolean = false): TextStyle = style(size, ColorProvider(color), bold)
+
+/** [style] with a [ColorProvider]: a color resource (e.g. the wallpaper's) stays live on the home screen. */
+fun style(size: TextUnit, color: ColorProvider, bold: Boolean = false): TextStyle {
     val v = size.value
     val readable = if (v < 12f) maxOf(v + 1.5f, 10.5f).sp else size
-    return TextStyle(fontSize = readable, color = ColorProvider(color), fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+    return TextStyle(fontSize = readable, color = color, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
 }
 
 fun english(context: Context) = context.resources.configuration.locales[0].language == "en"
@@ -134,7 +137,10 @@ fun NoData(bg: Color, ink: Color) {
 
 /** Optional "refresh now" button (per-widget setting); [bg] is the circle behind the dark refresh glyph. */
 @Composable
-fun RefreshButton(bg: Color, size: Dp = 32.dp, touchMargin: Dp = 6.dp) {
+fun RefreshButton(bg: Color, size: Dp = 32.dp, touchMargin: Dp = 6.dp) = RefreshButton(ColorProvider(bg), size, touchMargin)
+
+@Composable
+fun RefreshButton(bg: ColorProvider, size: Dp = 32.dp, touchMargin: Dp = 6.dp) {
     val context = LocalContext.current
     // The touch area reaches past the circle: a near miss shouldn't open the app instead.
     Box(GlanceModifier.padding(touchMargin).clickable(actionRunCallback<RefreshCallback>()), contentAlignment = Alignment.Center) {
