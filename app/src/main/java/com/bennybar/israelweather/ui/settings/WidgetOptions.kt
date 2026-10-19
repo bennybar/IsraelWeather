@@ -38,6 +38,8 @@ import com.bennybar.israelweather.ui.places.PlacePickerDialog
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
+import com.bennybar.israelweather.widget.spectrumDays
+import com.bennybar.israelweather.widget.spectrumDayChoices
 import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
 import com.bennybar.israelweather.widget.WIDGET_COLOR_ORANGE
 import com.bennybar.israelweather.widget.WIDGET_COLOR_TWILIGHT
@@ -167,23 +169,27 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 })
             }
         }
-        if (kind == WidgetKind.SPECTRUM && classic) {
+        val dayChoices = if (kind == WidgetKind.SPECTRUM) spectrumDayChoices(layout) else emptyList()
+        if (dayChoices.isNotEmpty()) {
+            val shown = spectrumDays(layout, dayCount)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.widget_days), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SingleChoiceSegmentedButtonRow {
-                    listOf(2, 3, 5).forEachIndexed { i, n ->
+                    dayChoices.forEachIndexed { i, n ->
                         SegmentedButton(
-                            selected = dayCount == n,
+                            selected = shown == n,
                             onClick = {
                                 dayCount = n
                                 app.settings.setWidgetDays(appWidgetId, n)
                                 update()
                             },
-                            shape = SegmentedButtonDefaults.itemShape(i, 3),
+                            shape = SegmentedButtonDefaults.itemShape(i, dayChoices.size),
                         ) { Text("$n") }
                     }
                 }
             }
+        }
+        if (kind == WidgetKind.SPECTRUM && classic) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.equal_pills), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Switch(checked = equalPills, onCheckedChange = {

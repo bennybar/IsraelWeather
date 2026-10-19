@@ -197,6 +197,6 @@
     <string name="widget_layout">פריסה</string>
     <string name="layout_classic">קלאסית</string>
     <string name="layout_refined">מעודנת</string>
-    <string name="layout_tiles">שלושה אריחים</string>
-    <string name="layout_three_day_hint">שלושה ימים, עם רוח ותגיות גשם ברוחב אחיד.</string>
+    <string name="layout_tiles">אריחים</string>
+    <string name="layout_three_day_hint">רוח ותגיות גשם ברוחב אחיד בכל יום.</string>
 </resources>

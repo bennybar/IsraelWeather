@@ -44,13 +44,27 @@ import com.bennybar.israelweather.ui.temp
 import com.bennybar.israelweather.ui.windValue
 import kotlin.math.roundToInt
 
-// Spectrum's three-day layouts (per-widget "Layout" setting): Refined and Three Tiles. Always
-// today + two days, wind (arrow + speed) on every day and same-width rain pills, on one shared
-// temperature scale. Both fit 4×2 (tighter) and 4×3 (roomier).
+// Spectrum's day layouts (per-widget "Layout" setting): Refined (three days) and Tiles (3–5).
+// Wind (arrow + speed) on every day and same-width rain pills, on one shared temperature scale.
+// Both fit 4×2 (tighter) and 4×3 (roomier).
 
 const val SPECTRUM_LAYOUT_CLASSIC = "classic"
 const val SPECTRUM_LAYOUT_REFINED = "refined"
 const val SPECTRUM_LAYOUT_TILES = "tiles"
+
+/** Days shown for a layout: Classic 2/3/5, Tiles 3/4/5 (from the Days setting), Refined always 3. */
+fun spectrumDays(layout: String, dayCount: Int): Int = when (layout) {
+    SPECTRUM_LAYOUT_CLASSIC -> dayCount
+    SPECTRUM_LAYOUT_TILES -> dayCount.coerceIn(3, 5)
+    else -> 3
+}
+
+/** The Days choices a layout offers in the widget's settings (none for Refined). */
+fun spectrumDayChoices(layout: String): List<Int> = when (layout) {
+    SPECTRUM_LAYOUT_CLASSIC -> listOf(2, 3, 5)
+    SPECTRUM_LAYOUT_TILES -> listOf(3, 4, 5)
+    else -> emptyList()
+}
 
 /** From this height (4×3) everything gets a little bigger and roomier. */
 private val TALL_LAYOUT_MIN_HEIGHT = 250.dp
@@ -64,6 +78,9 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
     val tall = size.height >= TALL_LAYOUT_MIN_HEIGHT
     // Anything but Three Tiles (including the retired Breathing Room) shows Refined.
     val tiles = data.layout == SPECTRUM_LAYOUT_TILES
+    // 4–5 tiles are narrow; on a short widget they need the stats line's and footer's room too.
+    val narrow = tiles && list.size >= 4
+    val bare = narrow && !tall
     // A tall widget gets a little more of everything; never more data. A short one (Samsung's 4×2
     // is ~20dp shorter than Pixel's) gets a slightly tighter header so the three rows still fit.
     val k = if (tall) 1.12f else 1f
@@ -89,16 +106,21 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
     Box(GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = pad, vertical = pad).clickable(openApp())) {
         Column(GlanceModifier.fillMaxSize()) {
             ThreeDayHeader(data, p, now, s, en, k, compact)
-            Spacer(GlanceModifier.height(if (tall) 4.dp else 2.dp))
-            Stats(p, now, s, density, k = k)
+            if (!bare) {
+                Spacer(GlanceModifier.height(if (tall) 4.dp else 2.dp))
+                Stats(p, now, s, density, k = k)
+            }
             Spacer(GlanceModifier.height(if (tall) 10.dp else 6.dp))
             Column(GlanceModifier.fillMaxWidth().defaultWeight()) {
                 when {
                     tiles -> Row(GlanceModifier.fillMaxSize()) {
-                        val tile = (width - pad * 2 - 16.dp) / 3
+                        val gap = if (narrow) 5.dp else 8.dp
+                        val tile = (width - pad * 2 - gap * (list.size - 1)) / list.size
                         list.forEachIndexed { i, d ->
-                            if (i > 0) Spacer(GlanceModifier.width(8.dp))
-                            if (tall) {
+                            if (i > 0) Spacer(GlanceModifier.width(gap))
+                            if (narrow) {
+                                NarrowTile(data, p, d, today = i == 0, s, en, 1f, bar(d, i == 0, tile - 8.dp), density, tile - 8.dp)
+                            } else if (tall) {
                                 Tile(data, p, d, today = i == 0, s, en, 1f, bar(d, i == 0, tile - 16.dp), density)
                             } else {
                                 CompactTile(data, p, d, today = i == 0, s, en, bar(d, i == 0, tile - 12.dp), density)
@@ -122,8 +144,10 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
                     }
                 }
             }
-            Spacer(GlanceModifier.height(if (tall) 8.dp else 4.dp))
-            Footer(data, p, s, k)
+            if (!bare) {
+                Spacer(GlanceModifier.height(if (tall) 8.dp else 4.dp))
+                Footer(data, p, s, k)
+            }
         }
     }
 }
@@ -291,5 +315,33 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
             Spacer(GlanceModifier.width(6.dp))
             RainPill(p, dayRainChance(data, d), 46.dp, 1f)
         }
+    }
+}
+
+/**
+ * A narrow tile (4–5 across): everything stacked, nothing side by side, slightly smaller type.
+ * [inner] is the tile's content width, which the rain pill fills (up to 48dp).
+ */
+@Composable
+private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, inner: Dp) {
+    val context = LocalContext.current
+    Column(
+        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(12.dp).background(if (today) p.track else p.today).padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(dayLabel(context, d), style = style(12.sp * k, p.ink, bold = today), maxLines = 1)
+        Image(
+            ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en),
+            GlanceModifier.padding(vertical = 2.dp).size(22.dp * k + 4.dp),
+        )
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(temp(d.max, s), style = style(15.sp * k, p.ink, bold = true), maxLines = 1)
+            Spacer(GlanceModifier.width(3.dp))
+            Text(temp(d.min, s), style = style(11.sp * k, p.muted), maxLines = 1)
+        }
+        Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 2.dp).height(10.dp), contentScale = ContentScale.FillBounds)
+        Wind(p, d, data, s, density, 11.sp * k, 1f)
+        Box(GlanceModifier.padding(top = 2.dp)) { RainPill(p, dayRainChance(data, d), minOf(inner, 48.dp), 1f) }
     }
 }

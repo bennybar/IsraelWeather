@@ -112,7 +112,7 @@ class SpectrumWidget : WeatherWidget() {
     override fun Content(data: WidgetData) {
         val p = spectrum(data.color)
         val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
-        val list = days(data, if (threeDay) 3 else data.dayCount)
+        val list = days(data, spectrumDays(data.layout, data.dayCount))
         val now = data.forecast?.currentHour()
         if (list.isEmpty() || now == null) return NoData(p.bg, p.ink)
         if (threeDay) return SpectrumThreeDay(data, p, now, list)
