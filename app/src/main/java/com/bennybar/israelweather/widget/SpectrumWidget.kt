@@ -155,6 +155,18 @@ private val RoseSpectrum = fixed(
 )
 
 /**
+ * "Liquid glass": a translucent smoky card with a light sheen and bright edge (glass_bg), frosted
+ * tiles and white type. Widgets can't blur what's behind them, so the wallpaper simply shows through.
+ */
+private val GlassSpectrum = fixed(
+    bg = Color(0x47202634), bgImage = R.drawable.glass_bg, today = Color(0x38FFFFFF), ink = Color(0xFFFBFBFF), muted = Color(0xD9E6E9F2),
+    button = Color(0xD9FFFFFF), track = Color(0x24FFFFFF), ring = Color(0xFFBFD5FF),
+    gradient = listOf(Color(0xFF9DB8FF), Color(0xFFD2B5FF), Color(0xFFFFB892)),
+    chip = Color(0x29FFFFFF), chipBorder = Color(0x40FFFFFF), chipInk = Color(0xFFE3ECFF), chipStrong = Color(0xFF5B8CFF), chipStrongInk = Color.White,
+    whiteDrop = true,
+)
+
+/**
  * Material You: the system's wallpaper-based tones (accent 1 for surfaces and accents, accent 2 for
  * secondary text), as color resources, so the home screen updates them as soon as the wallpaper
  * changes, without the app running. Rain stays blue and the bars and arrows use neutral fixed
@@ -185,6 +197,7 @@ internal fun spectrum(color: String, context: Context) = when (color) {
     WIDGET_COLOR_SKY -> SkySpectrum
     WIDGET_COLOR_MINT -> MintSpectrum
     WIDGET_COLOR_ROSE -> RoseSpectrum
+    WIDGET_COLOR_GLASS -> GlassSpectrum
     WIDGET_COLOR_WALLPAPER -> wallpaperSpectrum(context)
     else -> LavenderSpectrum
 }

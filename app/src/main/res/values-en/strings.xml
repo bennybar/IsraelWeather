@@ -202,5 +202,6 @@
     <string name="color_sky">Sky</string>
     <string name="color_mint">Mint</string>
     <string name="color_rose">Rose</string>
+    <string name="color_glass">Liquid glass</string>
     <string name="color_wallpaper">Wallpaper</string>
 </resources>

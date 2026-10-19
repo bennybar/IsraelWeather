@@ -12,6 +12,7 @@ import com.bennybar.israelweather.data.RainRadar
 import com.bennybar.israelweather.data.SettingsStore
 import com.bennybar.israelweather.data.WeatherRepository
 import com.bennybar.israelweather.location.LocationResolver
+import com.bennybar.israelweather.widget.PaletteWorker
 import com.bennybar.israelweather.widget.RefreshWorker
 import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.delay
@@ -34,6 +35,7 @@ class WeatherApp : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         app = AppContainer(this)
         RefreshWorker.schedule(this, app.settings.value.refreshMinutes)
+        PaletteWorker.schedule(this)
         // A short delay: right after an install or update, Android is still reloading
         // the widget list and would drop previews published meanwhile.
         app.scope.launch {

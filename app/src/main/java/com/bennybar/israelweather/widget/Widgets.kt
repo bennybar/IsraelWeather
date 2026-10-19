@@ -171,6 +171,8 @@ const val WIDGET_COLOR_TWILIGHT = "twilight"
 const val WIDGET_COLOR_SKY = "sky"
 const val WIDGET_COLOR_MINT = "mint"
 const val WIDGET_COLOR_ROSE = "rose"
+/** Translucent "liquid glass": the wallpaper shows through a frosted card. */
+const val WIDGET_COLOR_GLASS = "glass"
 /** Material You: the phone's wallpaper-based palette. */
 const val WIDGET_COLOR_WALLPAPER = "wallpaper"
 

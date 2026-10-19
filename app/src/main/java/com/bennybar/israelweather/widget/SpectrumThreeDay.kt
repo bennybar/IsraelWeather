@@ -282,7 +282,7 @@ private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Spacing is padding, not spacers: Glance allows at most 10 children per column.
-        Text(dayLabel(context, d), style = style(14.sp * k, p.ink, bold = today), maxLines = 1)
+        Text(dayLabel(context, d), style = style(14.sp * k, if (today) p.ring else p.ink, bold = today), maxLines = 1)
         Image(
             ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en),
             GlanceModifier.padding(vertical = 2.dp).size(28.dp * k + 4.dp),
@@ -313,7 +313,7 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(dayLabel(context, d), style = style(13.sp, p.ink, bold = today), maxLines = 1)
+            Text(dayLabel(context, d), style = style(13.sp, if (today) p.ring else p.ink, bold = today), maxLines = 1)
             Spacer(GlanceModifier.width(4.dp))
             DayIcon(d, en, 20.dp)
         }
@@ -346,7 +346,7 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(dayLabel(context, d), style = style(12.sp * k, p.ink, bold = today), maxLines = 1)
+        Text(dayLabel(context, d), style = style(12.sp * k, if (today) p.ring else p.ink, bold = today), maxLines = 1)
         Image(
             ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en),
             GlanceModifier.padding(vertical = 2.dp).size(22.dp * k + 4.dp),
@@ -365,14 +365,12 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
 }
 
 /**
- * A tile's background. Today is the lightest, with a thin accent outline (it should stand out,
- * not look greyed out); the other days sit on a softer version of the same tone.
+ * A tile's background: today is the lightest (its day name is in the accent color, see the tiles),
+ * the other days sit on a softer version of the same tone. No outline: it read heavy.
  */
 @Composable
 private fun androidx.glance.layout.RowScope.TileFrame(p: Spectrum, today: Boolean, radius: Dp, content: @Composable () -> Unit) {
-    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.ring else ColorProvider(Color.Transparent)).padding(if (today) 1.5.dp else 0.dp)) {
-        Box(GlanceModifier.fillMaxSize().cornerRadius(radius).background(if (today) p.today else p.soft)) {
-            content()
-        }
+    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.today else p.soft)) {
+        content()
     }
 }

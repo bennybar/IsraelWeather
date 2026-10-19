@@ -43,6 +43,7 @@ import com.bennybar.israelweather.ui.places.PlacePickerDialog
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
+import com.bennybar.israelweather.widget.WIDGET_COLOR_GLASS
 import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
 import com.bennybar.israelweather.widget.WIDGET_COLOR_MINT
 import com.bennybar.israelweather.widget.WIDGET_COLOR_ORANGE
@@ -78,6 +79,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 WIDGET_COLOR_SKY to R.string.color_sky,
                 WIDGET_COLOR_MINT to R.string.color_mint,
                 WIDGET_COLOR_ROSE to R.string.color_rose,
+                WIDGET_COLOR_GLASS to R.string.color_glass,
                 WIDGET_COLOR_WALLPAPER to R.string.color_wallpaper,
             )
         } else {

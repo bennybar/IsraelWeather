@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Liquid glass" widget background: a translucent smoky base (the wallpaper shows through),
+     a soft light sheen from the top corner, and a thin bright edge. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <solid android:color="#47202634" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="315"
+                android:startColor="#38FFFFFF"
+                android:centerColor="#0FFFFFFF"
+                android:endColor="#05FFFFFF" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <stroke android:width="1dp" android:color="#4DFFFFFF" />
+        </shape>
+    </item>
+</layer-list>

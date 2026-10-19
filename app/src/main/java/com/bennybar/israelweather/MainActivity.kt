@@ -24,6 +24,8 @@ import com.bennybar.israelweather.ui.UiController
 import com.bennybar.israelweather.ui.places.SearchScreen
 import com.bennybar.israelweather.ui.settings.SettingsScreen
 import com.bennybar.israelweather.ui.theme.WeatherTheme
+import kotlinx.coroutines.launch
+import com.bennybar.israelweather.widget.PaletteWorker
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +68,12 @@ class MainActivity : ComponentActivity() {
                 } }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Wallpaper-colored widgets catch up with a palette change the home screen didn't pick up.
+        app.scope.launch { PaletteWorker.redrawWallpaperWidgets(applicationContext) }
     }
 
     override fun onNewIntent(intent: Intent) {
