@@ -68,6 +68,13 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
     val gap = 6.dp
     val tile = (width - pad * 2 - gap * (list.size - 1)) / list.size
     val inner = tile - 16.dp
+    // Size the columns' contents to the height they actually get (header and padding off the top),
+    // instead of two fixed steps: on a ~195dp Samsung 4×2 the small set left big empty bands.
+    // Text grows fully; icons and the bottom line a bit less, since they're also width-bound.
+    val header = if (compact) 48.dp else 56.dp
+    val columns = size.height - 20.dp - header - (if (tall) 8.dp else 3.dp)
+    val f = (columns / 104.dp).coerceIn(1f, 1.5f)
+    val fw = minOf(f, if (inner >= 72.dp) 1.3f else 1.15f)
 
     Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
         Box(
@@ -96,9 +103,9 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
                             to = (((d.max ?: hi) - lo) / (hi - lo)).toFloat(),
                             dot = if (today) now.temp?.let { ((it - lo) / (hi - lo)).toFloat() } else null,
                             rtl = rtl,
-                            scale = if (tall) 0.9f else 0.75f,
+                            scale = 0.75f * fw,
                         )
-                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp, framed = !lines)
+                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp, framed = !lines, f = f, fw = fw)
                     }
                 }
             }
@@ -107,7 +114,7 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
 }
 
 @Composable
-private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean, framed: Boolean) {
+private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean, framed: Boolean, f: Float, fw: Float) {
     val context = LocalContext.current
     // Today's own text color only when it sits on today's tile.
     val ink = if (today && framed) p.todayInk ?: p.ink else p.ink
@@ -120,7 +127,7 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
                 else -> p.soft
             },
         )
-            .padding(horizontal = 8.dp, vertical = if (tall) 10.dp else 6.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Day, with the icon at the far end.
@@ -129,31 +136,30 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
                 // "Bold lines": today is a small filled pill in the accent color (no tile).
                 val chipInk = ColorProvider(if (p.swatchRing.luminance() > 0.5f) Color(0xFF1D2548) else Color.White)
                 Box(GlanceModifier.background(p.ring).cornerRadius(10.dp).padding(horizontal = if (roomy) 7.dp else 4.dp, vertical = 1.dp)) {
-                    Text(dayLabel(context, d), style = style(if (tall) 13.sp else if (roomy) 11.sp else 10.sp, chipInk, bold = true), maxLines = 1)
+                    Text(dayLabel(context, d), style = style((if (roomy) 11.sp else 10.sp) * fw, chipInk, bold = true), maxLines = 1)
                 }
             } else {
-                Text(dayLabel(context, d), style = style(if (tall) 14.sp else 12.sp, if (today) p.ring else ink, bold = true), maxLines = 1)
+                Text(dayLabel(context, d), style = style(12.sp * fw, if (today) p.ring else ink, bold = true), maxLines = 1)
             }
             Spacer(GlanceModifier.defaultWeight())
             val iconSize = when {
-                tall -> 28.dp
-                today && !framed && !roomy -> 16.dp
-                else -> 20.dp
+                today && !framed && !roomy -> 16.dp * fw
+                else -> 20.dp * fw
             }
             Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(iconSize))
         }
-        Text(temp(d.max, s), style = style(if (tall) 30.sp else 22.sp, ink, bold = true), maxLines = 1)
-        Text("▾ " + temp(d.min, s), style = style(if (tall) 16.sp else 12.sp, muted, bold = true), maxLines = 1)
-        Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = if (tall) 5.dp else 2.dp).height(if (tall) 12.dp else 10.dp), contentScale = ContentScale.FillBounds)
+        Text(temp(d.max, s), style = style(22.sp * f, ink, bold = true), maxLines = 1)
+        Text("▾ " + temp(d.min, s), style = style(12.sp * f, muted, bold = true), maxLines = 1)
+        Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 2.dp * f).height(10.dp * fw), contentScale = ContentScale.FillBounds)
         // Wind | rain.
         Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             val (w, dir) = dayWind(data, d)
             if (w != null && dir != null) {
-                Image(ImageProvider(windArrow(density, p, dir)), null, GlanceModifier.size(if (tall) 13.dp else 10.dp))
+                Image(ImageProvider(windArrow(density, p, dir)), null, GlanceModifier.size(10.dp * fw))
                 Spacer(GlanceModifier.width(3.dp))
             }
             Column {
-                Text(if (w != null) windValue(w, s) else "–", style = style(if (tall) 13.sp else 11.sp, ink, bold = true), maxLines = 1)
+                Text(if (w != null) windValue(w, s) else "–", style = style(11.sp * fw, ink, bold = true), maxLines = 1)
                 if (tall && w != null) {
                     Text(context.getString(if (s.windUnit == WindUnit.MS) R.string.unit_ms else R.string.unit_kmh), style = style(9.sp, muted), maxLines = 1)
                 }
@@ -161,14 +167,14 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
             Spacer(GlanceModifier.defaultWeight())
             // The divider only where there's room for it (narrow tiles: wind and rain just sit apart).
             if (roomy) {
-                Box(GlanceModifier.width(1.dp).height(if (tall) 18.dp else 10.dp).background(p.chipBorder)) {}
+                Box(GlanceModifier.width(1.dp).height(if (tall) 18.dp else 10.dp * fw).background(p.chipBorder)) {}
                 Spacer(GlanceModifier.defaultWeight())
             }
             if (roomy) {
-                Image(ImageProvider(R.drawable.tonal_drop_white), null, GlanceModifier.size(if (tall) 11.dp else 9.dp), colorFilter = ColorFilter.tint(muted))
+                Image(ImageProvider(R.drawable.tonal_drop_white), null, GlanceModifier.size(9.dp * fw), colorFilter = ColorFilter.tint(muted))
                 Spacer(GlanceModifier.width(2.dp))
             }
-            Text(pct(dayRainChance(data, d)), style = style(if (tall) 13.sp else 10.5.sp, ink), maxLines = 1)
+            Text(pct(dayRainChance(data, d)), style = style(10.5.sp * fw, ink), maxLines = 1)
         }
     }
 }
