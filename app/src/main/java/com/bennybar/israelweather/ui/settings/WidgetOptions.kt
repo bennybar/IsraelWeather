@@ -92,6 +92,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var equalPills by remember(appWidgetId) { mutableStateOf(app.settings.widgetEqualPills(appWidgetId)) }
     var dayCount by remember(appWidgetId) { mutableStateOf(app.settings.widgetDays(appWidgetId)) }
+    var glassBorderless by remember(appWidgetId) { mutableStateOf(app.settings.widgetGlassBorderless(appWidgetId)) }
     var glassClarity by remember(appWidgetId) { mutableFloatStateOf(app.settings.widgetGlassClarity(appWidgetId).toFloat()) }
     var layout by remember(appWidgetId) { mutableStateOf(app.settings.widgetLayout(appWidgetId)) }
     // The three-day layouts fix days, wind and pill width themselves.
@@ -248,6 +249,14 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 }
             }
             if (color == WIDGET_COLOR_GLASS) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.glass_borderless), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Switch(checked = glassBorderless, onCheckedChange = {
+                        glassBorderless = it
+                        app.settings.setWidgetGlassBorderless(appWidgetId, it)
+                        update()
+                    })
+                }
                 // How see-through the glass is; the widget redraws when the slider is let go.
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.glass_clarity), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)

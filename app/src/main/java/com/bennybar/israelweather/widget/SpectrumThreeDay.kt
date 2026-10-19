@@ -119,7 +119,16 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
                         val gap = if (narrow) 5.dp else 8.dp
                         val tile = (width - pad * 2 - gap * (list.size - 1)) / list.size
                         list.forEachIndexed { i, d ->
-                            if (i > 0) Spacer(GlanceModifier.width(gap))
+                            if (i > 0) {
+                                // Borderless: a hairline between days instead of separate tiles.
+                                if (p.borderless) {
+                                    Box(GlanceModifier.width(gap).fillMaxHeight().padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                                        Box(GlanceModifier.width(1.dp).fillMaxHeight().background(p.chipBorder)) {}
+                                    }
+                                } else {
+                                    Spacer(GlanceModifier.width(gap))
+                                }
+                            }
                             if (narrow) {
                                 NarrowTile(data, p, d, today = i == 0, s, en, 1f, bar(d, i == 0, tile - 8.dp), density, tile - 8.dp)
                             } else if (tall) {
@@ -161,18 +170,22 @@ private fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings
     Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(GlanceModifier.defaultWeight()) {
             Text(data.place?.name(en) ?: "", style = style(if (compact) 18.sp else 20.sp, p.ink, bold = true), maxLines = 1)
-            Text(WeatherCodes.describe(now.code, en), style = style(if (compact) 13.sp else 14.sp, p.muted), maxLines = 1)
+            Text(WeatherCodes.describe(now.code, en), style = style(if (compact) 13.sp else 14.sp, if (p.borderless) p.ring else p.muted), maxLines = 1)
         }
         Image(
             ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
             GlanceModifier.size((if (compact) 30.dp else 34.dp) * k),
         )
         Spacer(GlanceModifier.width(6.dp))
-        Text(temp(now.temp, s), style = style((if (compact) 32.sp else 38.sp) * k, p.ink, bold = true), maxLines = 1)
+        Text(temp(now.temp, s), style = style((if (compact) 32.sp else 38.sp) * k, if (p.borderless) p.ring else p.ink, bold = true), maxLines = 1)
         if (data.showRefresh) {
             Spacer(GlanceModifier.width(4.dp))
             // Slim: it's secondary. The touch area stays comfortable around it.
-            RefreshButton(p.button, if (compact) 24.dp else 28.dp, touchMargin = 6.dp)
+            // Borderless: no circle, a light glyph straight on the glass.
+            RefreshButton(
+                if (p.borderless) ColorProvider(Color.Transparent) else p.button, if (compact) 24.dp else 28.dp, touchMargin = 6.dp,
+                glyph = if (p.borderless) p.ink else null,
+            )
         }
     }
 }
@@ -233,6 +246,15 @@ private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Fl
 @Composable
 private fun RainPill(p: Spectrum, chance: Int?, width: Dp, k: Float) {
     val strong = (chance ?: 0) >= RAINY_PCT
+    // Borderless: low chances are just a drop and a number; real rain keeps its pill.
+    if (p.borderless && !strong) {
+        Row(GlanceModifier.width(width).padding(vertical = 3.dp * k), horizontalAlignment = Alignment.CenterHorizontally, verticalAlignment = Alignment.CenterVertically) {
+            Image(ImageProvider(R.drawable.tonal_drop_white), null, GlanceModifier.size(8.dp * k))
+            Spacer(GlanceModifier.width(4.dp))
+            Text(pct(chance), style = style(11.sp * k, p.muted), maxLines = 1)
+        }
+        return
+    }
     Row(
         GlanceModifier.width(width).background(if (strong) p.chipStrong else p.chipQuiet).cornerRadius(10.dp).padding(vertical = 3.dp * k),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -372,7 +394,12 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
  */
 @Composable
 private fun androidx.glance.layout.RowScope.TileFrame(p: Spectrum, today: Boolean, radius: Dp, content: @Composable () -> Unit) {
-    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.today else p.soft)) {
+    val fill = when {
+        today -> p.today
+        p.borderless -> ColorProvider(Color.Transparent)
+        else -> p.soft
+    }
+    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(fill)) {
         content()
     }
 }

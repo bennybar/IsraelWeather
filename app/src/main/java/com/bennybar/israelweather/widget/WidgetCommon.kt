@@ -140,19 +140,22 @@ fun NoData(bg: Color, ink: Color) {
 fun RefreshButton(bg: Color, size: Dp = 32.dp, touchMargin: Dp = 6.dp) = RefreshButton(ColorProvider(bg), size, touchMargin)
 
 @Composable
-fun RefreshButton(bg: ColorProvider, size: Dp = 32.dp, touchMargin: Dp = 6.dp) {
+fun RefreshButton(bg: ColorProvider, size: Dp = 32.dp, touchMargin: Dp = 6.dp, glyph: ColorProvider? = null) {
     val context = LocalContext.current
     // The touch area reaches past the circle: a near miss shouldn't open the app instead.
     Box(GlanceModifier.padding(touchMargin).clickable(actionRunCallback<RefreshCallback>()), contentAlignment = Alignment.Center) {
         Box(GlanceModifier.size(size).background(bg).cornerRadius(size / 2), contentAlignment = Alignment.Center) {
             when {
                 LocalRefreshing.current ->
-                    CircularProgressIndicator(GlanceModifier.size(size * 0.55f), color = ColorProvider(Color(0xFF1F1F1F)))
+                    CircularProgressIndicator(GlanceModifier.size(size * 0.55f), color = glyph ?: ColorProvider(Color(0xFF1F1F1F)))
                 LocalRefreshFailed.current -> Image(
                     ImageProvider(R.drawable.ic_refresh), context.getString(R.string.refresh_failed), GlanceModifier.size(size * 0.55f),
                     colorFilter = ColorFilter.tint(ColorProvider(Color(0xFFD32F2F))),
                 )
-                else -> Image(ImageProvider(R.drawable.ic_refresh), context.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f))
+                else -> Image(
+                    ImageProvider(R.drawable.ic_refresh), context.getString(R.string.refresh_now), GlanceModifier.size(size * 0.55f),
+                    colorFilter = glyph?.let { ColorFilter.tint(it) },
+                )
             }
         }
     }

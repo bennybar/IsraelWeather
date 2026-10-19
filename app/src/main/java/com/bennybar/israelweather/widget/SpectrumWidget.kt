@@ -95,12 +95,15 @@ internal class Spectrum(
     val bgColor: Color,
     val inkColor: Color,
     val swatchRing: Color,
+    /** Liquid glass "borderless": only today sits in a tile, quiet rain without pills, no button circle. */
+    val borderless: Boolean = false,
 )
 
 /** A fixed palette; the softer shades are derived from the main ones. */
 private fun fixed(
     bg: Color, bgImage: Int?, today: Color, ink: Color, muted: Color, button: Color, track: Color, ring: Color, gradient: List<Color>,
     chip: Color, chipBorder: Color, chipInk: Color, chipStrong: Color, chipStrongInk: Color, whiteDrop: Boolean = false,
+    borderless: Boolean = false,
 ) = Spectrum(
     bg = ColorProvider(bg), bgImage = bgImage, today = ColorProvider(today), soft = ColorProvider(today.copy(alpha = today.alpha * 0.55f)),
     ink = ColorProvider(ink), muted = ColorProvider(muted), button = ColorProvider(button), track = ColorProvider(track), ring = ColorProvider(ring),
@@ -108,7 +111,7 @@ private fun fixed(
     chipBorder = ColorProvider(chipBorder), chipInk = ColorProvider(chipInk), chipStrong = ColorProvider(chipStrong), chipStrongInk = ColorProvider(chipStrongInk),
     capsuleBorder = ColorProvider(muted.copy(alpha = 0.3f)),
     barTrack = track, accent = ring, gradient = gradient, whiteDrop = whiteDrop,
-    bgColor = bg, inkColor = ink, swatchRing = ring,
+    bgColor = bg, inkColor = ink, swatchRing = ring, borderless = borderless,
 )
 
 private val LavenderSpectrum = fixed(
@@ -158,14 +161,14 @@ private val RoseSpectrum = fixed(
  * "Liquid glass": a translucent smoky card with a light sheen and bright edge (glass_bg), frosted
  * tiles and white type. Widgets can't blur what's behind them, so the wallpaper simply shows through.
  */
-private fun glassSpectrum(clarity: Int) = fixed(
+private fun glassSpectrum(clarity: Int, borderless: Boolean) = fixed(
     // Smoky base: from 75% (clarity 0) down to 5% (clarity 100) opaque.
     bg = Color(0xFF202634).copy(alpha = 0.75f - 0.7f * clarity.coerceIn(0, 100) / 100f),
     bgImage = R.drawable.glass_bg, today = Color(0x38FFFFFF), ink = Color(0xFFFBFBFF), muted = Color(0xD9E6E9F2),
     button = Color(0xD9FFFFFF), track = Color(0x24FFFFFF), ring = Color(0xFFBFD5FF),
     gradient = listOf(Color(0xFF9DB8FF), Color(0xFFD2B5FF), Color(0xFFFFB892)),
     chip = Color(0x29FFFFFF), chipBorder = Color(0x40FFFFFF), chipInk = Color(0xFFE3ECFF), chipStrong = Color(0xFF5B8CFF), chipStrongInk = Color.White,
-    whiteDrop = true,
+    whiteDrop = true, borderless = borderless,
 )
 
 /**
@@ -193,13 +196,13 @@ private fun wallpaperSpectrum(context: Context): Spectrum {
     )
 }
 
-internal fun spectrum(color: String, context: Context, glassClarity: Int = 65) = when (color) {
+internal fun spectrum(color: String, context: Context, glassClarity: Int = 65, glassBorderless: Boolean = false) = when (color) {
     WIDGET_COLOR_ORANGE -> OrangeSpectrum
     WIDGET_COLOR_TWILIGHT -> TwilightSpectrum
     WIDGET_COLOR_SKY -> SkySpectrum
     WIDGET_COLOR_MINT -> MintSpectrum
     WIDGET_COLOR_ROSE -> RoseSpectrum
-    WIDGET_COLOR_GLASS -> glassSpectrum(glassClarity)
+    WIDGET_COLOR_GLASS -> glassSpectrum(glassClarity, glassBorderless)
     WIDGET_COLOR_WALLPAPER -> wallpaperSpectrum(context)
     else -> LavenderSpectrum
 }
@@ -210,7 +213,7 @@ internal const val RAINY_PCT = 30
 class SpectrumWidget : WeatherWidget() {
     @Composable
     override fun Content(data: WidgetData) {
-        val p = spectrum(data.color, LocalContext.current, data.glassClarity)
+        val p = spectrum(data.color, LocalContext.current, data.glassClarity, data.glassBorderless)
         val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
         val list = days(data, spectrumDays(data.layout, data.dayCount))
         val now = data.forecast?.currentHour()

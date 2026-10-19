@@ -181,6 +181,9 @@ class SettingsStore(context: Context) {
     /** Spectrum, Liquid glass: how see-through the card is, 0–100 (higher = clearer). */
     fun widgetGlassClarity(appWidgetId: Int) = prefs.getInt("widget_glass_clarity_$appWidgetId", 65)
     fun setWidgetGlassClarity(appWidgetId: Int, clarity: Int) = prefs.edit().putInt("widget_glass_clarity_$appWidgetId", clarity).apply()
+    /** Spectrum, Liquid glass: "borderless" (only today in a tile, the other days split by hairlines). */
+    fun widgetGlassBorderless(appWidgetId: Int) = prefs.getBoolean("widget_glass_borderless_$appWidgetId", false)
+    fun setWidgetGlassBorderless(appWidgetId: Int, on: Boolean) = prefs.edit().putBoolean("widget_glass_borderless_$appWidgetId", on).apply()
     /** Spectrum: "classic", or a three-day layout ("refined", "tiles"; the retired "breathing" reads as refined). */
     fun widgetLayout(appWidgetId: Int) = when (val l = prefs.getString("widget_layout_$appWidgetId", null)) {
         null -> "classic"
