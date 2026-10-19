@@ -41,23 +41,6 @@
             android:taskAffinity="">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
-
-        <receiver android:name=".widget.HourlyWidgetReceiver" android:exported="true" android:label="@string/widget_hourly">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_hourly" />
-        </receiver>
-        <receiver android:name=".widget.HourlyTableReceiver" android:exported="true" android:label="@string/widget_hourly_table">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_hourly_table" />
-        </receiver>
-        <receiver android:name=".widget.DailyTableReceiver" android:exported="true" android:label="@string/widget_daily_table">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily_table" />
-        </receiver>
-        <receiver android:name=".widget.HourlyTonalReceiver" android:exported="true" android:label="@string/widget_hourly_tonal">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_hourly_tonal" />
-        </receiver>
         <receiver android:name=".widget.DailyTonalReceiver" android:exported="true" android:label="@string/widget_daily_tonal">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily_tonal" />
@@ -73,10 +56,6 @@
         <receiver android:name=".widget.SpectrumReceiver" android:exported="true" android:label="@string/widget_spectrum">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_spectrum" />
-        </receiver>
-        <receiver android:name=".widget.StripWidgetReceiver" android:exported="true" android:label="@string/widget_strip">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_strip" />
         </receiver>
     </application>
 

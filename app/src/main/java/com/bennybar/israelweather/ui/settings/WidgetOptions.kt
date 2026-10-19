@@ -3,10 +3,13 @@ package com.bennybar.israelweather.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
@@ -26,11 +29,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.places.PlacePickerDialog
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_BREATHING
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
 import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
 import com.bennybar.israelweather.widget.WIDGET_COLOR_ORANGE
 import com.bennybar.israelweather.widget.WIDGET_COLOR_TWILIGHT
@@ -39,6 +47,7 @@ import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.launch
 
 /** One widget's options: which place it shows and whether it has a "refresh now" button. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WidgetOptions(appWidgetId: Int, title: String?) {
     val context = LocalContext.current
@@ -57,6 +66,9 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var equalPills by remember(appWidgetId) { mutableStateOf(app.settings.widgetEqualPills(appWidgetId)) }
     var dayCount by remember(appWidgetId) { mutableStateOf(app.settings.widgetDays(appWidgetId)) }
+    var layout by remember(appWidgetId) { mutableStateOf(app.settings.widgetLayout(appWidgetId)) }
+    // The three-day layouts fix days, wind and pill width themselves.
+    val classic = kind != WidgetKind.SPECTRUM || layout == SPECTRUM_LAYOUT_CLASSIC
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> app.repo.placeFor(id, places.value)?.name(english) ?: "$id" }
@@ -113,7 +125,34 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 update()
             })
         }
-        if (kind == WidgetKind.RANGES || kind == WidgetKind.SPECTRUM) {
+        if (kind == WidgetKind.SPECTRUM) {
+            Text(stringResource(R.string.widget_layout), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    SPECTRUM_LAYOUT_CLASSIC to R.string.layout_classic,
+                    SPECTRUM_LAYOUT_REFINED to R.string.layout_refined,
+                    SPECTRUM_LAYOUT_BREATHING to R.string.layout_breathing,
+                    SPECTRUM_LAYOUT_TILES to R.string.layout_tiles,
+                ).forEach { (key, label) ->
+                    FilterChip(
+                        selected = layout == key,
+                        onClick = {
+                            layout = key
+                            app.settings.setWidgetLayout(appWidgetId, key)
+                            update()
+                        },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            if (!classic) {
+                Text(
+                    stringResource(if (layout == SPECTRUM_LAYOUT_REFINED) R.string.layout_three_day_hint else R.string.layout_tall_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp,
+                )
+            }
+        }
+        if (kind == WidgetKind.RANGES || (kind == WidgetKind.SPECTRUM && classic)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.show_wind), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Switch(checked = showWind, onCheckedChange = {
@@ -123,7 +162,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 })
             }
         }
-        if (kind == WidgetKind.SPECTRUM && showWind) {
+        if (kind == WidgetKind.SPECTRUM && classic && showWind) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.wind_dial), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Switch(checked = windDial, onCheckedChange = {
@@ -133,7 +172,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 })
             }
         }
-        if (kind == WidgetKind.SPECTRUM) {
+        if (kind == WidgetKind.SPECTRUM && classic) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.widget_days), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SingleChoiceSegmentedButtonRow {

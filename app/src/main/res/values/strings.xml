@@ -118,11 +118,6 @@
     <string name="section_about">אודות</string>
     <string name="about_body">התחזיות מגיעות מהשירות המטאורולוגי הישראלי; כשאין נקודת תחזית שלו קרובה (עד 3 ק״מ) למיקום שלכם, התחזית למיקום המדויק מגיעה מ-Open-Meteo (מודלים של ECMWF ו-ICON, רישיון CC BY 4.0). ההתראות ותמונות המכ״ם מהשירות המטאורולוגי. המפה: © OpenStreetMap.</string>
     <string name="version">גרסה</string>
-
-    <string name="widget_hourly">שעתי · קלאסי</string>
-    <string name="widget_strip">יומי מקוצר</string>
-    <string name="widget_hourly_desc">עכשיו והשעות הקרובות</string>
-    <string name="widget_strip_desc">חמישה ימים בשורה אחת</string>
     <string name="widget_open_app">פתחו את האפליקציה כדי לטעון תחזית</string>
     <string name="refresh_now">רענון עכשיו</string>
     <string name="show_refresh">כפתור רענון בווידג׳ט</string>
@@ -146,13 +141,7 @@
     <string name="grant">אישור</string>
     <string name="other_place">מקום אחר…</string>
     <string name="cancel">ביטול</string>
-    <string name="widget_hourly_table">שעתי · טבלה</string>
-    <string name="widget_daily_table">יומי · טבלה</string>
-    <string name="widget_hourly_tonal">שעתי · רך</string>
     <string name="widget_daily_tonal">יומי · רך</string>
-    <string name="widget_hourly_table_desc">עכשיו וטבלת השעות הקרובות, עם סיכוי וכמות גשם</string>
-    <string name="widget_daily_table_desc">טבלת חמשת הימים הקרובים, עם סיכוי וכמות גשם</string>
-    <string name="widget_hourly_tonal_desc">הטמפרטורה בצורה מעוגלת והשעות הקרובות</string>
     <string name="widget_daily_tonal_desc">חמשת הימים הקרובים בגוונים רכים</string>
     <string name="preview_place">תל אביב - יפו</string>
     <string name="col_hour">שעה</string>
@@ -204,4 +193,12 @@
     <string name="icons_fluent">Fluent</string>
     <string name="icons_noto">Noto</string>
     <string name="feels">מורגש</string>
+    <string name="widget_units">%1$s · רוח ב%2$s</string>
+    <string name="widget_layout">פריסה</string>
+    <string name="layout_classic">קלאסית</string>
+    <string name="layout_refined">מעודנת</string>
+    <string name="layout_breathing">מרווחת</string>
+    <string name="layout_tiles">שלושה אריחים</string>
+    <string name="layout_three_day_hint">שלושה ימים, עם רוח ותגיות גשם ברוחב אחיד.</string>
+    <string name="layout_tall_hint">שלושה ימים, עם רוח ותגיות גשם ברוחב אחיד. דורשת ווידג׳ט גבוה (4×3); בווידג׳ט נמוך יותר מוצגת הפריסה המעודנת.</string>
 </resources>

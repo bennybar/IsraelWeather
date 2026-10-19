@@ -55,7 +55,7 @@ import com.bennybar.israelweather.ui.hhmm
 // "Spectrum": now on top, five days with cool→warm gradient bars (a dot marks the current
 // temperature on today's bar) and rain chips that turn solid on rainy days.
 
-private data class Spectrum(
+internal data class Spectrum(
     val bg: Color,
     /** Drawn background (gradient) instead of [bg], if any. */
     val bgImage: Int?,
@@ -98,22 +98,24 @@ private val TwilightSpectrum = Spectrum(
     whiteDrop = true,
 )
 
-private fun spectrum(color: String) = when (color) {
+internal fun spectrum(color: String) = when (color) {
     WIDGET_COLOR_ORANGE -> OrangeSpectrum
     WIDGET_COLOR_TWILIGHT -> TwilightSpectrum
     else -> LavenderSpectrum
 }
 
 /** Rainy enough for the solid chip. */
-private const val RAINY_PCT = 30
+internal const val RAINY_PCT = 30
 
 class SpectrumWidget : WeatherWidget() {
     @Composable
     override fun Content(data: WidgetData) {
         val p = spectrum(data.color)
-        val list = days(data, data.dayCount)
+        val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
+        val list = days(data, if (threeDay) 3 else data.dayCount)
         val now = data.forecast?.currentHour()
         if (list.isEmpty() || now == null) return NoData(p.bg, p.ink)
+        if (threeDay) return SpectrumThreeDay(data, p, now, list)
         val context = LocalContext.current
         val s = app.settings.value
         val en = english(context)
@@ -305,7 +307,7 @@ private fun StatPill(p: Spectrum, label: String, value: String, arrow: Bitmap? =
  * One day's range as a bitmap: a rounded track, the min→max part filled with the
  * cool→warm gradient of the whole week's scale, and optionally a "now" dot.
  */
-private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Float, dot: Float?, rtl: Boolean, scale: Float = 1f): Bitmap {
+internal fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Float, dot: Float?, rtl: Boolean, scale: Float = 1f): Bitmap {
     val w = (width.value * density).toInt().coerceAtLeast(1)
     val h = (14 * scale * density).toInt()
     val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -339,7 +341,7 @@ private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Fl
 }
 
 /** A small navigation-style arrow pointing where the wind blows (north stays up in Hebrew too). */
-private fun windArrow(density: Float, p: Spectrum, fromDeg: Double): Bitmap {
+internal fun windArrow(density: Float, p: Spectrum, fromDeg: Double): Bitmap {
     val size = (11 * density).toInt()
     val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val c = Canvas(bmp)

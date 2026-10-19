@@ -27,15 +27,10 @@ import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Warning
 
 enum class WidgetKind(val receiver: KClass<out GlanceAppWidgetReceiver>, val title: Int, val widget: () -> GlanceAppWidget) {
-    HOURLY(HourlyWidgetReceiver::class, R.string.widget_hourly, ::HourlyWidget),
-    HOURLY_TABLE(HourlyTableReceiver::class, R.string.widget_hourly_table, ::HourlyTableWidget),
-    HOURLY_TONAL(HourlyTonalReceiver::class, R.string.widget_hourly_tonal, ::HourlyTonalWidget),
-    DAILY_TABLE(DailyTableReceiver::class, R.string.widget_daily_table, ::DailyTableWidget),
     DAILY_TONAL(DailyTonalReceiver::class, R.string.widget_daily_tonal, ::DailyTonalWidget),
     QUIET(QuietWeekReceiver::class, R.string.widget_quiet, ::QuietWeekWidget),
     RANGES(RangesReceiver::class, R.string.widget_ranges, ::RangesWidget),
     SPECTRUM(SpectrumReceiver::class, R.string.widget_spectrum, ::SpectrumWidget),
-    STRIP(StripWidgetReceiver::class, R.string.widget_strip, ::StripWidget),
 }
 
 object Widgets {
@@ -134,14 +129,15 @@ object Widgets {
         val windDial = app.settings.widgetWindDial(appWidgetId)
         val equalPills = app.settings.widgetEqualPills(appWidgetId)
         val dayCount = app.settings.widgetDays(appWidgetId)
+        val layout = app.settings.widgetLayout(appWidgetId)
         val id = placeIdFor(appWidgetId)
-            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills, iconStyle = app.settings.value.iconStyle, dayCount = dayCount)
+            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills, iconStyle = app.settings.value.iconStyle, dayCount = dayCount, layout = layout)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         val forecastId = app.settings.value.forecastIdFor(id)
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills, app.settings.value.iconStyle, dayCount)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills, app.settings.value.iconStyle, dayCount, layout)
     }
 }
 
@@ -165,6 +161,8 @@ data class WidgetData(
     val iconStyle: IconStyle = IconStyle.MATERIAL,
     /** Spectrum: days shown (2, 3 or 5). */
     val dayCount: Int = 5,
+    /** Spectrum: [SPECTRUM_LAYOUT_CLASSIC] or a three-day layout. */
+    val layout: String = SPECTRUM_LAYOUT_CLASSIC,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"
