@@ -10,12 +10,18 @@ import com.bennybar.israelweather.widget.Widgets
 import java.util.Locale
 import kotlin.math.ceil
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Request
 
 /** Resolves the device location to the nearest IMS location and stores it as the current place. */
 object CurrentPlace {
@@ -106,7 +112,10 @@ object CurrentPlace {
         // Beyond IMS_RADIUS_KM the forecast is Open-Meteo's for this exact spot, named after its town.
         val town = if (km > IMS_RADIUS_KM) {
             val he = app.location.town(lat, lon, Locale.forLanguageTag("he"))
-            val en = app.location.town(lat, lon, Locale.ENGLISH)
+            // The phone's geocoder often has no English name for small Israeli towns and returns the
+            // Hebrew one (or nothing); OpenStreetMap usually has the transliteration.
+            val en = app.location.town(lat, lon, Locale.ENGLISH)?.takeUnless { it.any { c -> c in '\u0590'..'\u05FF' } }
+                ?: englishName(lat, lon)
             if (he == null && en == null) null else Localized(he ?: en, en ?: he)
         } else {
             null
@@ -120,5 +129,26 @@ object CurrentPlace {
         // first fix): redraw them, even when that forecast is already cached and nothing is fetched.
         if (before.currentForecastId != app.settings.value.currentForecastId) Widgets.updateAll(app.context)
         return Result.OK
+    }
+
+    /**
+     * The English name of the place at a spot, from OpenStreetMap (Nominatim reverse lookup), for
+     * when the phone's geocoder only knows the Hebrew one. Called at most once per ~1 km moved, with
+     * the app's User-Agent, within Nominatim's usage policy.
+     */
+    private var englishCache: Pair<String, String?>? = null
+
+    private suspend fun englishName(lat: Double, lon: Double): String? = withContext(Dispatchers.IO) {
+        val spot = "%.2f,%.2f".format(Locale.ROOT, lat, lon)
+        englishCache?.takeIf { it.first == spot }?.let { return@withContext it.second }
+        runCatching {
+            val url = "https://nominatim.openstreetmap.org/reverse?lat=%.3f&lon=%.3f&format=jsonv2&zoom=14&accept-language=en".format(Locale.ROOT, lat, lon)
+            app.http.newCall(Request.Builder().url(url).build()).execute().use { res ->
+                if (!res.isSuccessful) return@use null
+                val address = app.json.parseToJsonElement(res.body.string()).jsonObject["address"]?.jsonObject ?: return@use null
+                listOf("village", "town", "city", "hamlet", "suburb").firstNotNullOfOrNull { address[it]?.jsonPrimitive?.contentOrNull }
+            }
+        }.getOrNull()?.takeUnless { en -> en.any { c -> c in '\u0590'..'\u05FF' } }
+            .also { englishCache = spot to it }
     }
 }

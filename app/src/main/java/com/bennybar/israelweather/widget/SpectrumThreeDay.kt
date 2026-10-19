@@ -110,7 +110,7 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
                 Spacer(GlanceModifier.height(if (tall) 4.dp else 2.dp))
                 Stats(p, now, s, density, k = k)
             }
-            Spacer(GlanceModifier.height(if (tall) 10.dp else 6.dp))
+            Spacer(GlanceModifier.height(if (tall) 10.dp else 8.dp))
             Column(GlanceModifier.fillMaxWidth().defaultWeight()) {
                 when {
                     tiles -> Row(GlanceModifier.fillMaxSize()) {
@@ -168,7 +168,8 @@ private fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings
         Text(temp(now.temp, s), style = style((if (compact) 32.sp else 38.sp) * k, p.ink, bold = true), maxLines = 1)
         if (data.showRefresh) {
             Spacer(GlanceModifier.width(4.dp))
-            RefreshButton(p.button, (if (compact) 28.dp else 32.dp) * k, touchMargin = if (compact) 4.dp else 6.dp)
+            // Slim: it's secondary. The touch area stays comfortable around it.
+            RefreshButton(p.button, if (compact) 24.dp else 28.dp, touchMargin = 6.dp)
         }
     }
 }
@@ -212,7 +213,7 @@ private fun Footer(data: WidgetData, p: Spectrum, s: Settings, k: Float) {
 
 /** Arrow toward where the wind blows, then the speed (no unit: the footer says it). */
 @Composable
-private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Float, size: TextUnit, k: Float) {
+private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Float, size: TextUnit, k: Float, unit: Boolean = true) {
     val (w, dir) = dayWind(data, d)
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (w != null && dir != null) {
@@ -220,6 +221,8 @@ private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Fl
             Spacer(GlanceModifier.width(3.dp))
         }
         Text(if (w != null) windValue(w, s) else "–", style = style(size, p.muted), maxLines = 1)
+        // The unit, small: "17" alone next to "17°" reads as a temperature.
+        if (unit && w != null) Text(" " + LocalContext.current.getString(if (s.windUnit == WindUnit.MS) R.string.unit_ms else R.string.unit_kmh), style = style(9.sp * k, p.muted), maxLines = 1)
     }
 }
 
@@ -228,13 +231,18 @@ private fun Wind(p: Spectrum, d: Day, data: WidgetData, s: Settings, density: Fl
 private fun RainPill(p: Spectrum, chance: Int?, width: Dp, k: Float) {
     val strong = (chance ?: 0) >= RAINY_PCT
     Row(
-        GlanceModifier.width(width).background(if (strong) p.chipStrong else p.chip).cornerRadius(10.dp).padding(vertical = 3.dp * k),
+        GlanceModifier.width(width).background(if (strong) p.chipStrong else p.chip.copy(alpha = p.chip.alpha * 0.7f)).cornerRadius(10.dp).padding(vertical = 3.dp * k),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(ImageProvider(if (strong || p.whiteDrop) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size(9.dp * k))
+        // Low chances stay quiet (lighter, not bold); only real rain gets the strong blue.
+        Image(ImageProvider(if (strong || p.whiteDrop) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null, GlanceModifier.size((if (strong) 9.dp else 8.dp) * k))
         Spacer(GlanceModifier.width(3.dp))
-        Text(pct(chance), style = style(12.sp * k, if (strong) p.chipStrongInk else p.chipInk, bold = true), maxLines = 1)
+        Text(
+            pct(chance),
+            style = style((if (strong) 12.sp else 11.sp) * k, if (strong) p.chipStrongInk else p.chipInk.copy(alpha = 0.75f), bold = strong),
+            maxLines = 1,
+        )
     }
 }
 
@@ -256,7 +264,8 @@ private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s:
         Box(GlanceModifier.width(32.dp), contentAlignment = Alignment.Center) { Text(temp(d.min, s), style = style(13.sp * k, p.muted), maxLines = 1) }
         Image(ImageProvider(bar), null, GlanceModifier.defaultWeight().height(12.dp * k), contentScale = ContentScale.FillBounds)
         Box(GlanceModifier.width(34.dp), contentAlignment = Alignment.Center) { Text(temp(d.max, s), style = style(14.sp * k, p.ink, bold = true), maxLines = 1) }
-        Box(GlanceModifier.width(44.dp), contentAlignment = Alignment.Center) { Wind(p, d, data, s, density, 12.sp * k, k) }
+        // No unit here: the column is narrow, and Refined's footer always names it.
+        Box(GlanceModifier.width(44.dp), contentAlignment = Alignment.Center) { Wind(p, d, data, s, density, 12.sp * k, k, unit = false) }
         Box(GlanceModifier.width(56.dp), contentAlignment = Alignment.CenterEnd) { RainPill(p, dayRainChance(data, d), 52.dp, k) }
     }
 }
@@ -265,8 +274,9 @@ private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s:
 @Composable
 private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
+    TileFrame(p, today, 16.dp) {
     Column(
-        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(16.dp).background(if (today) p.track else p.today).padding(horizontal = 8.dp, vertical = 6.dp),
+        GlanceModifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -282,8 +292,9 @@ private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, 
             Text(temp(d.min, s), style = style(13.sp * k, p.muted), maxLines = 1)
         }
         Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 4.dp).height(10.dp * k + 8.dp), contentScale = ContentScale.FillBounds)
-        Wind(p, d, data, s, density, 13.sp * k, k)
+        Wind(p, d, data, s, density, 11.5.sp * k, k)
         Box(GlanceModifier.padding(top = 4.dp)) { RainPill(p, dayRainChance(data, d), 60.dp * k, k) }
+    }
     }
 }
 
@@ -294,8 +305,9 @@ private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, 
 @Composable
 private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
+    TileFrame(p, today, 14.dp) {
     Column(
-        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(14.dp).background(if (today) p.track else p.today).padding(horizontal = 6.dp, vertical = 2.dp),
+        GlanceModifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -311,10 +323,12 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
         }
         Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 2.dp).height(11.dp), contentScale = ContentScale.FillBounds)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Wind(p, d, data, s, density, 12.sp, 1f)
+            // No unit: it shares the line with the rain pill, and this layout keeps the units footer.
+            Wind(p, d, data, s, density, 11.sp, 1f, unit = false)
             Spacer(GlanceModifier.width(6.dp))
             RainPill(p, dayRainChance(data, d), 46.dp, 1f)
         }
+    }
     }
 }
 
@@ -325,8 +339,9 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
 @Composable
 private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, inner: Dp) {
     val context = LocalContext.current
+    TileFrame(p, today, 12.dp) {
     Column(
-        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(12.dp).background(if (today) p.track else p.today).padding(horizontal = 4.dp, vertical = 2.dp),
+        GlanceModifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -341,7 +356,21 @@ private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spec
             Text(temp(d.min, s), style = style(11.sp * k, p.muted), maxLines = 1)
         }
         Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = 2.dp).height(10.dp), contentScale = ContentScale.FillBounds)
-        Wind(p, d, data, s, density, 11.sp * k, 1f)
+        Wind(p, d, data, s, density, 10.5.sp * k, 1f)
         Box(GlanceModifier.padding(top = 2.dp)) { RainPill(p, dayRainChance(data, d), minOf(inner, 48.dp), 1f) }
+    }
+    }
+}
+
+/**
+ * A tile's background. Today is the lightest, with a thin accent outline (it should stand out,
+ * not look greyed out); the other days sit on a softer version of the same tone.
+ */
+@Composable
+private fun androidx.glance.layout.RowScope.TileFrame(p: Spectrum, today: Boolean, radius: Dp, content: @Composable () -> Unit) {
+    Box(GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(radius).background(if (today) p.ring else Color.Transparent).padding(if (today) 1.5.dp else 0.dp)) {
+        Box(GlanceModifier.fillMaxSize().cornerRadius(radius).background(if (today) p.today else p.today.copy(alpha = p.today.alpha * 0.55f))) {
+            content()
+        }
     }
 }
