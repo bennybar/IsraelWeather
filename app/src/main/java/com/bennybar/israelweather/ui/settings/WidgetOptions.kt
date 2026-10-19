@@ -56,6 +56,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var showWind by remember(appWidgetId) { mutableStateOf(app.settings.widgetShowWind(appWidgetId)) }
     var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var equalPills by remember(appWidgetId) { mutableStateOf(app.settings.widgetEqualPills(appWidgetId)) }
+    var dayCount by remember(appWidgetId) { mutableStateOf(app.settings.widgetDays(appWidgetId)) }
     var open by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> app.repo.placeFor(id, places.value)?.name(english) ?: "$id" }
@@ -133,6 +134,22 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
             }
         }
         if (kind == WidgetKind.SPECTRUM) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.widget_days), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                SingleChoiceSegmentedButtonRow {
+                    listOf(2, 3, 5).forEachIndexed { i, n ->
+                        SegmentedButton(
+                            selected = dayCount == n,
+                            onClick = {
+                                dayCount = n
+                                app.settings.setWidgetDays(appWidgetId, n)
+                                update()
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(i, 3),
+                        ) { Text("$n") }
+                    }
+                }
+            }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.equal_pills), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Switch(checked = equalPills, onCheckedChange = {

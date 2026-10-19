@@ -171,6 +171,9 @@ class SettingsStore(context: Context) {
     /** Spectrum: rain pills all the same width, whatever the percentage. */
     fun widgetEqualPills(appWidgetId: Int) = prefs.getBoolean("widget_equal_pills_$appWidgetId", false)
     fun setWidgetEqualPills(appWidgetId: Int, equal: Boolean) = prefs.edit().putBoolean("widget_equal_pills_$appWidgetId", equal).apply()
+    /** Spectrum: how many days to show (2, 3 or 5); fewer days get bigger rows. */
+    fun widgetDays(appWidgetId: Int) = prefs.getInt("widget_days_$appWidgetId", 5)
+    fun setWidgetDays(appWidgetId: Int, days: Int) = prefs.edit().putInt("widget_days_$appWidgetId", days).apply()
 
     private fun <T> List<T>.moved(item: T, delta: Int): List<T> {
         val i = indexOf(item)

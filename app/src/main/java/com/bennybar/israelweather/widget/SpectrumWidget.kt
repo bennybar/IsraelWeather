@@ -111,14 +111,21 @@ class SpectrumWidget : WeatherWidget() {
     @Composable
     override fun Content(data: WidgetData) {
         val p = spectrum(data.color)
-        val list = days(data)
+        val list = days(data, data.dayCount)
         val now = data.forecast?.currentHour()
         if (list.isEmpty() || now == null) return NoData(p.bg, p.ink)
         val context = LocalContext.current
         val s = app.settings.value
         val en = english(context)
         val size = LocalSize.current
-        val tall = size.height >= 210.dp
+        // Size from the room each day row gets: fewer days or a taller widget (4×3) mean bigger
+        // text, icons, bars and pills, never more data. Columns widen less than the text (capped),
+        // so the bars keep their room. A tall widget also gets a roomier header.
+        val roomy = size.height >= 250.dp
+        val headerHeight = if (roomy) 100.dp else 80.dp
+        val rowHeight = (size.height - headerHeight - 12.dp) / list.size
+        val k = (rowHeight / 36.dp).coerceIn(1f, 1.4f)
+        val kw = minOf(k, 1.25f)
         val lo = list.mapNotNull { it.min }.minOrNull() ?: 0.0
         val hi = (list.mapNotNull { it.max }.maxOrNull() ?: lo).coerceAtLeast(lo + 1)
         // The home screen lays the widget out in the phone's language direction, not the app's
@@ -126,18 +133,18 @@ class SpectrumWidget : WeatherWidget() {
         // Resources.getSystem() won't do: it picks up the app's language too.
         val phoneLocale = context.getSystemService(LocaleManager::class.java).systemLocales.get(0)
         val rtl = TextUtils.getLayoutDirectionFromLocale(phoneLocale) == View.LAYOUT_DIRECTION_RTL
-        val text = if (tall) 15.sp else 14.sp
+        val text = 14.sp * k
         // The bar takes the row's leftover width; its bitmap is drawn for that width so the round
         // ends and the dot aren't stretched. (The picker preview reports the minimum size, so
         // assume a typical 4-cell width there.) Fixed: card + row padding, day, icon, min, max, chip, wind.
-        val windWidth = if (data.windDial) 48.dp else 42.dp
-        val fixed = 20.dp + 20.dp + 50.dp + 28.dp + 34.dp + 36.dp + 62.dp + (if (data.showWind) windWidth else 0.dp)
+        val windWidth = (if (data.windDial) 48.dp else 42.dp) * kw
+        val fixed = 20.dp + 20.dp + (50.dp + 28.dp + 34.dp + 36.dp + 62.dp) * kw + (if (data.showWind) windWidth else 0.dp)
         val layoutWidth = if (size.width < 300.dp) 360.dp else size.width
         val barWidth = (layoutWidth - fixed).coerceAtLeast(24.dp)
 
         val bgModifier = if (p.bgImage != null) GlanceModifier.background(ImageProvider(p.bgImage)) else GlanceModifier.background(p.bg)
         Box(
-            GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = 10.dp, vertical = 12.dp)
+            GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = 10.dp, vertical = if (roomy) 18.dp else 12.dp)
                 .clickable(openApp()),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
@@ -146,7 +153,7 @@ class SpectrumWidget : WeatherWidget() {
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(GlanceModifier.defaultWeight()) {
                         Row(verticalAlignment = Alignment.Bottom) {
-                            Text(data.place?.name(en) ?: "", style = style(17.sp, p.ink, bold = true), maxLines = 1)
+                            Text(data.place?.name(en) ?: "", style = style(if (roomy) 19.sp else 17.sp, p.ink, bold = true), maxLines = 1)
                             data.updated?.let {
                                 Text(" · " + hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)), style = style(11.sp, p.muted), maxLines = 1)
                             }
@@ -154,48 +161,53 @@ class SpectrumWidget : WeatherWidget() {
                         val today = list.first()
                         Text(
                             "${WeatherCodes.describe(now.code, en)} · ↑${temp(today.max, s)} ↓${temp(today.min, s)}",
-                            style = style(13.sp, p.muted), maxLines = 1,
+                            style = style(if (roomy) 14.sp else 13.sp, p.muted), maxLines = 1,
                         )
                     }
-                    // The icon sits in a soft circle, like the refresh button.
-                    val circle = if (tall) 50.dp else 46.dp
-                    Box(GlanceModifier.size(circle).background(p.button).cornerRadius(circle / 2), contentAlignment = Alignment.Center) {
-                        Image(
-                            ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
-                            GlanceModifier.size(if (tall) 36.dp else 33.dp),
-                        )
-                    }
-                    Spacer(GlanceModifier.width(8.dp))
-                    Text(temp(now.temp, s), style = style(if (tall) 38.sp else 34.sp, p.ink, bold = true), maxLines = 1)
+                    Image(
+                        ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
+                        GlanceModifier.size(if (roomy) 44.dp else 38.dp),
+                    )
+                    Spacer(GlanceModifier.width(4.dp))
+                    Text(temp(now.temp, s), style = style(if (roomy) 40.sp else 34.sp, p.ink, bold = true), maxLines = 1)
                     if (data.showRefresh) {
                         Spacer(GlanceModifier.width(8.dp))
                         RefreshButton(p.button, 30.dp)
                     }
                 }
-                Spacer(GlanceModifier.height(4.dp))
+                Spacer(GlanceModifier.height(if (roomy) 8.dp else 4.dp))
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s)) }
                     now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%") }
                     now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }) }
                 }
-                Spacer(GlanceModifier.height(4.dp))
+                Spacer(GlanceModifier.height(if (roomy) 10.dp else 4.dp))
+                // Rows keep a natural height (so today's highlight doesn't balloon); extra room becomes gaps.
+                // With lots of room (few days on a tall widget) the gaps stay moderate and the rows sit
+                // together, centered under the header.
+                val roomyGap = 16.dp
+                val gap = ((rowHeight - 34.dp * k) / 2).coerceAtLeast(0.dp)
+                val grouped = gap > roomyGap
+                val rowModifier = if (grouped) GlanceModifier.height(34.dp * k + roomyGap * 2) else GlanceModifier.defaultWeight()
+                if (grouped) Spacer(GlanceModifier.defaultWeight())
                 list.forEachIndexed { i, d ->
                     val today = i == 0
+                    Box(GlanceModifier.fillMaxWidth().then(rowModifier).padding(vertical = if (grouped) roomyGap else gap)) {
                     Row(
-                        GlanceModifier.fillMaxWidth().defaultWeight().cornerRadius(14.dp)
+                        GlanceModifier.fillMaxSize().cornerRadius(14.dp * kw)
                             .background(if (today) p.today else Color.Transparent).padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box(GlanceModifier.width(50.dp)) {
+                        Box(GlanceModifier.width(50.dp * kw)) {
                             Text(dayLabel(context, d), style = style(text, p.ink, bold = today), maxLines = 1)
                         }
-                        Box(GlanceModifier.width(28.dp), contentAlignment = Alignment.Center) {
+                        Box(GlanceModifier.width(28.dp * kw), contentAlignment = Alignment.Center) {
                             Image(
                                 ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en),
-                                GlanceModifier.size(if (tall) 24.dp else 22.dp),
+                                GlanceModifier.size(22.dp * k),
                             )
                         }
-                        Box(GlanceModifier.width(34.dp), contentAlignment = Alignment.Center) {
+                        Box(GlanceModifier.width(34.dp * kw), contentAlignment = Alignment.Center) {
                             Text(temp(d.min, s), style = style(text, p.muted), maxLines = 1)
                         }
                         val bar = rangeBar(
@@ -204,9 +216,10 @@ class SpectrumWidget : WeatherWidget() {
                             to = (((d.max ?: hi) - lo) / (hi - lo)).toFloat(),
                             dot = if (today) now.temp?.let { ((it - lo) / (hi - lo)).toFloat() } else null,
                             rtl = rtl,
+                            scale = kw,
                         )
-                        Image(ImageProvider(bar), null, GlanceModifier.defaultWeight().height(14.dp), contentScale = ContentScale.FillBounds)
-                        Box(GlanceModifier.width(36.dp), contentAlignment = Alignment.Center) {
+                        Image(ImageProvider(bar), null, GlanceModifier.defaultWeight().height(14.dp * kw), contentScale = ContentScale.FillBounds)
+                        Box(GlanceModifier.width(36.dp * kw), contentAlignment = Alignment.Center) {
                             Text(temp(d.max, s), style = style(text, p.ink, bold = true), maxLines = 1)
                         }
                         if (data.showWind) {
@@ -222,18 +235,18 @@ class SpectrumWidget : WeatherWidget() {
                                         ) {
                                             Image(ImageProvider(windArrow(context.resources.displayMetrics.density, p, dir)), null, GlanceModifier.size(11.dp))
                                             Spacer(GlanceModifier.width(3.dp))
-                                            Text(windValue(w, s), style = style(12.sp, p.ink, bold = true), maxLines = 1)
+                                            Text(windValue(w, s), style = style(12.sp * kw, p.ink, bold = true), maxLines = 1)
                                         }
                                     }
                                 } else {
-                                    Text(windShort(w, dir, s), style = style(12.sp, p.muted), maxLines = 1)
+                                    Text(windShort(w, dir, s), style = style(12.sp * kw, p.muted), maxLines = 1)
                                 }
                             }
                         }
                         val chance = dayRainChance(data, d)
                         val strong = (chance ?: 0) >= RAINY_PCT
-                        Box(GlanceModifier.width(62.dp), contentAlignment = Alignment.CenterEnd) {
-                            val pillWidth = if (data.equalPills) GlanceModifier.width(58.dp) else GlanceModifier
+                        Box(GlanceModifier.width(62.dp * kw), contentAlignment = Alignment.CenterEnd) {
+                            val pillWidth = if (data.equalPills) GlanceModifier.width(58.dp * kw) else GlanceModifier
                             Box(pillWidth.background(if (strong) p.chipStrong else p.chipBorder).cornerRadius(10.dp).padding(1.dp)) {
                             Row(
                                 (if (data.equalPills) GlanceModifier.fillMaxWidth() else GlanceModifier)
@@ -245,15 +258,17 @@ class SpectrumWidget : WeatherWidget() {
                             ) {
                                 Image(
                                     ImageProvider(if (strong || p.whiteDrop) R.drawable.tonal_drop_white else R.drawable.tonal_drop), null,
-                                    GlanceModifier.size(9.dp),
+                                    GlanceModifier.size(9.dp * kw),
                                 )
                                 Spacer(GlanceModifier.width(3.dp))
-                                Text(pct(chance), style = style(12.sp, if (strong) p.chipStrongInk else p.chipInk, bold = true), maxLines = 1)
+                                Text(pct(chance), style = style(12.sp * kw, if (strong) p.chipStrongInk else p.chipInk, bold = true), maxLines = 1)
                             }
                             }
                         }
                     }
+                    }
                 }
+                if (grouped) Spacer(GlanceModifier.defaultWeight())
             }
         }
     }
@@ -281,14 +296,14 @@ private fun StatPill(p: Spectrum, label: String, value: String, arrow: Bitmap? =
  * One day's range as a bitmap: a rounded track, the min→max part filled with the
  * cool→warm gradient of the whole week's scale, and optionally a "now" dot.
  */
-private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Float, dot: Float?, rtl: Boolean): Bitmap {
+private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Float, dot: Float?, rtl: Boolean, scale: Float = 1f): Bitmap {
     val w = (width.value * density).toInt().coerceAtLeast(1)
-    val h = (14 * density).toInt()
+    val h = (14 * scale * density).toInt()
     val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
     val c = Canvas(bmp)
-    val thick = 8 * density
+    val thick = 8 * scale * density
     val top = (h - thick) / 2
-    val dotR = 6 * density
+    val dotR = 6 * scale * density
     // Keep the dot inside the bitmap at the ends.
     val x0 = dotR
     val span = w - 2 * dotR
@@ -309,7 +324,7 @@ private fun rangeBar(density: Float, width: Dp, p: Spectrum, from: Float, to: Fl
         paint.color = p.ring.toArgb()
         c.drawCircle(cx, h / 2f, dotR, paint)
         paint.color = android.graphics.Color.WHITE
-        c.drawCircle(cx, h / 2f, dotR - 3 * density, paint)
+        c.drawCircle(cx, h / 2f, dotR - 3 * scale * density, paint)
     }
     return bmp
 }

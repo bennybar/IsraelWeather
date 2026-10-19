@@ -174,6 +174,7 @@
     <string name="show_wind">הצגת רוח</string>
     <string name="wind_dial">רוח בתגית עם חץ</string>
     <string name="equal_pills">תגיות גשם ברוחב אחיד</string>
+    <string name="widget_days">ימים</string>
     <string name="feels_like">מורגש כ-%1$s</string>
     <string name="rain_here">יורד גשם כאן עכשיו</string>
     <string name="rain_here_heavy">גשם חזק כאן עכשיו</string>
