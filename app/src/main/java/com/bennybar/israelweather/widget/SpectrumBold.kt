@@ -97,7 +97,7 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
                             rtl = rtl,
                             scale = if (tall) 0.9f else 0.75f,
                         )
-                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp, framed = today || !lines)
+                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp, framed = !lines)
                     }
                 }
             }
@@ -108,10 +108,17 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
 @Composable
 private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean, framed: Boolean) {
     val context = LocalContext.current
-    val ink = if (today) p.todayInk ?: p.ink else p.ink
-    val muted = if (today) p.todayInk ?: p.muted else p.muted
+    // Today's own text color only when it sits on today's tile.
+    val ink = if (today && framed) p.todayInk ?: p.ink else p.ink
+    val muted = if (today && framed) p.todayInk ?: p.muted else p.muted
     Column(
-        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(18.dp).background(if (today) p.today else if (framed) p.soft else ColorProvider(Color.Transparent))
+        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(18.dp).background(
+            when {
+                !framed -> ColorProvider(Color.Transparent) // "Bold lines": no tiles at all; today is marked by its accent name
+                today -> p.today
+                else -> p.soft
+            },
+        )
             .padding(horizontal = 8.dp, vertical = if (tall) 10.dp else 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
