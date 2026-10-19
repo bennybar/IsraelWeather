@@ -6,6 +6,7 @@ import android.text.TextUtils
 import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
@@ -71,11 +72,11 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
     Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
         Box(
             GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier)
-                .cornerRadius(28.dp).padding(pad),
+                .cornerRadius(28.dp).padding(horizontal = pad, vertical = 10.dp),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
                 ThreeDayHeader(data, p, now, s, en, 1f, compact)
-                Spacer(GlanceModifier.height(if (tall) 10.dp else 6.dp))
+                Spacer(GlanceModifier.height(if (tall) 8.dp else 3.dp))
                 Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     list.forEachIndexed { i, d ->
                         if (i > 0) {
@@ -124,9 +125,22 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
     ) {
         // Day, with the icon at the far end.
         Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(dayLabel(context, d), style = style(if (tall) 14.sp else 12.sp, if (today) p.ring else ink, bold = true), maxLines = 1)
+            if (today && !framed) {
+                // "Bold lines": today is a small filled pill in the accent color (no tile).
+                val chipInk = ColorProvider(if (p.swatchRing.luminance() > 0.5f) Color(0xFF1D2548) else Color.White)
+                Box(GlanceModifier.background(p.ring).cornerRadius(10.dp).padding(horizontal = if (roomy) 7.dp else 4.dp, vertical = 1.dp)) {
+                    Text(dayLabel(context, d), style = style(if (tall) 13.sp else if (roomy) 11.sp else 10.sp, chipInk, bold = true), maxLines = 1)
+                }
+            } else {
+                Text(dayLabel(context, d), style = style(if (tall) 14.sp else 12.sp, if (today) p.ring else ink, bold = true), maxLines = 1)
+            }
             Spacer(GlanceModifier.defaultWeight())
-            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(if (tall) 28.dp else 20.dp))
+            val iconSize = when {
+                tall -> 28.dp
+                today && !framed && !roomy -> 16.dp
+                else -> 20.dp
+            }
+            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(iconSize))
         }
         Text(temp(d.max, s), style = style(if (tall) 30.sp else 22.sp, ink, bold = true), maxLines = 1)
         Text("▾ " + temp(d.min, s), style = style(if (tall) 16.sp else 12.sp, muted, bold = true), maxLines = 1)
