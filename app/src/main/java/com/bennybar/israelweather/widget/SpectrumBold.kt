@@ -136,17 +136,17 @@ private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Bool
             if (today && !framed) {
                 // "Bold lines": today is a small filled pill in the accent color (no tile).
                 val chipInk = ColorProvider(if (p.swatchRing.luminance() > 0.5f) Color(0xFF1D2548) else Color.White)
-                Box(GlanceModifier.background(p.ring).cornerRadius(10.dp).padding(horizontal = if (roomy) 7.dp else 4.dp, vertical = 1.dp)) {
+                Box(GlanceModifier.background(p.ring).cornerRadius(10.dp).padding(horizontal = if (roomy) 5.dp else 4.dp, vertical = 1.dp)) {
                     Text(dayLabel(context, d), style = style((if (roomy) 11.sp else 10.sp) * fw, chipInk, bold = true), maxLines = 1)
                 }
             } else {
                 Text(dayLabel(context, d), style = style(12.sp * fw, if (today) p.ring else ink, bold = true), maxLines = 1)
             }
             // Always some air between the day (or Today pill) and its icon.
-            Spacer(GlanceModifier.width(6.dp))
+            Spacer(GlanceModifier.width(if (today && !framed) 3.dp else 6.dp))
             Spacer(GlanceModifier.defaultWeight())
             val iconSize = when {
-                today && !framed -> (if (roomy) 18.dp else 16.dp) * fw
+                today && !framed -> 16.dp * fw
                 else -> 20.dp * fw
             }
             Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(iconSize))
