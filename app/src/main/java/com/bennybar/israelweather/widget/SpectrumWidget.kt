@@ -123,19 +123,14 @@ class SpectrumWidget : WeatherWidget() {
         // so the bars keep their room. A tall widget also gets a roomier header.
         val roomy = size.height >= 250.dp
         val baseHeader = if (roomy) 92.dp else 72.dp
-        // Growth is measured against this widget's own 5-day rows (capped at 36dp, so a tall 4×3
-        // grows too): launchers' cell heights differ a lot (Samsung's 4×2 is ~25dp shorter than
-        // Pixel's), so fewer days always means bigger rows. Rows never outgrow their height.
-        fun scale(rows: Dp): Float {
-            val fiveDayRow = minOf((size.height - baseHeader - 12.dp) / 5, 36.dp)
-            return minOf(rows / fiveDayRow, rows / 26.dp, 1.4f).coerceAtLeast(1f)
-        }
-        // The header and its pills grow with the rows (half as much, at most 1.12×), so the two
-        // halves match; the condition line keeps its size so it still fits beside the temperature.
-        val hk = minOf(1f + (scale((size.height - baseHeader - 12.dp) / list.size) - 1f) / 2, 1.12f)
-        val rowHeight = (size.height - baseHeader * hk - 12.dp) / list.size
-        val k = scale(rowHeight)
-        val kw = minOf(k, 1.25f)
+        // One factor for everything (header, pills and rows grow together), measured against this
+        // widget's own 5-day rows (capped at 36dp, so a tall 4×3 grows too): launchers' cell
+        // heights differ (Samsung's 4×2 is ~25dp shorter than Pixel's). Kept moderate.
+        val fiveDayRow = minOf((size.height - baseHeader - 12.dp) / 5, 36.dp)
+        val roomPerRow = (size.height - baseHeader - 12.dp) / list.size
+        val k = minOf(roomPerRow / fiveDayRow, roomPerRow / 26.dp, 1.18f).coerceAtLeast(1f)
+        val kw = k
+        val rowHeight = (size.height - baseHeader * k - 12.dp) / list.size
         val lo = list.mapNotNull { it.min }.minOrNull() ?: 0.0
         val hi = (list.mapNotNull { it.max }.maxOrNull() ?: lo).coerceAtLeast(lo + 1)
         // The home screen lays the widget out in the phone's language direction, not the app's
@@ -158,38 +153,37 @@ class SpectrumWidget : WeatherWidget() {
                 .clickable(openApp()),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
-                // Now: place and condition on the left (aligned with the day names), icon and temperature
-                // on the right, then small pills like the rain ones.
+                // Now: place, then condition and update time, on the left (aligned with the day names);
+                // icon, temperature and today's range under it on the right; then small pills.
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(GlanceModifier.defaultWeight()) {
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(data.place?.name(en) ?: "", style = style((if (roomy) 19.sp else 17.sp) * hk, p.ink, bold = true), maxLines = 1)
-                            data.updated?.let {
-                                Text(" · " + hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)), style = style(11.sp * hk, p.muted), maxLines = 1)
-                            }
-                        }
-                        val today = list.first()
-                        Text(
-                            "${WeatherCodes.describe(now.code, en)} · ↑${temp(today.max, s)} ↓${temp(today.min, s)}",
-                            style = style(if (roomy) 14.sp else 13.sp, p.muted), maxLines = 1,
-                        )
+                        Text(data.place?.name(en) ?: "", style = style((if (roomy) 19.sp else 17.sp) * k, p.ink, bold = true), maxLines = 1)
+                        val line = listOfNotNull(
+                            WeatherCodes.describe(now.code, en),
+                            data.updated?.let { hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) },
+                        ).joinToString(" · ")
+                        Text(line, style = style((if (roomy) 14.sp else 13.sp) * k, p.muted), maxLines = 1)
                     }
                     Image(
                         ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),
-                        GlanceModifier.size((if (roomy) 44.dp else 38.dp) * hk),
+                        GlanceModifier.size((if (roomy) 44.dp else 38.dp) * k),
                     )
                     Spacer(GlanceModifier.width(4.dp))
-                    Text(temp(now.temp, s), style = style((if (roomy) 40.sp else 34.sp) * hk, p.ink, bold = true), maxLines = 1)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(temp(now.temp, s), style = style((if (roomy) 40.sp else 34.sp) * k, p.ink, bold = true), maxLines = 1)
+                        val today = list.first()
+                        Text("↑${temp(today.max, s)} ↓${temp(today.min, s)}", style = style(11.sp * k, p.muted), maxLines = 1)
+                    }
                     if (data.showRefresh) {
                         Spacer(GlanceModifier.width(8.dp))
-                        RefreshButton(p.button, 30.dp * hk)
+                        RefreshButton(p.button, 30.dp * k)
                     }
                 }
                 Spacer(GlanceModifier.height(if (roomy) 8.dp else 4.dp))
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s), scale = hk) }
-                    now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%", scale = hk) }
-                    now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }, hk) }
+                    apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s), scale = k) }
+                    now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%", scale = k) }
+                    now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }, k) }
                 }
                 Spacer(GlanceModifier.height(if (roomy) 12.dp else 8.dp))
                 // Rows keep a natural height (so today's highlight doesn't balloon); extra room becomes gaps.
