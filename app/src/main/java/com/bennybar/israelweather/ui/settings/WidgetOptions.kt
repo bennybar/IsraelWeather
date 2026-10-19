@@ -19,10 +19,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -56,6 +58,7 @@ import com.bennybar.israelweather.widget.Widgets
 import com.bennybar.israelweather.widget.spectrum
 import com.bennybar.israelweather.widget.spectrumDayChoices
 import com.bennybar.israelweather.widget.spectrumDays
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /** One widget's options: which place it shows and whether it has a "refresh now" button. */
@@ -89,6 +92,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     var windDial by remember(appWidgetId) { mutableStateOf(app.settings.widgetWindDial(appWidgetId)) }
     var equalPills by remember(appWidgetId) { mutableStateOf(app.settings.widgetEqualPills(appWidgetId)) }
     var dayCount by remember(appWidgetId) { mutableStateOf(app.settings.widgetDays(appWidgetId)) }
+    var glassClarity by remember(appWidgetId) { mutableFloatStateOf(app.settings.widgetGlassClarity(appWidgetId).toFloat()) }
     var layout by remember(appWidgetId) { mutableStateOf(app.settings.widgetLayout(appWidgetId)) }
     // The three-day layouts fix days, wind and pill width themselves.
     val classic = kind != WidgetKind.SPECTRUM || layout == SPECTRUM_LAYOUT_CLASSIC
@@ -242,6 +246,22 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                         },
                     )
                 }
+            }
+            if (color == WIDGET_COLOR_GLASS) {
+                // How see-through the glass is; the widget redraws when the slider is let go.
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.glass_clarity), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${glassClarity.roundToInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Slider(
+                    value = glassClarity,
+                    onValueChange = { glassClarity = it },
+                    valueRange = 0f..100f,
+                    onValueChangeFinished = {
+                        app.settings.setWidgetGlassClarity(appWidgetId, glassClarity.roundToInt())
+                        update()
+                    },
+                )
             }
         }
     }

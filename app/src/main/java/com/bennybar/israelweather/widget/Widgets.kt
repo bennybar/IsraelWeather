@@ -130,14 +130,15 @@ object Widgets {
         val equalPills = app.settings.widgetEqualPills(appWidgetId)
         val dayCount = app.settings.widgetDays(appWidgetId)
         val layout = app.settings.widgetLayout(appWidgetId)
+        val glassClarity = app.settings.widgetGlassClarity(appWidgetId)
         val id = placeIdFor(appWidgetId)
-            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills, iconStyle = app.settings.value.iconStyle, dayCount = dayCount, layout = layout)
+            ?: return WidgetData(null, null, showRefresh, null, color, showWind, windDial = windDial, equalPills = equalPills, iconStyle = app.settings.value.iconStyle, dayCount = dayCount, layout = layout, glassClarity = glassClarity)
         val place = app.repo.placeFor(id, app.repo.ensurePlacesLoaded())
         val forecastId = app.settings.value.forecastIdFor(id)
         var cached = app.repo.cachedForecast(forecastId)
         if (cached?.value == null && app.repo.refreshForecast(forecastId)) cached = app.repo.cachedForecast(forecastId)
         val forecast = cached?.value
-        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills, app.settings.value.iconStyle, dayCount, layout)
+        return WidgetData(place, forecast, showRefresh, cached?.fetchedAt?.takeIf { it > 0 }, color, showWind, id, windDial, equalPills, app.settings.value.iconStyle, dayCount, layout, glassClarity)
     }
 }
 
@@ -163,6 +164,8 @@ data class WidgetData(
     val dayCount: Int = 5,
     /** Spectrum: [SPECTRUM_LAYOUT_CLASSIC] or a three-day layout. */
     val layout: String = SPECTRUM_LAYOUT_CLASSIC,
+    /** Spectrum, Liquid glass: 0–100, higher = more see-through. */
+    val glassClarity: Int = 65,
 )
 
 const val WIDGET_COLOR_LAVENDER = "lavender"

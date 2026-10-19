@@ -174,6 +174,9 @@ class SettingsStore(context: Context) {
     /** Spectrum: how many days to show (2, 3 or 5); fewer days get bigger rows. */
     fun widgetDays(appWidgetId: Int) = prefs.getInt("widget_days_$appWidgetId", 5)
     fun setWidgetDays(appWidgetId: Int, days: Int) = prefs.edit().putInt("widget_days_$appWidgetId", days).apply()
+    /** Spectrum, Liquid glass: how see-through the card is, 0–100 (higher = clearer). */
+    fun widgetGlassClarity(appWidgetId: Int) = prefs.getInt("widget_glass_clarity_$appWidgetId", 65)
+    fun setWidgetGlassClarity(appWidgetId: Int, clarity: Int) = prefs.edit().putInt("widget_glass_clarity_$appWidgetId", clarity).apply()
     /** Spectrum: "classic", or a three-day layout ("refined", "tiles"; the retired "breathing" reads as refined). */
     fun widgetLayout(appWidgetId: Int) = when (val l = prefs.getString("widget_layout_$appWidgetId", null)) {
         null -> "classic"

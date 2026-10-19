@@ -203,5 +203,6 @@
     <string name="color_mint">מנטה</string>
     <string name="color_rose">ורוד</string>
     <string name="color_glass">זכוכית</string>
+    <string name="glass_clarity">שקיפות</string>
     <string name="color_wallpaper">לפי הטפט</string>
 </resources>

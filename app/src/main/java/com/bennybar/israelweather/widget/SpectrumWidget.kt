@@ -158,8 +158,10 @@ private val RoseSpectrum = fixed(
  * "Liquid glass": a translucent smoky card with a light sheen and bright edge (glass_bg), frosted
  * tiles and white type. Widgets can't blur what's behind them, so the wallpaper simply shows through.
  */
-private val GlassSpectrum = fixed(
-    bg = Color(0x47202634), bgImage = R.drawable.glass_bg, today = Color(0x38FFFFFF), ink = Color(0xFFFBFBFF), muted = Color(0xD9E6E9F2),
+private fun glassSpectrum(clarity: Int) = fixed(
+    // Smoky base: from 75% (clarity 0) down to 5% (clarity 100) opaque.
+    bg = Color(0xFF202634).copy(alpha = 0.75f - 0.7f * clarity.coerceIn(0, 100) / 100f),
+    bgImage = R.drawable.glass_bg, today = Color(0x38FFFFFF), ink = Color(0xFFFBFBFF), muted = Color(0xD9E6E9F2),
     button = Color(0xD9FFFFFF), track = Color(0x24FFFFFF), ring = Color(0xFFBFD5FF),
     gradient = listOf(Color(0xFF9DB8FF), Color(0xFFD2B5FF), Color(0xFFFFB892)),
     chip = Color(0x29FFFFFF), chipBorder = Color(0x40FFFFFF), chipInk = Color(0xFFE3ECFF), chipStrong = Color(0xFF5B8CFF), chipStrongInk = Color.White,
@@ -191,13 +193,13 @@ private fun wallpaperSpectrum(context: Context): Spectrum {
     )
 }
 
-internal fun spectrum(color: String, context: Context) = when (color) {
+internal fun spectrum(color: String, context: Context, glassClarity: Int = 65) = when (color) {
     WIDGET_COLOR_ORANGE -> OrangeSpectrum
     WIDGET_COLOR_TWILIGHT -> TwilightSpectrum
     WIDGET_COLOR_SKY -> SkySpectrum
     WIDGET_COLOR_MINT -> MintSpectrum
     WIDGET_COLOR_ROSE -> RoseSpectrum
-    WIDGET_COLOR_GLASS -> GlassSpectrum
+    WIDGET_COLOR_GLASS -> glassSpectrum(glassClarity)
     WIDGET_COLOR_WALLPAPER -> wallpaperSpectrum(context)
     else -> LavenderSpectrum
 }
@@ -208,7 +210,7 @@ internal const val RAINY_PCT = 30
 class SpectrumWidget : WeatherWidget() {
     @Composable
     override fun Content(data: WidgetData) {
-        val p = spectrum(data.color, LocalContext.current)
+        val p = spectrum(data.color, LocalContext.current, data.glassClarity)
         val threeDay = data.layout != SPECTRUM_LAYOUT_CLASSIC
         val list = days(data, spectrumDays(data.layout, data.dayCount))
         val now = data.forecast?.currentHour()
@@ -247,10 +249,11 @@ class SpectrumWidget : WeatherWidget() {
         val layoutWidth = if (size.width < 300.dp) 360.dp else size.width
         val barWidth = (layoutWidth - fixed).coerceAtLeast(24.dp)
 
-        val bgModifier = if (p.bgImage != null) GlanceModifier.background(ImageProvider(p.bgImage)) else GlanceModifier.background(p.bg)
+        // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
+        Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
         Box(
-            GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = 10.dp, vertical = if (roomy) 18.dp else 12.dp)
-                .clickable(openApp()),
+            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(28.dp)
+                .padding(horizontal = 10.dp, vertical = if (roomy) 18.dp else 12.dp),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
                 // Now: place, then condition and update time, on the left (aligned with the day names);
@@ -385,6 +388,7 @@ class SpectrumWidget : WeatherWidget() {
                 if (grouped) Spacer(GlanceModifier.defaultWeight())
                 }
             }
+        }
         }
     }
 }

@@ -103,8 +103,9 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
     val width = if (size.width < 300.dp) 360.dp else size.width
     val pad = 12.dp
 
-    val bgModifier = if (p.bgImage != null) GlanceModifier.background(ImageProvider(p.bgImage)) else GlanceModifier.background(p.bg)
-    Box(GlanceModifier.fillMaxSize().then(bgModifier).cornerRadius(28.dp).padding(horizontal = pad, vertical = pad).clickable(openApp())) {
+    // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
+    Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
+    Box(GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(28.dp).padding(horizontal = pad, vertical = pad)) {
         Column(GlanceModifier.fillMaxSize()) {
             ThreeDayHeader(data, p, now, s, en, k, compact)
             if (!bare) {
@@ -150,6 +151,7 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
                 Footer(data, p, s, k)
             }
         }
+    }
     }
 }
 

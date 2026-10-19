@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- "Liquid glass" widget background: a translucent smoky base (the wallpaper shows through),
-     a soft light sheen from the top corner, and a thin bright edge. -->
+<!-- "Liquid glass" widget overlay: a soft light sheen from the top corner and a thin bright edge.
+     The smoky base under it is the palette's background color (its strength is a widget setting). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <corners android:radius="28dp" />
-            <solid android:color="#47202634" />
-        </shape>
-    </item>
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
