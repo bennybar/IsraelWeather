@@ -1,0 +1,142 @@
+package com.bennybar.israelweather.widget
+
+import android.app.LocaleManager
+import android.graphics.Bitmap
+import android.text.TextUtils
+import android.view.View
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
+import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
+import androidx.glance.LocalSize
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.background
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
+import androidx.glance.layout.Row
+import androidx.glance.layout.RowScope
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
+import androidx.glance.layout.size
+import androidx.glance.layout.width
+import androidx.glance.text.Text
+import com.bennybar.israelweather.R
+import com.bennybar.israelweather.app
+import com.bennybar.israelweather.data.Day
+import com.bennybar.israelweather.data.Hour
+import com.bennybar.israelweather.data.Settings
+import com.bennybar.israelweather.data.WeatherCodes
+import com.bennybar.israelweather.data.WindUnit
+import com.bennybar.israelweather.ui.temp
+import com.bennybar.israelweather.ui.windValue
+
+// Spectrum's "Bold" layout: the Tiles header, then one tile per day (3 or 4) led by a big high
+// temperature, "▼ low" under it, the range bar, and wind | rain at the bottom. Today's tile is the
+// light one. On a short (4×2) widget the type is smaller and wind's unit moves to its own line only
+// when tall.
+
+@Composable
+internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<Day>) {
+    val context = LocalContext.current
+    val s = app.settings.value
+    val en = english(context)
+    val size = LocalSize.current
+    val tall = size.height >= 250.dp
+    val compact = size.height < 205.dp
+    val density = context.resources.displayMetrics.density
+    val phoneLocale = context.getSystemService(LocaleManager::class.java).systemLocales.get(0)
+    val rtl = TextUtils.getLayoutDirectionFromLocale(phoneLocale) == View.LAYOUT_DIRECTION_RTL
+    val lo = list.mapNotNull { it.min }.minOrNull() ?: 0.0
+    val hi = (list.mapNotNull { it.max }.maxOrNull() ?: lo).coerceAtLeast(lo + 1)
+    // The picker preview reports the minimum size; assume a typical 4-cell width there.
+    val width = if (size.width < 300.dp) 360.dp else size.width
+    val pad = 12.dp
+    val gap = 6.dp
+    val tile = (width - pad * 2 - gap * (list.size - 1)) / list.size
+    val inner = tile - 16.dp
+
+    Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
+        Box(
+            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier)
+                .cornerRadius(28.dp).padding(pad),
+        ) {
+            Column(GlanceModifier.fillMaxSize()) {
+                ThreeDayHeader(data, p, now, s, en, 1f, compact)
+                Spacer(GlanceModifier.height(if (tall) 10.dp else 6.dp))
+                Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                    list.forEachIndexed { i, d ->
+                        if (i > 0) Spacer(GlanceModifier.width(gap))
+                        val today = i == 0
+                        val bar = rangeBar(
+                            density, inner, p,
+                            from = (((d.min ?: lo) - lo) / (hi - lo)).toFloat(),
+                            to = (((d.max ?: hi) - lo) / (hi - lo)).toFloat(),
+                            dot = if (today) now.temp?.let { ((it - lo) / (hi - lo)).toFloat() } else null,
+                            rtl = rtl,
+                            scale = if (tall) 0.9f else 0.75f,
+                        )
+                        BoldTile(data, p, d, today, s, en, tall, bar, density, roomy = inner >= 72.dp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.BoldTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, tall: Boolean, bar: Bitmap, density: Float, roomy: Boolean) {
+    val context = LocalContext.current
+    val ink = if (today) p.todayInk ?: p.ink else p.ink
+    val muted = if (today) p.todayInk ?: p.muted else p.muted
+    Column(
+        GlanceModifier.defaultWeight().fillMaxHeight().cornerRadius(18.dp).background(if (today) p.today else p.soft)
+            .padding(horizontal = 8.dp, vertical = if (tall) 10.dp else 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Day, with the icon at the far end.
+        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(dayLabel(context, d), style = style(if (tall) 14.sp else 12.sp, if (today) p.ring else ink, bold = true), maxLines = 1)
+            Spacer(GlanceModifier.defaultWeight())
+            Image(ImageProvider(WeatherCodes.drawable(d.code)), WeatherCodes.describe(d.code, en), GlanceModifier.size(if (tall) 28.dp else 20.dp))
+        }
+        Text(temp(d.max, s), style = style(if (tall) 30.sp else 22.sp, ink, bold = true), maxLines = 1)
+        Text("▾ " + temp(d.min, s), style = style(if (tall) 16.sp else 12.sp, muted, bold = true), maxLines = 1)
+        Image(ImageProvider(bar), null, GlanceModifier.fillMaxWidth().padding(vertical = if (tall) 5.dp else 2.dp).height(if (tall) 12.dp else 10.dp), contentScale = ContentScale.FillBounds)
+        // Wind | rain.
+        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            val (w, dir) = dayWind(data, d)
+            if (w != null && dir != null) {
+                Image(ImageProvider(windArrow(density, p, dir)), null, GlanceModifier.size(if (tall) 13.dp else 10.dp))
+                Spacer(GlanceModifier.width(3.dp))
+            }
+            Column {
+                Text(if (w != null) windValue(w, s) else "–", style = style(if (tall) 13.sp else 11.sp, ink, bold = true), maxLines = 1)
+                if (tall && w != null) {
+                    Text(context.getString(if (s.windUnit == WindUnit.MS) R.string.unit_ms else R.string.unit_kmh), style = style(9.sp, muted), maxLines = 1)
+                }
+            }
+            Spacer(GlanceModifier.defaultWeight())
+            // The divider only where there's room for it (narrow tiles: wind and rain just sit apart).
+            if (roomy) {
+                Box(GlanceModifier.width(1.dp).height(if (tall) 18.dp else 10.dp).background(p.chipBorder)) {}
+                Spacer(GlanceModifier.defaultWeight())
+            }
+            if (roomy) {
+                Image(ImageProvider(R.drawable.tonal_drop_white), null, GlanceModifier.size(if (tall) 11.dp else 9.dp), colorFilter = ColorFilter.tint(muted))
+                Spacer(GlanceModifier.width(2.dp))
+            }
+            Text(pct(dayRainChance(data, d)), style = style(if (tall) 13.sp else 10.5.sp, ink), maxLines = 1)
+        }
+    }
+}

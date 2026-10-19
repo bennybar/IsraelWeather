@@ -53,12 +53,13 @@ const val SPECTRUM_LAYOUT_CLASSIC = "classic"
 const val SPECTRUM_LAYOUT_REFINED = "refined"
 const val SPECTRUM_LAYOUT_TILES = "tiles"
 const val SPECTRUM_LAYOUT_AURORA = "aurora"
+const val SPECTRUM_LAYOUT_BOLD = "bold"
 
 /** Days shown for a layout: Classic 2/3/5, Tiles 3/4/5 (from the Days setting), Refined always 3. */
 fun spectrumDays(layout: String, dayCount: Int): Int = when (layout) {
     SPECTRUM_LAYOUT_CLASSIC -> dayCount
     SPECTRUM_LAYOUT_TILES -> dayCount.coerceIn(3, 5)
-    SPECTRUM_LAYOUT_AURORA -> dayCount.coerceIn(3, 4)
+    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD -> dayCount.coerceIn(3, 4)
     else -> 3
 }
 
@@ -66,7 +67,7 @@ fun spectrumDays(layout: String, dayCount: Int): Int = when (layout) {
 fun spectrumDayChoices(layout: String): List<Int> = when (layout) {
     SPECTRUM_LAYOUT_CLASSIC -> listOf(2, 3, 5)
     SPECTRUM_LAYOUT_TILES -> listOf(3, 4, 5)
-    SPECTRUM_LAYOUT_AURORA -> listOf(3, 4)
+    SPECTRUM_LAYOUT_AURORA, SPECTRUM_LAYOUT_BOLD -> listOf(3, 4)
     else -> emptyList()
 }
 
@@ -76,6 +77,7 @@ private val TALL_LAYOUT_MIN_HEIGHT = 250.dp
 @Composable
 internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: List<Day>) {
     if (data.layout == SPECTRUM_LAYOUT_AURORA) return SpectrumAurora(data, p, now, list)
+    if (data.layout == SPECTRUM_LAYOUT_BOLD) return SpectrumBold(data, p, now, list)
     val context = LocalContext.current
     val s = app.settings.value
     val en = english(context)
@@ -170,7 +172,7 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
 
 /** Place and condition; current icon and temperature; refresh. No high/low: the days show it. */
 @Composable
-private fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings, en: Boolean, k: Float, compact: Boolean) {
+internal fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings, en: Boolean, k: Float, compact: Boolean) {
     Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(GlanceModifier.defaultWeight()) {
             Text(data.place?.name(en) ?: "", style = style(if (compact) 18.sp else 20.sp, p.ink, bold = true), maxLines = 1)
