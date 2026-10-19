@@ -179,26 +179,31 @@ class SpectrumWidget : WeatherWidget() {
                         RefreshButton(p.button, 30.dp * k)
                     }
                 }
-                Spacer(GlanceModifier.height(if (roomy) 8.dp else 4.dp))
+                // The pills sit with the same visible space above and below them; the header's last
+                // line (today's high/low) already brings ~5dp of text padding, so less is added above.
+                val pillSpace = (if (roomy) 10.dp else 7.dp) * k
+                Spacer(GlanceModifier.height(pillSpace - 5.dp * k))
                 Row(GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     apparentTemp(now.temp, now.rh, now.wind)?.let { StatPill(p, context.getString(R.string.feels), temp(it, s), scale = k) }
                     now.rh?.let { StatPill(p, context.getString(R.string.humidity), "${it.roundToInt()}%", scale = k) }
                     now.wind?.let { w -> StatPill(p, context.getString(R.string.wind), windValue(w, s), now.windDir?.let { windArrow(context.resources.displayMetrics.density, p, it) }, k) }
                 }
-                Spacer(GlanceModifier.height(if (roomy) 12.dp else 8.dp))
-                // Rows keep a natural height (so today's highlight doesn't balloon); extra room becomes gaps.
-                // With lots of room (few days on a tall widget) the gaps stay moderate and the rows sit
-                // together, centered under the header.
+                Spacer(GlanceModifier.height(pillSpace))
+                // Rows keep a natural height (so today's highlight doesn't balloon); extra room becomes gaps
+                // between them (none above the first, so the space under the pills matches the space over
+                // them). With lots of room (few days on a tall widget) the gaps stay moderate and the rest
+                // goes to the bottom.
                 val roomyGap = 16.dp
                 val gap = ((rowHeight - 34.dp * k) / 2).coerceAtLeast(0.dp)
                 val grouped = gap > roomyGap
-                val rowModifier = if (grouped) GlanceModifier.height(34.dp * k + roomyGap * 2) else GlanceModifier.defaultWeight()
-                if (grouped) Spacer(GlanceModifier.defaultWeight())
+                // Their own column: Glance allows at most 10 children per column.
+                Column(GlanceModifier.fillMaxWidth().defaultWeight()) {
                 list.forEachIndexed { i, d ->
                     val today = i == 0
-                    Box(GlanceModifier.fillMaxWidth().then(rowModifier).padding(vertical = if (grouped) roomyGap else gap)) {
+                    if (!today) Spacer(GlanceModifier.height((if (grouped) roomyGap else gap) * 2))
                     Row(
-                        GlanceModifier.fillMaxSize().cornerRadius(14.dp * kw)
+                        GlanceModifier.fillMaxWidth().then(if (grouped) GlanceModifier.height(34.dp * k) else GlanceModifier.defaultWeight())
+                            .cornerRadius(14.dp * kw)
                             .background(if (today) p.today else Color.Transparent).padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -270,9 +275,9 @@ class SpectrumWidget : WeatherWidget() {
                             }
                         }
                     }
-                    }
                 }
                 if (grouped) Spacer(GlanceModifier.defaultWeight())
+                }
             }
         }
     }
