@@ -67,6 +67,10 @@ fun spectrumDayChoices(layout: String): List<Int> = when (layout) {
     else -> emptyList()
 }
 
+/** The card's corners, and the tiles' inside it: close enough that the curves read as one family. */
+internal val WIDGET_CORNER = 24.dp
+private val TILE_CORNER = 20.dp
+
 /** From this height (4×3) everything gets a little bigger and roomier. */
 private val TALL_LAYOUT_MIN_HEIGHT = 250.dp
 
@@ -104,8 +108,8 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
     val pad = 12.dp
 
     // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
-    Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
-    Box(GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(28.dp).padding(horizontal = pad, vertical = pad)) {
+    Box(GlanceModifier.fillMaxSize().cornerRadius(WIDGET_CORNER).background(p.bg).clickable(openApp())) {
+    Box(GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(WIDGET_CORNER).padding(horizontal = pad, vertical = pad)) {
         Column(GlanceModifier.fillMaxSize()) {
             ThreeDayHeader(data, p, now, s, en, k, compact)
             if (!bare) {
@@ -280,7 +284,7 @@ private fun DayIcon(d: Day, en: Boolean, size: Dp) =
 private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, height: GlanceModifier) {
     val context = LocalContext.current
     Row(
-        GlanceModifier.fillMaxWidth().then(height).cornerRadius(14.dp).background(if (today) p.today else ColorProvider(Color.Transparent))
+        GlanceModifier.fillMaxWidth().then(height).cornerRadius(TILE_CORNER - 4.dp).background(if (today) p.today else ColorProvider(Color.Transparent))
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -299,7 +303,7 @@ private fun RefinedRow(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s:
 @Composable
 private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
-    TileFrame(p, today, 16.dp) {
+    TileFrame(p, today, TILE_CORNER) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -330,7 +334,7 @@ private fun androidx.glance.layout.RowScope.Tile(data: WidgetData, p: Spectrum, 
 @Composable
 private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, bar: android.graphics.Bitmap, density: Float) {
     val context = LocalContext.current
-    TileFrame(p, today, 14.dp) {
+    TileFrame(p, today, TILE_CORNER) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -364,7 +368,7 @@ private fun androidx.glance.layout.RowScope.CompactTile(data: WidgetData, p: Spe
 @Composable
 private fun androidx.glance.layout.RowScope.NarrowTile(data: WidgetData, p: Spectrum, d: Day, today: Boolean, s: Settings, en: Boolean, k: Float, bar: android.graphics.Bitmap, density: Float, inner: Dp) {
     val context = LocalContext.current
-    TileFrame(p, today, 12.dp) {
+    TileFrame(p, today, TILE_CORNER - 4.dp) {
     Column(
         GlanceModifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

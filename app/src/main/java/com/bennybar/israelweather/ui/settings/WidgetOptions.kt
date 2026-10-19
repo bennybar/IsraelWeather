@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -98,6 +100,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
     // The three-day layouts fix days, wind and pill width themselves.
     val classic = kind != WidgetKind.SPECTRUM || layout == SPECTRUM_LAYOUT_CLASSIC
     var open by remember { mutableStateOf(false) }
+    var colorOpen by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     fun nameOf(key: String) = key.toIntOrNull()?.let { id -> app.repo.placeFor(id, places.value)?.name(english) ?: "$id" }
     val update: () -> Unit = { scope.launch { Widgets.updateAll(context) } }
@@ -227,25 +230,34 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
             }
         }
         if (hasColor) {
-            Text(stringResource(R.string.widget_color), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                colors.forEach { (key, label) ->
-                    FilterChip(
-                        selected = color == key,
-                        onClick = {
-                            color = key
-                            app.settings.setWidgetColor(appWidgetId, key)
-                            update()
-                        },
-                        label = { Text(stringResource(label)) },
-                        // A swatch of the palette: its background with its accent inside.
-                        leadingIcon = {
-                            val swatch = spectrum(key, context)
-                            Box(
-                                Modifier.size(18.dp).clip(CircleShape).background(swatch.bgColor).border(1.dp, swatch.swatchRing, CircleShape),
+            // A palette's swatch: its background with its accent around it.
+            @Composable
+            fun Swatch(key: String) {
+                val swatch = spectrum(key, context)
+                Box(Modifier.size(18.dp).clip(CircleShape).background(swatch.bgColor).border(1.dp, swatch.swatchRing, CircleShape))
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.widget_color), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Box {
+                    OutlinedButton(onClick = { colorOpen = true }) {
+                        Swatch(color)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(colors.firstOrNull { it.first == color }?.second ?: colors.first().second))
+                    }
+                    DropdownMenu(expanded = colorOpen, onDismissRequest = { colorOpen = false }) {
+                        colors.forEach { (key, label) ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(label)) },
+                                leadingIcon = { Swatch(key) },
+                                onClick = {
+                                    colorOpen = false
+                                    color = key
+                                    app.settings.setWidgetColor(appWidgetId, key)
+                                    update()
+                                },
                             )
-                        },
-                    )
+                        }
+                    }
                 }
             }
             if (color == WIDGET_COLOR_GLASS) {

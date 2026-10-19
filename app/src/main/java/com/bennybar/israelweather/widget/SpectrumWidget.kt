@@ -253,9 +253,9 @@ class SpectrumWidget : WeatherWidget() {
         val barWidth = (layoutWidth - fixed).coerceAtLeast(24.dp)
 
         // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
-        Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
+        Box(GlanceModifier.fillMaxSize().cornerRadius(WIDGET_CORNER).background(p.bg).clickable(openApp())) {
         Box(
-            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(28.dp)
+            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(WIDGET_CORNER)
                 .padding(horizontal = 10.dp, vertical = if (roomy) 18.dp else 12.dp),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
