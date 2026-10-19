@@ -44,9 +44,11 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.ui.isEnglish
 import com.bennybar.israelweather.ui.places.PlacePickerDialog
+import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_AURORA
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_CLASSIC
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_REFINED
 import com.bennybar.israelweather.widget.SPECTRUM_LAYOUT_TILES
+import com.bennybar.israelweather.widget.WIDGET_COLOR_AURORA
 import com.bennybar.israelweather.widget.WIDGET_COLOR_GLASS
 import com.bennybar.israelweather.widget.WIDGET_COLOR_LAVENDER
 import com.bennybar.israelweather.widget.WIDGET_COLOR_MINT
@@ -85,6 +87,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                 WIDGET_COLOR_MINT to R.string.color_mint,
                 WIDGET_COLOR_ROSE to R.string.color_rose,
                 WIDGET_COLOR_GLASS to R.string.color_glass,
+                WIDGET_COLOR_AURORA to R.string.color_aurora,
                 WIDGET_COLOR_WALLPAPER to R.string.color_wallpaper,
             )
         } else {
@@ -163,6 +166,7 @@ fun WidgetOptions(appWidgetId: Int, title: String?) {
                     SPECTRUM_LAYOUT_CLASSIC to R.string.layout_classic,
                     SPECTRUM_LAYOUT_REFINED to R.string.layout_refined,
                     SPECTRUM_LAYOUT_TILES to R.string.layout_tiles,
+                    SPECTRUM_LAYOUT_AURORA to R.string.layout_aurora,
                 ).forEach { (key, label) ->
                     FilterChip(
                         selected = layout == key,

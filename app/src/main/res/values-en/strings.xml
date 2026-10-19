@@ -206,4 +206,6 @@
     <string name="glass_clarity">Transparency</string>
     <string name="glass_borderless">Borderless</string>
     <string name="color_wallpaper">Wallpaper</string>
+    <string name="layout_aurora">Aurora</string>
+    <string name="color_aurora">Aurora</string>
 </resources>

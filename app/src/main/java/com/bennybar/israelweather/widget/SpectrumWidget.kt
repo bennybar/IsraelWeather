@@ -97,21 +97,26 @@ internal class Spectrum(
     val swatchRing: Color,
     /** Liquid glass "borderless": only today sits in a tile, quiet rain without pills, no button circle. */
     val borderless: Boolean = false,
+    /** Text on today's tile (Aurora's is a light mint, so it needs dark text); null = [ink]. */
+    val todayInk: ColorProvider? = null,
+    /** The soft shape behind Aurora's big weather icon (drawn as a bitmap). */
+    val blob: Color = barTrack,
 )
 
 /** A fixed palette; the softer shades are derived from the main ones. */
 private fun fixed(
     bg: Color, bgImage: Int?, today: Color, ink: Color, muted: Color, button: Color, track: Color, ring: Color, gradient: List<Color>,
     chip: Color, chipBorder: Color, chipInk: Color, chipStrong: Color, chipStrongInk: Color, whiteDrop: Boolean = false,
-    borderless: Boolean = false,
+    borderless: Boolean = false, soft: Color? = null, todayInk: Color? = null, blob: Color? = null,
 ) = Spectrum(
-    bg = ColorProvider(bg), bgImage = bgImage, today = ColorProvider(today), soft = ColorProvider(today.copy(alpha = today.alpha * 0.55f)),
+    bg = ColorProvider(bg), bgImage = bgImage, today = ColorProvider(today), soft = ColorProvider(soft ?: today.copy(alpha = today.alpha * 0.55f)),
     ink = ColorProvider(ink), muted = ColorProvider(muted), button = ColorProvider(button), track = ColorProvider(track), ring = ColorProvider(ring),
     chip = ColorProvider(chip), chipQuiet = ColorProvider(chip.copy(alpha = chip.alpha * 0.7f)), chipQuietInk = ColorProvider(chipInk.copy(alpha = 0.75f)),
     chipBorder = ColorProvider(chipBorder), chipInk = ColorProvider(chipInk), chipStrong = ColorProvider(chipStrong), chipStrongInk = ColorProvider(chipStrongInk),
     capsuleBorder = ColorProvider(muted.copy(alpha = 0.3f)),
     barTrack = track, accent = ring, gradient = gradient, whiteDrop = whiteDrop,
     bgColor = bg, inkColor = ink, swatchRing = ring, borderless = borderless,
+    todayInk = todayInk?.let { ColorProvider(it) }, blob = blob ?: track,
 )
 
 private val LavenderSpectrum = fixed(
@@ -171,6 +176,15 @@ private fun glassSpectrum(clarity: Int, borderless: Boolean) = fixed(
     whiteDrop = true, borderless = borderless,
 )
 
+/** Aurora: deep navy, periwinkle tiles, a mint "today" and mint temperature. */
+private val AuroraSpectrum = fixed(
+    bg = Color(0xFF1D2548), bgImage = null, today = Color(0xFFBDF4D4), ink = Color(0xFFF1F2FF), muted = Color(0xFFB4B7E2),
+    button = Color(0xFF2F3768), track = Color(0xFF3A4275), ring = Color(0xFFBDF4D4),
+    gradient = listOf(Color(0xFF8FA8FF), Color(0xFFB9A6F5), Color(0xFFFFB48C)),
+    chip = Color(0x29FFFFFF), chipBorder = Color(0x40FFFFFF), chipInk = Color(0xFFDDE4FF), chipStrong = Color(0xFF5B8CFF), chipStrongInk = Color.White,
+    whiteDrop = true, soft = Color(0xFF2F3768), todayInk = Color(0xFF1D2548), blob = Color(0xFF465089),
+)
+
 /**
  * Material You: the system's wallpaper-based tones (accent 1 for surfaces and accents, accent 2 for
  * secondary text), as color resources, so the home screen updates them as soon as the wallpaper
@@ -203,6 +217,7 @@ internal fun spectrum(color: String, context: Context, glassClarity: Int = 65, g
     WIDGET_COLOR_MINT -> MintSpectrum
     WIDGET_COLOR_ROSE -> RoseSpectrum
     WIDGET_COLOR_GLASS -> glassSpectrum(glassClarity, glassBorderless)
+    WIDGET_COLOR_AURORA -> AuroraSpectrum
     WIDGET_COLOR_WALLPAPER -> wallpaperSpectrum(context)
     else -> LavenderSpectrum
 }
@@ -253,9 +268,9 @@ class SpectrumWidget : WeatherWidget() {
         val barWidth = (layoutWidth - fixed).coerceAtLeast(24.dp)
 
         // The palette's color, with its drawn background (gradient, glass sheen) over it, if any.
-        Box(GlanceModifier.fillMaxSize().cornerRadius(WIDGET_CORNER_RES).background(p.bg).clickable(openApp())) {
+        Box(GlanceModifier.fillMaxSize().cornerRadius(28.dp).background(p.bg).clickable(openApp())) {
         Box(
-            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(WIDGET_CORNER_RES)
+            GlanceModifier.fillMaxSize().then(p.bgImage?.let { GlanceModifier.background(ImageProvider(it)) } ?: GlanceModifier).cornerRadius(28.dp)
                 .padding(horizontal = 10.dp, vertical = if (roomy) 18.dp else 12.dp),
         ) {
             Column(GlanceModifier.fillMaxSize()) {

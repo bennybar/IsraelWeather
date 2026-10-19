@@ -206,4 +206,6 @@
     <string name="glass_clarity">שקיפות</string>
     <string name="glass_borderless">ללא מסגרות</string>
     <string name="color_wallpaper">לפי הטפט</string>
+    <string name="layout_aurora">זוהר</string>
+    <string name="color_aurora">זוהר</string>
 </resources>
