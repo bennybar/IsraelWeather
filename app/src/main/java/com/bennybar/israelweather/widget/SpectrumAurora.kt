@@ -38,11 +38,15 @@ import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Day
 import com.bennybar.israelweather.data.Hour
+import com.bennybar.israelweather.data.IsraelZone
 import com.bennybar.israelweather.data.Settings
 import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.WindUnit
+import com.bennybar.israelweather.ui.hhmm
 import com.bennybar.israelweather.ui.temp
 import com.bennybar.israelweather.ui.windValue
+import java.time.Instant
+import java.time.LocalDateTime
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -84,7 +88,8 @@ internal fun SpectrumAurora(data: WidgetData, p: Spectrum, now: Hour, list: List
                                 Spacer(GlanceModifier.width(3.dp))
                                 Text(data.place?.name(en) ?: "", style = style(17.sp, p.ink, bold = true), maxLines = 1)
                             }
-                            Text(WeatherCodes.describe(now.code, en), style = style(15.sp, p.muted, bold = true), maxLines = 1)
+                            val time = data.updated?.let { " · " + hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) } ?: ""
+                            Text(WeatherCodes.describe(now.code, en) + time, style = style(15.sp, p.muted, bold = true), maxLines = 1)
                         }
                         // The weather icon on a soft blob.
                         Box(GlanceModifier.size(78.dp, 64.dp), contentAlignment = Alignment.Center) {

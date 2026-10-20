@@ -104,7 +104,16 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             // "cloudy". For plain sky codes, use the daytime (07–17) average cloud instead.
             val daytime = h.time.indices.filter { j -> h.time[j].startsWith(d.time[i]) && h.time[j].substring(11, 13).toInt() in 7..17 }
             val dayCloud = daytime.mapNotNull { sky[it] }.takeIf { it.isNotEmpty() }?.average()
-            Day(d.time[i], skyCode(d.weather_code[i], dayCloud), d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
+            // Fog, drizzle, rain, snow or storms only when they last (3+ daytime hours): a single foggy
+            // dawn hour made the whole day a fog icon. Otherwise the day's sky from its average cloud.
+            val weatherHours = daytime.count { (h.weather_code[it] ?: 0) > 3 }
+            val code = d.weather_code[i]
+            val dayCode = if ((code ?: 0) > 3 && weatherHours < 3 && dayCloud != null) {
+                skyCode(3, dayCloud) // a plain sky code, so the cloud decides
+            } else {
+                skyCode(code, dayCloud)
+            }
+            Day(d.time[i], dayCode, d.temperature_2m_min[i], d.temperature_2m_max[i], d.uv_index_max[i])
         }
         // Current conditions (15-minutely); rain chance and UV come from the hour they fall in.
         val now = r.current?.let { c ->
@@ -206,7 +215,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     /** Plain sky codes (0–3) from [cloud] (when known); rain, fog, snow and storms as Open-Meteo says. */
     private fun skyCode(wmo: Int?, cloud: Double?): Int = when {
         wmo == null || wmo > 3 || cloud == null -> imsCode(wmo)
-        cloud < 20 -> 1250
+        cloud < 25 -> 1250
         cloud < 60 -> 1220
         else -> 1230
     }

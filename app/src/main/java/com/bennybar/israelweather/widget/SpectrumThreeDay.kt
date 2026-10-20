@@ -14,6 +14,7 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -29,20 +30,23 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.action.clickable
 import androidx.glance.text.Text
 import androidx.glance.unit.ColorProvider
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.Day
 import com.bennybar.israelweather.data.Hour
+import com.bennybar.israelweather.data.IsraelZone
 import com.bennybar.israelweather.data.Settings
 import com.bennybar.israelweather.data.TempUnit
 import com.bennybar.israelweather.data.WeatherCodes
 import com.bennybar.israelweather.data.WindUnit
 import com.bennybar.israelweather.data.apparentTemp
+import com.bennybar.israelweather.ui.hhmm
 import com.bennybar.israelweather.ui.temp
 import com.bennybar.israelweather.ui.windValue
+import java.time.Instant
+import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 // Spectrum's day layouts (per-widget "Layout" setting): Refined (three days) and Tiles (3–5).
@@ -176,11 +180,14 @@ internal fun SpectrumThreeDay(data: WidgetData, p: Spectrum, now: Hour, list: Li
 
 /** Place and condition; current icon and temperature; refresh. No high/low: the days show it. */
 @Composable
-internal fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings, en: Boolean, k: Float, compact: Boolean) {
+internal fun ThreeDayHeader(data: WidgetData, p: Spectrum, now: Hour, s: Settings, en: Boolean, k: Float, compact: Boolean, showTime: Boolean = false) {
     Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(GlanceModifier.defaultWeight()) {
             Text(data.place?.name(en) ?: "", style = style(if (compact) 18.sp else 20.sp, p.ink, bold = true), maxLines = 1)
-            Text(WeatherCodes.describe(now.code, en), style = style(if (compact) 13.sp else 14.sp, if (p.borderless) p.ring else p.muted), maxLines = 1)
+            // Layouts without the units/time footer (Bold) show the update time here.
+            val condition = WeatherCodes.describe(now.code, en) +
+                (if (showTime) data.updated?.let { " · " + hhmm(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), IsraelZone)) } ?: "" else "")
+            Text(condition, style = style(if (compact) 13.sp else 14.sp, if (p.borderless) p.ring else p.muted), maxLines = 1)
         }
         Image(
             ImageProvider(WeatherCodes.drawable(now.code, WeatherCodes.isNight(now.time))), WeatherCodes.describe(now.code, en),

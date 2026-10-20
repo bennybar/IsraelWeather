@@ -83,7 +83,7 @@ internal fun SpectrumBold(data: WidgetData, p: Spectrum, now: Hour, list: List<D
                 .cornerRadius(28.dp).padding(horizontal = pad, vertical = 10.dp),
         ) {
             Column(GlanceModifier.fillMaxSize()) {
-                ThreeDayHeader(data, p, now, s, en, 1f, compact)
+                ThreeDayHeader(data, p, now, s, en, 1f, compact, showTime = true)
                 Spacer(GlanceModifier.height(if (tall) 8.dp else 3.dp))
                 Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     list.forEachIndexed { i, d ->
