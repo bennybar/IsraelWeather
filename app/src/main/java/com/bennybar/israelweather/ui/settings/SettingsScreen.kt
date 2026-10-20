@@ -136,6 +136,8 @@ fun SettingsScreen() {
                         IconStyle.GLASS to R.string.icons_glass,
                         IconStyle.ONEUI to R.string.icons_oneui,
                         IconStyle.MATERIAL_WEATHER to R.string.icons_material_weather,
+                        IconStyle.GOOGLE_MAPS to R.string.icons_google_maps,
+                        IconStyle.GOOGLE_WEATHER to R.string.icons_google_weather,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         styles.forEach { (style, label) ->

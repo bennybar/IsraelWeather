@@ -64,6 +64,8 @@ object WeatherCodes {
             IconStyle.GLASS -> GLASS
             IconStyle.ONEUI -> ONEUI
             IconStyle.MATERIAL_WEATHER -> MATERIAL_WEATHER
+            IconStyle.GOOGLE_MAPS -> GOOGLE_MAPS
+            IconStyle.GOOGLE_WEATHER -> GOOGLE_WEATHER
         }
         return when (icon(code)) {
             Icon.CLEAR -> if (night) set.moon else set.sun
@@ -124,5 +126,18 @@ object WeatherCodes {
         R.drawable.wi_m3_sun, R.drawable.wi_m3_moon, R.drawable.wi_m3_partly, R.drawable.wi_m3_partly_night,
         R.drawable.wi_m3_cloud, R.drawable.wi_m3_partly_rain, R.drawable.wi_m3_rain, R.drawable.wi_m3_storm,
         R.drawable.wi_m3_snow, R.drawable.wi_m3_fog, R.drawable.wi_m3_dust, R.drawable.wi_m3_wind,
+    )
+
+    // Google's own icons (Maps weather and Google Weather, via github.com/mrdarrengriffin/google-weather-icons).
+    // Not openly licensed: all rights belong to Google; included at the owner's request.
+    private val GOOGLE_MAPS = IconSet(
+        R.drawable.wi_gmaps_sun, R.drawable.wi_gmaps_moon, R.drawable.wi_gmaps_partly, R.drawable.wi_gmaps_partly_night,
+        R.drawable.wi_gmaps_cloud, R.drawable.wi_gmaps_partly_rain, R.drawable.wi_gmaps_rain, R.drawable.wi_gmaps_storm,
+        R.drawable.wi_gmaps_snow, R.drawable.wi_gmaps_fog, R.drawable.wi_gmaps_dust, R.drawable.wi_gmaps_wind,
+    )
+    private val GOOGLE_WEATHER = IconSet(
+        R.drawable.wi_gweather_sun, R.drawable.wi_gweather_moon, R.drawable.wi_gweather_partly, R.drawable.wi_gweather_partly_night,
+        R.drawable.wi_gweather_cloud, R.drawable.wi_gweather_partly_rain, R.drawable.wi_gweather_rain, R.drawable.wi_gweather_storm,
+        R.drawable.wi_gweather_snow, R.drawable.wi_gweather_fog, R.drawable.wi_gweather_dust, R.drawable.wi_gweather_wind,
     )
 }

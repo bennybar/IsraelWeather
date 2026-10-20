@@ -191,6 +191,8 @@
     <string name="icons_glass">Glass</string>
     <string name="icons_oneui">One UI style</string>
     <string name="icons_material_weather">Material Weather</string>
+    <string name="icons_google_maps">Google Maps</string>
+    <string name="icons_google_weather">Google Weather</string>
     <string name="icons_fluent">Fluent</string>
     <string name="icons_noto">Noto</string>
     <string name="feels">Feels</string>
