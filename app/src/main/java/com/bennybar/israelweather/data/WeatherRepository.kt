@@ -29,6 +29,7 @@ class WeatherRepository(
     private val context: Context,
     private val api: Api,
     private val openMeteo: OpenMeteo,
+    private val foreca: Foreca,
     private val settings: SettingsStore,
     private val json: Json,
     private val scope: CoroutineScope,
@@ -132,15 +133,18 @@ class WeatherRepository(
         if (!force && cached != null && age(cached.fetchedAt) < FORECAST_TTL) return true
         _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = true, error = null)) }
         return runCatching {
-            val custom = settings.value.custom(id)
-            if (id == CURRENT_ID) {
-                // "My location" far from any IMS point: model forecast for the exact spot.
-                val s = settings.value
-                openMeteo.forecast(s.currentLat ?: error("no location"), s.currentLon ?: error("no location"), fresh = force)
-            } else if (custom != null) {
-                openMeteo.forecast(custom.lat, custom.lon, fresh = force, id = id)
-            } else {
-                api.forecast(id, fresh = force)
+            val s = settings.value
+            val custom = s.custom(id)
+            when {
+                // "My location" far from any IMS point (or without IMS): the exact spot.
+                id == CURRENT_ID -> spotForecast(s.currentLat ?: error("no location"), s.currentLon ?: error("no location"), force, id)
+                custom != null -> spotForecast(custom.lat, custom.lon, force, id)
+                // An IMS place without IMS: the model forecast for its spot.
+                !s.usesIms -> {
+                    val place = ensurePlacesLoaded().firstOrNull { it.id == id } ?: error("unknown place")
+                    spotForecast(place.lat, place.lon, force, id)
+                }
+                else -> withImsNow(api.forecast(id, fresh = force), id)
             }
         }
             .onSuccess { f ->
@@ -151,6 +155,30 @@ class WeatherRepository(
             }
             .onFailure { e -> _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = false, error = e)) } }
             .isSuccess
+    }
+
+    /** An exact spot: Foreca when chosen and keyed (ECMWF if that fails), else ECMWF via Open-Meteo. */
+    private suspend fun spotForecast(lat: Double, lon: Double, force: Boolean, id: Int): Forecast {
+        val s = settings.value
+        if (s.forecastSource == ForecastSource.FORECA && s.forecaKey.isNotBlank()) {
+            runCatching { foreca.forecast(lat, lon, s.forecaKey, id) }.onSuccess { return it }
+        }
+        return openMeteo.forecast(lat, lon, fresh = force, id = id)
+    }
+
+    /** IMS's forecast with ECMWF's current conditions as "now" (its hourly sky lags the real one). */
+    private suspend fun withImsNow(f: Forecast, id: Int): Forecast {
+        val place = ensurePlacesLoaded().firstOrNull { it.id == id } ?: return f
+        val now = runCatching { openMeteo.current(place.lat, place.lon, f.hourly) }.getOrNull() ?: return f
+        return f.copy(now = now)
+    }
+
+    /** Re-fetch every forecast in use (after the forecast source changes). */
+    suspend fun refreshAllForecasts() {
+        val s = settings.value
+        val ids = s.places.map { s.forecastIdFor(it) } + listOfNotNull(s.currentForecastId) + Widgets.placeIds(context)
+        ids.toSet().forEach { refreshForecast(it, force = true, updateWidgets = false) }
+        Widgets.updateAll(context)
     }
 
     suspend fun refreshWarnings(force: Boolean = false) {

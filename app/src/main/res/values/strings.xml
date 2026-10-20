@@ -150,8 +150,8 @@
     <string name="days_5">5 ימים</string>
     <string name="col_wind">רוח</string>
     <string name="source_line_ims">מקור: השירות המטאורולוגי הישראלי</string>
-    <string name="source_line_om">מקור: Open-Meteo · מיקום מדויק</string>
-    <string name="source_om">תחזית: Open-Meteo (ECMWF, ICON) · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
+    <string name="source_line_om">מקור: ECMWF דרך Open-Meteo · מיקום מדויק</string>
+    <string name="source_om">תחזית: ECMWF דרך Open-Meteo · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
     <string name="warnings_stale">לא ניתן לרענן · עדכון אחרון %1$s</string>
     <string name="widget_quiet">יומי · שקט</string>
     <string name="widget_quiet_desc">חמישה ימים בטורים פתוחים: מקסימום, מינימום וסיכוי גשם</string>
@@ -210,4 +210,20 @@
     <string name="layout_bold">מודגשת</string>
     <string name="layout_bold_lines">מודגשת עם קווים</string>
     <string name="color_aurora">זוהר</string>
+    <string name="source_line_foreca">מקור: Foreca · מיקום מדויק</string>
+    <string name="source_foreca">תחזית: Foreca · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
+    <string name="section_source">מקור התחזית</string>
+    <string name="source_ims_ecmwf">השירות המטאורולוגי + ECMWF</string>
+    <string name="source_ecmwf">ECMWF בלבד</string>
+    <string name="source_foreca_choice">Foreca</string>
+    <string name="source_ims_ecmwf_hint">ליד נקודת תחזית של השירות המטאורולוגי (עד 3 ק״מ): התחזית שלו; בשאר המקומות: ECMWF דרך Open-Meteo. ״עכשיו״ תמיד מ-ECMWF, שמתעדכן כל רבע שעה.</string>
+    <string name="source_ecmwf_hint">ECMWF (מודל 9 ק״מ, דרך Open-Meteo) בכל מקום, בלי השירות המטאורולוגי. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
+    <string name="source_foreca_hint">Foreca בכל מקום, עם מפתח API משלכם. אם המפתח לא עובד, התחזית מגיעה מ-ECMWF.</string>
+    <string name="foreca_key">מפתח API של Foreca</string>
+    <string name="foreca_check">בדיקת המפתח</string>
+    <string name="foreca_checking">בודק…</string>
+    <string name="foreca_ok">המפתח עובד</string>
+    <string name="foreca_bad">המפתח לא התקבל</string>
+    <string name="foreca_steps">1. הירשמו לתוכנית Freemium החינמית (לשימוש לא מסחרי, 2,000 בקשות ביום). שימו לב: לא Free Trial, שנעצר אחרי 30 יום.\n2. ב-My API צרו מפתח והדביקו אותו כאן.\n\nהאפליקציה שולחת 3 בקשות לכל מקום, לכל היותר פעם בחצי שעה.</string>
+    <string name="foreca_signup">הרשמה ל-Foreca Freemium</string>
 </resources>

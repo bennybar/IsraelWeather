@@ -150,8 +150,8 @@
     <string name="days_5">5 days</string>
     <string name="col_wind">Wind</string>
     <string name="source_line_ims">Source: Israel Meteorological Service</string>
-    <string name="source_line_om">Source: Open-Meteo · exact location</string>
-    <string name="source_om">Forecast: Open-Meteo (ECMWF, ICON) · Warnings &amp; radar: Israel Meteorological Service</string>
+    <string name="source_line_om">Source: ECMWF via Open-Meteo · exact location</string>
+    <string name="source_om">Forecast: ECMWF via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
     <string name="warnings_stale">Couldn\'t refresh · last update %1$s</string>
     <string name="widget_quiet">Daily · Quiet</string>
     <string name="widget_quiet_desc">Five days in open columns: high, low and rain chance</string>
@@ -210,4 +210,20 @@
     <string name="layout_bold">Bold</string>
     <string name="layout_bold_lines">Bold lines</string>
     <string name="color_aurora">Aurora</string>
+    <string name="source_line_foreca">Source: Foreca · exact location</string>
+    <string name="source_foreca">Forecast: Foreca · Warnings &amp; radar: Israel Meteorological Service</string>
+    <string name="section_source">Forecast source</string>
+    <string name="source_ims_ecmwf">IMS + ECMWF</string>
+    <string name="source_ecmwf">ECMWF only</string>
+    <string name="source_foreca_choice">Foreca</string>
+    <string name="source_ims_ecmwf_hint">Near an IMS forecast point (within 3 km): IMS\'s forecast; elsewhere: ECMWF via Open-Meteo. \"Now\" always comes from ECMWF, updated every 15 minutes.</string>
+    <string name="source_ecmwf_hint">ECMWF (9 km model, via Open-Meteo) everywhere, without IMS. Warnings and radar still come from IMS.</string>
+    <string name="source_foreca_hint">Foreca everywhere, with your own API key. If the key doesn\'t work, forecasts come from ECMWF.</string>
+    <string name="foreca_key">Foreca API key</string>
+    <string name="foreca_check">Check key</string>
+    <string name="foreca_checking">Checking…</string>
+    <string name="foreca_ok">Key works</string>
+    <string name="foreca_bad">Key not accepted</string>
+    <string name="foreca_steps">1. Sign up for the free Freemium plan (non-commercial, 2,000 requests a day). Not the Free Trial, which stops after 30 days.\n2. In My API, create a key and paste it here.\n\nThe app uses 3 requests per place, at most every 30 minutes.</string>
+    <string name="foreca_signup">Sign up for Foreca Freemium</string>
 </resources>

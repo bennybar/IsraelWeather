@@ -14,6 +14,12 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 /** Which weather icon set the app and widgets draw. */
 enum class IconStyle { MATERIAL, METEOCONS, FLUENT, NOTO, GLASS, ONEUI }
 
+/**
+ * Where forecasts come from: IMS near its points with ECMWF elsewhere (and for "now"), ECMWF
+ * everywhere, or Foreca everywhere (the user's own key).
+ */
+enum class ForecastSource { IMS_ECMWF, ECMWF, FORECA }
+
 /** The forecast page's sections, in their default order. */
 enum class Card { HERO, ALERTS, HOURLY, WEEK, DETAILS, RADAR, SUMMARY }
 
@@ -40,6 +46,9 @@ data class Settings(
     /** The town at the device's location (reverse geocoded), named when Open-Meteo is used. */
     val currentTown: Localized? = null,
     val iconStyle: IconStyle = IconStyle.MATERIAL,
+    val forecastSource: ForecastSource = ForecastSource.IMS_ECMWF,
+    /** The user's own Foreca API key (for [ForecastSource.FORECA]). */
+    val forecaKey: String = "",
 ) {
     /**
      * The forecast to show for "my location": the nearest IMS point's when it is within
@@ -48,6 +57,8 @@ data class Settings(
     val currentForecastId: Int?
         get() = when {
             currentPlace == null -> null
+            // Without IMS, "my location" is always the exact spot.
+            !usesIms && currentLat != null -> CURRENT_ID
             currentLat == null || currentKm == null || currentKm <= IMS_RADIUS_KM -> currentPlace
             else -> CURRENT_ID
         }
@@ -56,8 +67,14 @@ data class Settings(
 
     fun custom(id: Int?): CustomPlace? = customPlaces.firstOrNull { it.id == id }
 
-    /** The forecast behind a place: a custom place's nearby IMS point, or its own (Open-Meteo) id. */
-    fun forecastIdFor(id: Int): Int = custom(id)?.let { it.ims ?: it.id } ?: id
+    /** IMS forecasts are used (near IMS points). */
+    val usesIms: Boolean get() = forecastSource == ForecastSource.IMS_ECMWF
+
+    /**
+     * The forecast behind a place: with IMS, a custom place's nearby IMS point; otherwise its own
+     * (exact-spot) id. IMS places keep their id either way (without IMS, forecast for their spot).
+     */
+    fun forecastIdFor(id: Int): Int = custom(id)?.let { if (usesIms) it.ims ?: it.id else it.id } ?: id
 }
 
 /** SharedPreferences-backed settings exposed as a StateFlow. */
@@ -87,6 +104,8 @@ class SettingsStore(context: Context) {
             currentKm = prefs.getInt("currentKm", -1).takeIf { it >= 0 },
             currentTown = prefs.getString("currentTownHe", null)?.let { Localized(it, prefs.getString("currentTownEn", null)) },
             iconStyle = enumOr(prefs.getString("iconStyle", null), d.iconStyle),
+            forecastSource = enumOr(prefs.getString("forecastSource", null), d.forecastSource),
+            forecaKey = prefs.getString("forecaKey", null).orEmpty(),
             customPlaces = prefs.getString("customPlaces", null)
                 ?.let { runCatching { Json.decodeFromString(ListSerializer(CustomPlace.serializer()), it) }.getOrNull() }.orEmpty(),
         )
@@ -115,6 +134,8 @@ class SettingsStore(context: Context) {
             .putString("currentTownHe", s.currentTown?.he)
             .putString("currentTownEn", s.currentTown?.en)
             .putString("iconStyle", s.iconStyle.name)
+            .putString("forecastSource", s.forecastSource.name)
+            .putString("forecaKey", s.forecaKey)
             .putString("customPlaces", Json.encodeToString(ListSerializer(CustomPlace.serializer()), s.customPlaces))
             .apply()
     }
@@ -124,6 +145,8 @@ class SettingsStore(context: Context) {
     fun setTheme(v: ThemeMode) = update { it.copy(theme = v) }
     fun setAccent(v: Int) = update { it.copy(accent = v) }
     fun setIconStyle(v: IconStyle) = update { it.copy(iconStyle = v) }
+    fun setForecastSource(v: ForecastSource) = update { it.copy(forecastSource = v) }
+    fun setForecaKey(v: String) = update { it.copy(forecaKey = v.trim()) }
     fun setRefreshMinutes(v: Int) = update { it.copy(refreshMinutes = v) }
     fun setUseLocation(v: Boolean) = update { it.copy(useLocation = v) }
     fun setCurrentPlace(id: Int?) = update { it.copy(currentPlace = id) }

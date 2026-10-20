@@ -190,7 +190,13 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                     name = place?.name(isEnglish()) ?: "",
                     // Which forecast this is: IMS's own, or the model for the exact spot.
                     source = f?.value?.let {
-                        stringResource(if (it.source == Forecast.SOURCE_OPEN_METEO) R.string.source_line_om else R.string.source_line_ims)
+                        stringResource(
+                            when (it.source) {
+                                Forecast.SOURCE_OPEN_METEO -> R.string.source_line_om
+                                Forecast.SOURCE_FORECA -> R.string.source_line_foreca
+                                else -> R.string.source_line_ims
+                            },
+                        )
                     },
                     current = current,
                     updated = f?.fetchedAt?.takeIf { it > 0 },
@@ -224,7 +230,13 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                     }
                     item(key = "source") {
                         Text(
-                            stringResource(if (data.source == Forecast.SOURCE_OPEN_METEO) R.string.source_om else R.string.source_ims),
+                            stringResource(
+                                when (data.source) {
+                                    Forecast.SOURCE_OPEN_METEO -> R.string.source_om
+                                    Forecast.SOURCE_FORECA -> R.string.source_foreca
+                                    else -> R.string.source_ims
+                                },
+                            ),
                             Modifier.fillMaxWidth().padding(16.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

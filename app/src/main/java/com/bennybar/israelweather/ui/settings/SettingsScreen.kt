@@ -70,6 +70,8 @@ import com.bennybar.israelweather.widget.RefreshWorker
 import com.bennybar.israelweather.widget.WidgetKind
 import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.launch
+import androidx.compose.material3.OutlinedTextField
+import com.bennybar.israelweather.data.ForecastSource
 
 private val refreshOptions = listOf(15, 30, 60, 180, 0)
 
@@ -163,6 +165,81 @@ fun SettingsScreen() {
                                 label = { Text(label) },
                             )
                         }
+                    }
+                }
+            }
+            item {
+                // Where forecasts come from; switching re-fetches every forecast in use.
+                Section(stringResource(R.string.section_source)) {
+                    val sources = listOf(
+                        ForecastSource.IMS_ECMWF to R.string.source_ims_ecmwf,
+                        ForecastSource.ECMWF to R.string.source_ecmwf,
+                        ForecastSource.FORECA to R.string.source_foreca_choice,
+                    )
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        sources.forEach { (src, label) ->
+                            FilterChip(
+                                selected = settings.forecastSource == src,
+                                onClick = {
+                                    app.settings.setForecastSource(src)
+                                    app.scope.launch { app.repo.refreshAllForecasts() }
+                                },
+                                label = { Text(stringResource(label)) },
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(
+                            when (settings.forecastSource) {
+                                ForecastSource.IMS_ECMWF -> R.string.source_ims_ecmwf_hint
+                                ForecastSource.ECMWF -> R.string.source_ecmwf_hint
+                                ForecastSource.FORECA -> R.string.source_foreca_hint
+                            },
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp,
+                    )
+                    if (settings.forecastSource == ForecastSource.FORECA) {
+                        var key by remember { mutableStateOf(settings.forecaKey) }
+                        var check by remember { mutableStateOf<Boolean?>(null) }
+                        var checking by remember { mutableStateOf(false) }
+                        OutlinedTextField(
+                            value = key,
+                            onValueChange = {
+                                key = it
+                                check = null
+                                app.settings.setForecaKey(it)
+                            },
+                            label = { Text(stringResource(R.string.foreca_key)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                enabled = key.isNotBlank() && !checking,
+                                onClick = {
+                                    checking = true
+                                    app.scope.launch {
+                                        val ok = app.foreca.check(key.trim())
+                                        check = ok
+                                        checking = false
+                                        if (ok) app.repo.refreshAllForecasts()
+                                    }
+                                },
+                            ) { Text(stringResource(R.string.foreca_check)) }
+                            Text(
+                                when {
+                                    checking -> stringResource(R.string.foreca_checking)
+                                    check == true -> stringResource(R.string.foreca_ok)
+                                    check == false -> stringResource(R.string.foreca_bad)
+                                    else -> ""
+                                },
+                                color = if (check == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Text(stringResource(R.string.foreca_steps), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                        OutlinedButton(onClick = {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://developer.foreca.com/checkout?plan=Freemium-EUR-Monthly&mode=paid")))
+                        }) { Text(stringResource(R.string.foreca_signup)) }
                     }
                 }
             }

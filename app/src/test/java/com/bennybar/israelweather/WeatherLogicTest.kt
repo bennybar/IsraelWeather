@@ -1,6 +1,7 @@
 package com.bennybar.israelweather
 
 import com.bennybar.israelweather.data.Forecast
+import com.bennybar.israelweather.data.Foreca
 import com.bennybar.israelweather.data.Hour
 import com.bennybar.israelweather.data.Place
 import com.bennybar.israelweather.data.Warning
@@ -96,5 +97,20 @@ class WeatherLogicTest {
         )
         assertEquals(24.0, f.currentHour(LocalDateTime.of(2026, 10, 18, 9, 40))!!.temp!!, 0.0)
         assertEquals(22.0, f.currentHour(LocalDateTime.of(2026, 10, 18, 10, 20))!!.temp!!, 0.0)
+    }
+
+    // Foreca symbols: day/night, cloudiness, precipitation rate, type (6 = fog).
+    @Test fun forecaSymbols() {
+        assertEquals(1250, Foreca.imsCode("d000"))
+        assertEquals(1220, Foreca.imsCode("d200"))
+        assertEquals(1220, Foreca.imsCode("n500"))
+        assertEquals(1230, Foreca.imsCode("d400"))
+        assertEquals(1160, Foreca.imsCode("d600"))
+        assertEquals(1560, Foreca.imsCode("d310"))
+        assertEquals(1530, Foreca.imsCode("d220"))
+        assertEquals(1140, Foreca.imsCode("d430"))
+        assertEquals(1020, Foreca.imsCode("d240"))
+        assertEquals(1060, Foreca.imsCode("d432"))
+        assertEquals(1230, Foreca.imsCode(null))
     }
 }

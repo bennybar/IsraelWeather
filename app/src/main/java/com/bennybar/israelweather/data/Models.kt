@@ -72,7 +72,7 @@ data class Forecast(
     val country: Localized = Localized(),
     val hourly: List<Hour> = emptyList(),
     val daily: List<Day> = emptyList(),
-    /** Where it came from: [SOURCE_IMS] (a nearby IMS point) or [SOURCE_OPEN_METEO] (exact location). */
+    /** Where it came from: [SOURCE_IMS] (a nearby IMS point), [SOURCE_OPEN_METEO] (ECMWF) or [SOURCE_FORECA]. */
     val source: String = SOURCE_IMS,
     /** Current conditions where the source has them (Open-Meteo, every 15 minutes). */
     val now: Hour? = null,
@@ -80,6 +80,7 @@ data class Forecast(
     companion object {
         const val SOURCE_IMS = "ims"
         const val SOURCE_OPEN_METEO = "open-meteo"
+        const val SOURCE_FORECA = "foreca"
     }
 
     /**
