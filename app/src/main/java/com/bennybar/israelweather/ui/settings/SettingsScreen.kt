@@ -135,6 +135,7 @@ fun SettingsScreen() {
                         IconStyle.NOTO to R.string.icons_noto,
                         IconStyle.GLASS to R.string.icons_glass,
                         IconStyle.ONEUI to R.string.icons_oneui,
+                        IconStyle.MATERIAL_WEATHER to R.string.icons_material_weather,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         styles.forEach { (style, label) ->

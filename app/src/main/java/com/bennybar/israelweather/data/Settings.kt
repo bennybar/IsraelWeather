@@ -12,7 +12,7 @@ enum class WindUnit { KMH, MS }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /** Which weather icon set the app and widgets draw. */
-enum class IconStyle { MATERIAL, METEOCONS, FLUENT, NOTO, GLASS, ONEUI }
+enum class IconStyle { MATERIAL, METEOCONS, FLUENT, NOTO, GLASS, ONEUI, MATERIAL_WEATHER }
 
 /**
  * Where forecasts come from: IMS near its points with ECMWF elsewhere (and for "now"), ECMWF

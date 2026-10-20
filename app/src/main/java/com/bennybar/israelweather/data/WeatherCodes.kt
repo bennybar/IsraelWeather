@@ -63,6 +63,7 @@ object WeatherCodes {
             IconStyle.NOTO -> NOTO
             IconStyle.GLASS -> GLASS
             IconStyle.ONEUI -> ONEUI
+            IconStyle.MATERIAL_WEATHER -> MATERIAL_WEATHER
         }
         return when (icon(code)) {
             Icon.CLEAR -> if (night) set.moon else set.sun
@@ -116,5 +117,12 @@ object WeatherCodes {
         R.drawable.wi_oneui_sun, R.drawable.wi_oneui_moon, R.drawable.wi_oneui_partly, R.drawable.wi_oneui_partly_night,
         R.drawable.wi_oneui_cloud, R.drawable.wi_oneui_partly_rain, R.drawable.wi_oneui_rain, R.drawable.wi_oneui_storm,
         R.drawable.wi_oneui_snow, R.drawable.wi_oneui_fog, R.drawable.wi_oneui_dust, R.drawable.wi_oneui_wind,
+    )
+
+    // Material Weather Icons by M00NJ (CC BY 4.0); "partly rain" uses its drizzle, dust its haze.
+    private val MATERIAL_WEATHER = IconSet(
+        R.drawable.wi_m3_sun, R.drawable.wi_m3_moon, R.drawable.wi_m3_partly, R.drawable.wi_m3_partly_night,
+        R.drawable.wi_m3_cloud, R.drawable.wi_m3_partly_rain, R.drawable.wi_m3_rain, R.drawable.wi_m3_storm,
+        R.drawable.wi_m3_snow, R.drawable.wi_m3_fog, R.drawable.wi_m3_dust, R.drawable.wi_m3_wind,
     )
 }
