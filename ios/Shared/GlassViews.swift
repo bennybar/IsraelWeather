@@ -268,9 +268,9 @@ struct GlassSpectrumView: View {
         }
     }
 
-    /// A · now on top, the next two days in capsules.
+    /// A · now on top (the bubble shows the current weather), today and tomorrow in capsules.
     private func capsulesDays(_ f: Forecast, _ now: Hour, _ night: Bool) -> some View {
-        let days = Array(f.days(3).dropFirst())
+        let days = f.days(2)
         return VStack(spacing: 6) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -282,7 +282,7 @@ struct GlassSpectrumView: View {
             }
             Spacer(minLength: 0)
             HStack(spacing: 6) {
-                ForEach(days, id: \.date) { d in capsule(f, d, today: false, compact: true) }
+                ForEach(Array(days.enumerated()), id: \.offset) { i, d in capsule(f, d, today: i == 0, compact: true) }
             }
         }
     }
