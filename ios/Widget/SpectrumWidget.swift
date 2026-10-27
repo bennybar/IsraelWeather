@@ -30,6 +30,13 @@ struct PlaceQuery: EntityQuery {
     func defaultResult() async -> PlaceEntity? { .myLocation }
 }
 
+extension SpectrumColor: AppEnum {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Color"
+    static var caseDisplayRepresentations: [SpectrumColor: DisplayRepresentation] = [
+        .lavender: "Lavender", .orange: "Orange", .twilight: "Twilight", .sky: "Sky",
+    ]
+}
+
 struct SpectrumIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Spectrum"
     static var description = IntentDescription("Now, and the next days with temperature ranges and rain chances.")

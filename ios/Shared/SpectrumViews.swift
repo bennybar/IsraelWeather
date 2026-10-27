@@ -1,13 +1,9 @@
-import AppIntents
 import SwiftUI
 import WidgetKit
 
-enum SpectrumColor: String, AppEnum {
+/// The widget's colors (its AppEnum conformance lives in the widget only, so iOS sees one definition).
+enum SpectrumColor: String, CaseIterable, Sendable {
     case lavender, orange, twilight, sky
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Color"
-    static var caseDisplayRepresentations: [SpectrumColor: DisplayRepresentation] = [
-        .lavender: "Lavender", .orange: "Orange", .twilight: "Twilight", .sky: "Sky",
-    ]
 }
 
 struct SpectrumEntry: TimelineEntry {
