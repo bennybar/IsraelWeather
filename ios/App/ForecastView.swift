@@ -149,7 +149,7 @@ struct ForecastPage: View {
     }
 }
 
-/// A frosted card with an optional small caps title.
+/// A dark frosted card with an optional small caps title.
 struct Card<Content: View>: View {
     var title: String? = nil
     var icon: String? = nil
@@ -164,7 +164,9 @@ struct Card<Content: View>: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(.regular, in: .rect(cornerRadius: 22))
+        // Dark frosted glass (like the Weather app), so the white text reads on any sky.
+        .background(.ultraThinMaterial, in: .rect(cornerRadius: 22))
+        .environment(\.colorScheme, .dark)
     }
 }
 
