@@ -17,3 +17,6 @@ key.properties
 *.jks
 proxy/node_modules
 proxy/.wrangler
+ios/build/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/

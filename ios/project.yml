@@ -1,0 +1,71 @@
+name: IsraelWeather
+options:
+  bundleIdPrefix: com.bennybar
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Same Apple Developer team as MyPapers, for device builds and TestFlight.
+    DEVELOPMENT_TEAM: 57L2ULXB7Z
+    CODE_SIGN_STYLE: Automatic
+    "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
+targets:
+  IsraelWeather:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Shared
+      - path: Resources
+    dependencies:
+      - target: IsraelWeatherWidget
+    entitlements:
+      path: App/IsraelWeather.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.bennybar.israelweather]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Israel Weather
+        CFBundleDevelopmentRegion: he
+        CFBundleLocalizations: [he, en]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSLocationWhenInUseUsageDescription: Show the forecast for where you are.
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [israelweather]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bennybar.israelweather
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+  IsraelWeatherWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+      - path: Shared
+      - path: Resources
+    entitlements:
+      path: Widget/IsraelWeatherWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.bennybar.israelweather]
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Israel Weather
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bennybar.israelweather.widget
+schemes:
+  IsraelWeather:
+    build:
+      targets:
+        IsraelWeather: all

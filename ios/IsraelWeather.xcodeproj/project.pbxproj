@@ -1,0 +1,546 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
+		266EB4257006A45DCD795D06 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
+		2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */; };
+		3E5EDA9D97B572EAFE919A0C /* IsraelWeatherWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
+		50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E165E442BC465AA52ED926 /* AppSettings.swift */; };
+		610B290AC179793328C33CC4 /* SpectrumWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */; };
+		67C064876A5D407A3F507882 /* Sources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2429FCDCBA9DAA5D658A827 /* Sources.swift */; };
+		73107E319C2BCE092FA05FAD /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945586967142489A20048C10 /* Models.swift */; };
+		74A0F8A3DA01AB2FCE4D9A9A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945586967142489A20048C10 /* Models.swift */; };
+		7AAF85AAABA8CF4AE906D4A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
+		8E135C37BE96ABF74C2D0E63 /* OtherViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023D8DFF71644411A353F13F /* OtherViews.swift */; };
+		965C468DA3AD5175AF894817 /* Sun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E47580DF0F1784E82878A5D /* Sun.swift */; };
+		9810EE1D337D9B3BBAF4EE0D /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C680C2320A3AEE72489A2D5 /* ForecastView.swift */; };
+		99473B4AF3170A177396CFE3 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E165E442BC465AA52ED926 /* AppSettings.swift */; };
+		9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */; };
+		A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */; };
+		A70BFFD1CB9851FDB8979DFA /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
+		E3AD498D0A0C907E982BCF75 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */; };
+		E4843C38C0B59244F25535F3 /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
+		EEB666AB15791068B3EF9AB2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 261BD4E3746477A1743E8DCC /* Assets.xcassets */; };
+		F316A3D2D236DE9758F8B730 /* Sun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E47580DF0F1784E82878A5D /* Sun.swift */; };
+		F31A088D7D2F2DF1CF5174D3 /* Sources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2429FCDCBA9DAA5D658A827 /* Sources.swift */; };
+		F50407C594C1E5DCBB1CB0B5 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */; };
+		F5AC2281987C56565FAC4BA8 /* WeatherCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */; };
+		FC7443FD7AD55F3D6004682E /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3B7B615B59D979BC5FF11869 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3FC3124B619871595861D6A5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55146B0A0C794733C52F3BB0;
+			remoteInfo = IsraelWeatherWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		426DFB0B68A657B2C293529E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3E5EDA9D97B572EAFE919A0C /* IsraelWeatherWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		023D8DFF71644411A353F13F /* OtherViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtherViews.swift; sourceTree = "<group>"; };
+		05E6B34B8CD4B7796B660D71 /* IsraelWeatherWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IsraelWeatherWidget.entitlements; sourceTree = "<group>"; };
+		0C680C2320A3AEE72489A2D5 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
+		0E47580DF0F1784E82878A5D /* Sun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sun.swift; sourceTree = "<group>"; };
+		261BD4E3746477A1743E8DCC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		30E165E442BC465AA52ED926 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		4682C7BF4494BBBDF1DAB29B /* IsraelWeather.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IsraelWeather.entitlements; sourceTree = "<group>"; };
+		48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherCodes.swift; sourceTree = "<group>"; };
+		5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumViews.swift; sourceTree = "<group>"; };
+		5295685A5FC9285E4DBB7F8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshots.swift; sourceTree = "<group>"; };
+		8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = IsraelWeatherWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E6C215635E2C5081B833A77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		945586967142489A20048C10 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsraelWeatherApp.swift; sourceTree = "<group>"; };
+		B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fmt.swift; sourceTree = "<group>"; };
+		C2429FCDCBA9DAA5D658A827 /* Sources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources.swift; sourceTree = "<group>"; };
+		D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumWidget.swift; sourceTree = "<group>"; };
+		D863691701A7071136FF4D71 /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D8687ECA21E024CC5B146CF0 /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
+		DCFA4711B2D0EFCA895910FD /* IsraelWeather.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IsraelWeather.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE6D48BE546C0055E1B26211 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		50CA40EAC31498A750F0258A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */,
+				261BD4E3746477A1743E8DCC /* Assets.xcassets */,
+				0C680C2320A3AEE72489A2D5 /* ForecastView.swift */,
+				5295685A5FC9285E4DBB7F8A /* Info.plist */,
+				4682C7BF4494BBBDF1DAB29B /* IsraelWeather.entitlements */,
+				9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */,
+				023D8DFF71644411A353F13F /* OtherViews.swift */,
+				5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5F4C44F901E6EF1BC606E1E4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F85815675953FAC192073B2A /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5FE0529E84E2B3931646C740 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				8E6C215635E2C5081B833A77 /* Info.plist */,
+				05E6B34B8CD4B7796B660D71 /* IsraelWeatherWidget.entitlements */,
+				D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		A7262048C0C22FA5485ABAA4 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				30E165E442BC465AA52ED926 /* AppSettings.swift */,
+				B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */,
+				945586967142489A20048C10 /* Models.swift */,
+				D8687ECA21E024CC5B146CF0 /* Repository.swift */,
+				C2429FCDCBA9DAA5D658A827 /* Sources.swift */,
+				5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */,
+				0E47580DF0F1784E82878A5D /* Sun.swift */,
+				48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C231D436E9FB315BE6A8C6F0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DCFA4711B2D0EFCA895910FD /* IsraelWeather.app */,
+				8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		EF26C9AA35AB434887BD40BB = {
+			isa = PBXGroup;
+			children = (
+				50CA40EAC31498A750F0258A /* App */,
+				5F4C44F901E6EF1BC606E1E4 /* Resources */,
+				A7262048C0C22FA5485ABAA4 /* Shared */,
+				5FE0529E84E2B3931646C740 /* Widget */,
+				C231D436E9FB315BE6A8C6F0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		55146B0A0C794733C52F3BB0 /* IsraelWeatherWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3D285B46430136847751218C /* Build configuration list for PBXNativeTarget "IsraelWeatherWidget" */;
+			buildPhases = (
+				96E743B50F3CD8CABFA413A5 /* Sources */,
+				D2DB32FF7E5CCE3FF7CFADF8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IsraelWeatherWidget;
+			packageProductDependencies = (
+			);
+			productName = IsraelWeatherWidget;
+			productReference = 8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		FF34176768D75B77CF331259 /* IsraelWeather */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1373E7C5B0C4ED435B88D29B /* Build configuration list for PBXNativeTarget "IsraelWeather" */;
+			buildPhases = (
+				730B1D7C17333BF1A38A06F7 /* Sources */,
+				0DE45F79202AB3D0DA8B91C3 /* Resources */,
+				426DFB0B68A657B2C293529E /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3F22B90219DD6B383ABF42EC /* PBXTargetDependency */,
+			);
+			name = IsraelWeather;
+			packageProductDependencies = (
+			);
+			productName = IsraelWeather;
+			productReference = DCFA4711B2D0EFCA895910FD /* IsraelWeather.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3FC3124B619871595861D6A5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					55146B0A0C794733C52F3BB0 = {
+						DevelopmentTeam = 57L2ULXB7Z;
+						ProvisioningStyle = Automatic;
+					};
+					FF34176768D75B77CF331259 = {
+						DevelopmentTeam = 57L2ULXB7Z;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 8E1D4B3F062166C65350F2D6 /* Build configuration list for PBXProject "IsraelWeather" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				he,
+			);
+			mainGroup = EF26C9AA35AB434887BD40BB;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C231D436E9FB315BE6A8C6F0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FF34176768D75B77CF331259 /* IsraelWeather */,
+				55146B0A0C794733C52F3BB0 /* IsraelWeatherWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0DE45F79202AB3D0DA8B91C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EEB666AB15791068B3EF9AB2 /* Assets.xcassets in Resources */,
+				7AAF85AAABA8CF4AE906D4A4 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2DB32FF7E5CCE3FF7CFADF8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				266EB4257006A45DCD795D06 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		730B1D7C17333BF1A38A06F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC7443FD7AD55F3D6004682E /* AppModel.swift in Sources */,
+				50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */,
+				F50407C594C1E5DCBB1CB0B5 /* Fmt.swift in Sources */,
+				9810EE1D337D9B3BBAF4EE0D /* ForecastView.swift in Sources */,
+				2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */,
+				74A0F8A3DA01AB2FCE4D9A9A /* Models.swift in Sources */,
+				8E135C37BE96ABF74C2D0E63 /* OtherViews.swift in Sources */,
+				E4843C38C0B59244F25535F3 /* Repository.swift in Sources */,
+				67C064876A5D407A3F507882 /* Sources.swift in Sources */,
+				430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */,
+				965C468DA3AD5175AF894817 /* Sun.swift in Sources */,
+				9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */,
+				A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96E743B50F3CD8CABFA413A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99473B4AF3170A177396CFE3 /* AppSettings.swift in Sources */,
+				E3AD498D0A0C907E982BCF75 /* Fmt.swift in Sources */,
+				73107E319C2BCE092FA05FAD /* Models.swift in Sources */,
+				19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */,
+				F31A088D7D2F2DF1CF5174D3 /* Sources.swift in Sources */,
+				A70BFFD1CB9851FDB8979DFA /* SpectrumViews.swift in Sources */,
+				610B290AC179793328C33CC4 /* SpectrumWidget.swift in Sources */,
+				F316A3D2D236DE9758F8B730 /* Sun.swift in Sources */,
+				F5AC2281987C56565FAC4BA8 /* WeatherCodes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3F22B90219DD6B383ABF42EC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55146B0A0C794733C52F3BB0 /* IsraelWeatherWidget */;
+			targetProxy = 3B7B615B59D979BC5FF11869 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		F85815675953FAC192073B2A /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				DE6D48BE546C0055E1B26211 /* en */,
+				D863691701A7071136FF4D71 /* he */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3ADDB82404B5AF0BF93F5324 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/IsraelWeather.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennybar.israelweather;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		3E350C2559030A7D9FADBF16 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/IsraelWeather.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennybar.israelweather;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		3FDD59E657BDA7A82620F196 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/IsraelWeatherWidget.entitlements;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennybar.israelweather.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5775286D3E38ED34769E66A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 57L2ULXB7Z;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7B90DD65540411FDC1D21ACE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/IsraelWeatherWidget.entitlements;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennybar.israelweather.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D3A3557E4677988CD9212D02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 57L2ULXB7Z;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1373E7C5B0C4ED435B88D29B /* Build configuration list for PBXNativeTarget "IsraelWeather" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E350C2559030A7D9FADBF16 /* Debug */,
+				3ADDB82404B5AF0BF93F5324 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3D285B46430136847751218C /* Build configuration list for PBXNativeTarget "IsraelWeatherWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B90DD65540411FDC1D21ACE /* Debug */,
+				3FDD59E657BDA7A82620F196 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8E1D4B3F062166C65350F2D6 /* Build configuration list for PBXProject "IsraelWeather" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5775286D3E38ED34769E66A9 /* Debug */,
+				D3A3557E4677988CD9212D02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3FC3124B619871595861D6A5 /* Project object */;
+}
