@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
+		20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
 		266EB4257006A45DCD795D06 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
 		2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */; };
 		3E5EDA9D97B572EAFE919A0C /* IsraelWeatherWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -25,6 +26,7 @@
 		9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */; };
 		A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */; };
 		A70BFFD1CB9851FDB8979DFA /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
+		BA3DF6D1B1F016A7BB346012 /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
 		E3AD498D0A0C907E982BCF75 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */; };
 		E4843C38C0B59244F25535F3 /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
 		EEB666AB15791068B3EF9AB2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 261BD4E3746477A1743E8DCC /* Assets.xcassets */; };
@@ -72,6 +74,7 @@
 		5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumViews.swift; sourceTree = "<group>"; };
 		5295685A5FC9285E4DBB7F8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshots.swift; sourceTree = "<group>"; };
+		5E68A8B4CCF5960F4521E136 /* GlassViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassViews.swift; sourceTree = "<group>"; };
 		8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = IsraelWeatherWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E6C215635E2C5081B833A77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		945586967142489A20048C10 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -124,6 +127,7 @@
 			children = (
 				30E165E442BC465AA52ED926 /* AppSettings.swift */,
 				B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */,
+				5E68A8B4CCF5960F4521E136 /* GlassViews.swift */,
 				945586967142489A20048C10 /* Models.swift */,
 				D8687ECA21E024CC5B146CF0 /* Repository.swift */,
 				C2429FCDCBA9DAA5D658A827 /* Sources.swift */,
@@ -264,6 +268,7 @@
 				50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */,
 				F50407C594C1E5DCBB1CB0B5 /* Fmt.swift in Sources */,
 				9810EE1D337D9B3BBAF4EE0D /* ForecastView.swift in Sources */,
+				20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */,
 				2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */,
 				74A0F8A3DA01AB2FCE4D9A9A /* Models.swift in Sources */,
 				8E135C37BE96ABF74C2D0E63 /* OtherViews.swift in Sources */,
@@ -282,6 +287,7 @@
 			files = (
 				99473B4AF3170A177396CFE3 /* AppSettings.swift in Sources */,
 				E3AD498D0A0C907E982BCF75 /* Fmt.swift in Sources */,
+				BA3DF6D1B1F016A7BB346012 /* GlassViews.swift in Sources */,
 				73107E319C2BCE092FA05FAD /* Models.swift in Sources */,
 				19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */,
 				F31A088D7D2F2DF1CF5174D3 /* Sources.swift in Sources */,

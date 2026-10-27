@@ -12,6 +12,7 @@ struct SpectrumEntry: TimelineEntry {
     let forecast: Forecast?
     let updated: Date?
     let color: SpectrumColor
+    var style: SpectrumStyle = .classic
 }
 
 
@@ -135,6 +136,7 @@ struct SpectrumWidgetView: View {
 struct RangeBar: View {
     let lo: Double, hi: Double, from: Double, to: Double, dot: Double?
     let track: Color, ring: Color
+    var colors: [Color] = Palette.gradient
 
     var body: some View {
         GeometryReader { g in
@@ -142,7 +144,7 @@ struct RangeBar: View {
             let x = { (v: Double) in CGFloat((v - lo) / (hi - lo)).clamped() * w }
             ZStack(alignment: .leading) {
                 Capsule().fill(track)
-                LinearGradient(colors: Palette.gradient, startPoint: .leading, endPoint: .trailing)
+                LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing)
                     .frame(width: w)
                     .mask(alignment: .leading) { Capsule().frame(width: max(x(to) - x(from), h)).offset(x: x(from)) }
                 if let dot {

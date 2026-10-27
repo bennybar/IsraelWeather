@@ -37,18 +37,35 @@ extension SpectrumColor: AppEnum {
     ]
 }
 
+extension SpectrumStyle: AppEnum {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Style"
+    static var caseDisplayRepresentations: [SpectrumStyle: DisplayRepresentation] = [
+        .sky: "Sky Glass", .capsules: "Glass Capsules", .classic: "Classic colors",
+    ]
+}
+
 struct SpectrumIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Spectrum"
     static var description = IntentDescription("Now, and the next days with temperature ranges and rain chances.")
     @Parameter(title: "Place") var place: PlaceEntity?
+    @Parameter(title: "Style", default: .sky) var style: SpectrumStyle
     @Parameter(title: "Color", default: .lavender) var color: SpectrumColor
+
+    // Color only applies to the classic style.
+    static var parameterSummary: some ParameterSummary {
+        When(\.$style, .equalTo, .classic) {
+            Summary { \.$place; \.$style; \.$color }
+        } otherwise: {
+            Summary { \.$place; \.$style }
+        }
+    }
 }
 
 // MARK: timeline
 
 struct SpectrumProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SpectrumEntry {
-        SpectrumEntry(date: Date(), place: "Yavne", forecast: SampleData.forecast, updated: Date(), color: .lavender)
+        SpectrumEntry(date: Date(), place: "Yavne", forecast: SampleData.forecast, updated: Date(), color: .lavender, style: .sky)
     }
 
     func snapshot(for configuration: SpectrumIntent, in context: Context) async -> SpectrumEntry {
@@ -68,9 +85,9 @@ struct SpectrumProvider: AppIntentTimelineProvider {
         let forecastID = chosen == currentID ? s.currentForecastID : s.forecastID(for: chosen)
         let name = await Repository.shared.place(for: chosen == currentID ? currentID : chosen)?.name(english: Fmt.english) ?? ""
         guard let fid = forecastID, let (f, at) = await Repository.shared.forecast(fid) else {
-            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, color: c.color)
+            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, color: c.color, style: c.style)
         }
-        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, color: c.color)
+        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, color: c.color, style: c.style)
     }
 }
 
@@ -95,5 +112,11 @@ struct IsraelWeatherWidgets: WidgetBundle {
 struct SpectrumFamilyView: View {
     let entry: SpectrumEntry
     @Environment(\.widgetFamily) var family
-    var body: some View { SpectrumWidgetView(entry: entry, small: family == .systemSmall) }
+    var body: some View {
+        if entry.style == .classic {
+            SpectrumWidgetView(entry: entry, small: family == .systemSmall)
+        } else {
+            GlassSpectrumView(entry: entry, small: family == .systemSmall, style: entry.style)
+        }
+    }
 }

@@ -27,9 +27,10 @@ struct ForecastView: View {
                 .ignoresSafeArea()
             }
             Button { showSettings = true } label: {
-                Image(systemName: "gearshape.fill").font(.title3).foregroundStyle(.white).padding(10)
+                Image(systemName: "gearshape.fill").font(.title3).foregroundStyle(.white).padding(12)
+                    .background(.ultraThinMaterial, in: .circle)
+                    .environment(\.colorScheme, .dark)
             }
-            .buttonStyle(.glass)
             .padding(.trailing, 16)
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
