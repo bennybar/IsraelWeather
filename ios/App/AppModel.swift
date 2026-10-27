@@ -111,24 +111,7 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
 
     private func apply(_ loc: CLLocation) async {
-        // ~100 m precision is plenty, and keeps the exact spot out of storage.
-        let lat = (loc.coordinate.latitude * 1000).rounded() / 1000
-        let lon = (loc.coordinate.longitude * 1000).rounded() / 1000
-        guard let (place, km) = await Repository.shared.nearest(lat: lat, lon: lon) else { return }
-        settings.currentLat = lat
-        settings.currentLon = lon
-        settings.currentPlace = place.id
-        settings.currentKm = km
-        // The town's name in both languages, for exact-spot forecasts.
-        if km > imsRadiusKm { settings.currentTown = await town(loc) }
+        await Repository.shared.updateLocation(loc)
         await refreshAll()
-    }
-
-    private func town(_ loc: CLLocation) async -> Localized? {
-        let geo = CLGeocoder()
-        let he = try? await geo.reverseGeocodeLocation(loc, preferredLocale: Locale(identifier: "he_IL")).first?.locality
-        let en = try? await geo.reverseGeocodeLocation(loc, preferredLocale: Locale(identifier: "en_US")).first?.locality
-        if he == nil && en == nil { return nil }
-        return Localized(he: he ?? en, en: en ?? he)
     }
 }

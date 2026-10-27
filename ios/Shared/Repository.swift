@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 
 /// Forecasts by id, from the right source, cached on disk in the App Group (the widgets read it too).
@@ -105,6 +106,27 @@ actor Repository {
             return w
         }
         return read("warnings", [Warning].self)?.data ?? []
+    }
+
+    /// Saves a new device location for "my location": rounded to ~100 m (the exact spot stays out
+    /// of storage), with its nearest IMS point and, away from IMS points, the town's name.
+    func updateLocation(_ loc: CLLocation) async {
+        let lat = (loc.coordinate.latitude * 1000).rounded() / 1000
+        let lon = (loc.coordinate.longitude * 1000).rounded() / 1000
+        guard let (place, km) = await nearest(lat: lat, lon: lon) else { return }
+        settings.currentLat = lat
+        settings.currentLon = lon
+        settings.currentPlace = place.id
+        settings.currentKm = km
+        if km > imsRadiusKm { settings.currentTown = await Self.town(loc) }
+    }
+
+    private static func town(_ loc: CLLocation) async -> Localized? {
+        let geo = CLGeocoder()
+        let he = try? await geo.reverseGeocodeLocation(loc, preferredLocale: Locale(identifier: "he_IL")).first?.locality
+        let en = try? await geo.reverseGeocodeLocation(loc, preferredLocale: Locale(identifier: "en_US")).first?.locality
+        if he == nil && en == nil { return nil }
+        return Localized(he: he ?? en, en: en ?? he)
     }
 
     /// Distance (km) between two points, roughly (good enough within Israel).

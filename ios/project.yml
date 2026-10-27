@@ -63,6 +63,8 @@ targets:
         CFBundleDisplayName: Israel Weather
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: $(MARKETING_VERSION)
+        # The weather icon's refresh also updates "my location".
+        NSWidgetWantsLocation: true
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:

@@ -125,9 +125,9 @@ struct SpectrumProvider: AppIntentTimelineProvider {
         let forecastID = chosen == currentID ? s.currentForecastID : s.forecastID(for: chosen)
         let name = await Repository.shared.place(for: chosen == currentID ? currentID : chosen)?.name(english: Fmt.english) ?? ""
         guard let fid = forecastID, let (f, at) = await Repository.shared.forecast(fid) else {
-            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, options: c.options)
+            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, options: c.options, placeID: chosen, refreshing: s.refreshing)
         }
-        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, options: c.options)
+        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, options: c.options, placeID: chosen, refreshing: s.refreshing)
     }
 }
 
@@ -152,5 +152,10 @@ struct IsraelWeatherWidgets: WidgetBundle {
 struct SpectrumFamilyView: View {
     let entry: SpectrumEntry
     @Environment(\.widgetFamily) var family
-    var body: some View { SpectrumWidgetView(entry: entry, small: family == .systemSmall) }
+    var body: some View {
+        SpectrumWidgetView(entry: entry, small: family == .systemSmall)
+            .environment(\.refreshWrap) { id, view in
+                AnyView(Button(intent: RefreshIntent(placeID: id)) { view }.buttonStyle(.plain))
+            }
+    }
 }

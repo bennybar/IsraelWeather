@@ -29,6 +29,7 @@ enum WidgetSnapshots {
             ("capD", WidgetOptions(layout: .capsules, capsulesSmall: .rain)),
             ("capE", WidgetOptions(layout: .capsules, capsulesSmall: .now)),
             ("capF", WidgetOptions(layout: .capsules, capsulesSmall: .rows)),
+            ("capRefresh", WidgetOptions(layout: .capsules)),
             ("glassLight", WidgetOptions(layout: .boldLines, color: .glass, days: 4)),
         ]
         for (name2, o) in looks {
@@ -46,7 +47,7 @@ enum WidgetSnapshots {
                     }
                     shown.now = nil
                 }
-                let entry = SpectrumEntry(date: Date(), place: name, forecast: shown, updated: at, options: o)
+                let entry = SpectrumEntry(date: Date(), place: name, forecast: shown, updated: at, options: o, refreshing: name2 == "capRefresh")
                 let content = SpectrumWidgetView(entry: entry, small: small)
                     .environment(\.colorScheme, name2 == "glassLight" ? .light : .dark)
                 // containerBackground isn't drawn outside a widget: approximate it for the snapshot.

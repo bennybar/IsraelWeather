@@ -51,6 +51,22 @@ struct SpectrumEntry: TimelineEntry {
     let forecast: Forecast?
     let updated: Date?
     var options = WidgetOptions()
+    /// The widget's place (for its refresh button) and whether a refresh is running.
+    var placeID = currentID
+    var refreshing = false
+}
+
+/// Wraps a view in the widget's refresh button. The button's intent lives in the widget extension
+/// only (one definition for iOS), so the widget passes it in; the app's previews leave views as they are.
+struct RefreshWrapKey: EnvironmentKey {
+    static let defaultValue: @Sendable (Int, AnyView) -> AnyView = { $1 }
+}
+
+extension EnvironmentValues {
+    var refreshWrap: @Sendable (Int, AnyView) -> AnyView {
+        get { self[RefreshWrapKey.self] }
+        set { self[RefreshWrapKey.self] = newValue }
+    }
 }
 
 /// Rainy enough for the solid pill.

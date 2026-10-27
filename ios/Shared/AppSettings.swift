@@ -69,6 +69,13 @@ final class AppSettings {
         set { defaults.set(try? JSONEncoder().encode(newValue), forKey: "currentTown") }
     }
 
+    /// When a widget refresh started (the widget shows its refresh arrow for up to 30 s).
+    var refreshStarted: Date? {
+        get { defaults.object(forKey: "refreshStarted") as? Date }
+        set { defaults.set(newValue, forKey: "refreshStarted") }
+    }
+    var refreshing: Bool { refreshStarted.map { Date().timeIntervalSince($0) < 30 } ?? false }
+
     var usesIMS: Bool { source == .imsEcmwf }
 
     /// "My location": the nearest IMS point within 3 km (with IMS), else the exact spot.

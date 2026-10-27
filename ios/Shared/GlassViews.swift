@@ -25,6 +25,21 @@ struct GlassSpectrumView: View {
     var small: Bool
     private var style: SpectrumLayout { entry.options.layout }
     private var count: Int { entry.options.dayCount }
+    @Environment(\.refreshWrap) private var refreshWrap
+
+    /// The current-weather icon, tappable to refresh (location and forecast). While that runs it
+    /// shows a refresh arrow; iOS dims the rest until the new timeline lands.
+    private func nowIcon(_ now: Hour, _ night: Bool, size: CGFloat, bubble: CGFloat? = nil) -> AnyView {
+        let glyph = Group {
+            if entry.refreshing {
+                Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: size * 0.85, weight: .semibold))
+            } else {
+                icon(now.code, night: night, size: size)
+            }
+        }
+        let shaped: AnyView = bubble.map { b in AnyView(glyph.frame(width: b, height: b).glass(b / 2)) } ?? AnyView(glyph)
+        return refreshWrap(entry.placeID, shaped)
+    }
 
     var body: some View {
         let now = entry.forecast?.currentHour()
@@ -43,6 +58,7 @@ struct GlassSpectrumView: View {
             }
         }
         .foregroundStyle(.white)
+        .invalidatableContent()
         .containerBackground(for: .widget) {
             ZStack {
                 LinearGradient(colors: background(night: night, rainy: rainy), startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -152,7 +168,7 @@ struct GlassSpectrumView: View {
                 }
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing, spacing: 2) {
-                    icon(now.code, night: night, size: 18)
+                    nowIcon(now, night, size: 18)
                     Text(highLow(today)).font(.system(size: 10)).opacity(0.8).lineLimit(1)
                 }
             }
@@ -184,7 +200,7 @@ struct GlassSpectrumView: View {
                     Text(Fmt.temp(now.temp)).font(.system(size: 32, weight: .light))
                 }
                 Spacer(minLength: 0)
-                icon(now.code, night: night, size: 20).frame(width: 38, height: 38).glass(19)
+                nowIcon(now, night, size: 20, bubble: 38)
             }
             Spacer(minLength: 0)
             VStack(alignment: .leading, spacing: 2) {
@@ -235,7 +251,7 @@ struct GlassSpectrumView: View {
                 Text(entry.place).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Text(Fmt.temp(now.temp)).font(.system(size: 15, weight: .light))
                 Spacer(minLength: 0)
-                icon(now.code, night: night, size: 16)
+                nowIcon(now, night, size: 16)
             }
             Spacer(minLength: 0)
             ForEach(days, id: \.date) { d in
@@ -262,7 +278,7 @@ struct GlassSpectrumView: View {
                     Text(Fmt.temp(now.temp)).font(.system(size: 38, weight: .light))
                 }
                 Spacer(minLength: 0)
-                icon(now.code, night: night, size: 20).frame(width: 40, height: 40).glass(20)
+                nowIcon(now, night, size: 20, bubble: 40)
             }
             Spacer(minLength: 0)
             HStack(spacing: 6) {
@@ -275,7 +291,7 @@ struct GlassSpectrumView: View {
         let days = f.days(count)
         return VStack(spacing: 8) {
             HStack(spacing: 10) {
-                icon(now.code, night: night, size: 22).frame(width: 44, height: 44).glass(22)
+                nowIcon(now, night, size: 22, bubble: 44)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(entry.place).font(.system(size: 15, weight: .semibold)).lineLimit(1)
                     Text(WeatherCodes.describe(now.code) + " · " + highLow(days.first) + updated)
