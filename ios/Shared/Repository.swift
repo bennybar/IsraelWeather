@@ -33,6 +33,11 @@ actor Repository {
 
     func places() async -> [Place] {
         if let p = placesCache { return p }
+        // IMS's points barely change: the saved list serves for a day (the widget's process restarts often).
+        if let saved = read("places", [Place].self), !saved.data.isEmpty, Date().timeIntervalSince(saved.fetchedAt) < 86400 {
+            placesCache = saved.data
+            return saved.data
+        }
         if let fresh = try? await IMS.places() {
             placesCache = fresh
             write("places", fresh)
@@ -118,7 +123,13 @@ actor Repository {
         settings.currentLon = lon
         settings.currentPlace = place.id
         settings.currentKm = km
-        if km > imsRadiusKm { settings.currentTown = await Self.town(loc) }
+        if km > imsRadiusKm {
+            let cell = "\((lat * 100).rounded()),\((lon * 100).rounded())"
+            if settings.currentTownCell != cell || settings.currentTown == nil {
+                settings.currentTown = await Self.town(loc)
+                settings.currentTownCell = cell
+            }
+        }
     }
 
     private static func town(_ loc: CLLocation) async -> Localized? {

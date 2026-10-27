@@ -64,6 +64,11 @@ final class AppSettings {
         get { defaults.object(forKey: "currentKm") as? Double }
         set { defaults.set(newValue, forKey: "currentKm") }
     }
+    /// The ~1 km square [currentTown] was looked up for.
+    var currentTownCell: String? {
+        get { defaults.string(forKey: "currentTownCell") }
+        set { defaults.set(newValue, forKey: "currentTownCell") }
+    }
     var currentTown: Localized? {
         get { (defaults.data(forKey: "currentTown")).flatMap { try? JSONDecoder().decode(Localized.self, from: $0) } }
         set { defaults.set(try? JSONEncoder().encode(newValue), forKey: "currentTown") }

@@ -10,12 +10,11 @@ struct IsraelWeatherApp: App {
             RootView()
                 .environmentObject(model)
                 .onAppear {
-                    model.start()
                     #if DEBUG
                     if ProcessInfo.processInfo.arguments.contains("-renderWidgets") { Task { await WidgetSnapshots.render() } }
                     #endif
                 }
-                .onChange(of: phase) { _, p in if p == .active { model.start() } }
+                .onChange(of: phase, initial: true) { _, p in if p == .active { model.start() } }
         }
     }
 }
