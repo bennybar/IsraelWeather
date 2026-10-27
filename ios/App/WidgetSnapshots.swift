@@ -13,17 +13,29 @@ enum WidgetSnapshots {
         let name = await Repository.shared.place(for: s.currentForecastID != nil ? currentID : fid)?.name(english: Fmt.english) ?? ""
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("widgets")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        for style in SpectrumStyle.allCases {
+        // Each layout in a color that suits it (Classic twice: with wind capsules, and in English days).
+        let looks: [(String, WidgetOptions)] = [
+            ("sky", WidgetOptions(layout: .sky)),
+            ("capsules", WidgetOptions(layout: .capsules)),
+            ("classic", WidgetOptions(layout: .classic, color: .lavender, days: 3)),
+            ("classic-wind", WidgetOptions(layout: .classic, color: .orange, days: 4, stats: false, wind: true, windCapsules: true, equalPills: true)),
+            ("refined", WidgetOptions(layout: .refined, color: .sky)),
+            ("tiles", WidgetOptions(layout: .tiles, color: .mint, days: 3)),
+            ("tiles5", WidgetOptions(layout: .tiles, color: .rose, days: 5)),
+            ("aurora", WidgetOptions(layout: .aurora, color: .aurora, days: 4)),
+            ("bold", WidgetOptions(layout: .bold, color: .twilight, days: 4)),
+            ("boldLines", WidgetOptions(layout: .boldLines, color: .glass, days: 4)),
+        ]
+        for (name2, o) in looks {
             for small in [true, false] {
-                let entry = SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, color: .lavender, style: style)
-                let p = Palette.of(.lavender)
-                let content: AnyView = style == .classic ? AnyView(SpectrumWidgetView(entry: entry, small: small))
-                    : AnyView(GlassSpectrumView(entry: entry, small: small, style: style))
+                let entry = SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, options: o)
+                let content = SpectrumWidgetView(entry: entry, small: small)
                 // containerBackground isn't drawn outside a widget: approximate it for the snapshot.
                 let night = f.currentHour().map { WeatherCodes.isNight($0.t) } ?? false
-                let bg: [Color] = style == .classic ? p.bg : style == .capsules
+                let bg: [Color] = o.layout == .capsules
                     ? (night ? [Color(hex: 0x1C2142), Color(hex: 0x2A1E4A)] : [Color(hex: 0x33478A), Color(hex: 0x3A2A66)])
-                    : (night ? [Color(hex: 0x23305A), Color(hex: 0x2B2552)] : [Color(hex: 0x5294EC), Color(hex: 0x2552B0)])
+                    : o.layout == .sky ? (night ? [Color(hex: 0x23305A), Color(hex: 0x2B2552)] : [Color(hex: 0x5294EC), Color(hex: 0x2552B0)])
+                    : Palette.of(o.color).bg
                 let view = content
                     .padding(16)
                     .frame(width: small ? 170 : 364, height: 170)
@@ -32,7 +44,7 @@ enum WidgetSnapshots {
                 let r = ImageRenderer(content: view)
                 r.scale = 3
                 if let png = r.uiImage?.pngData() {
-                    try? png.write(to: dir.appendingPathComponent("\(style.rawValue)-\(small ? "small" : "medium").png"))
+                    try? png.write(to: dir.appendingPathComponent("\(name2)-\(small ? "small" : "medium").png"))
                 }
             }
         }

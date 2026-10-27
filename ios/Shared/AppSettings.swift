@@ -19,6 +19,11 @@ final class AppSettings {
         get { defaults.bool(forKey: "windMS") }
         set { defaults.set(newValue, forKey: "windMS") }
     }
+    /// Weather icons for the app and the widgets (as on Android: one setting for both).
+    var iconStyle: IconStyle {
+        get { IconStyle(rawValue: defaults.string(forKey: "iconStyle") ?? "") ?? .apple }
+        set { defaults.set(newValue.rawValue, forKey: "iconStyle") }
+    }
     var useLocation: Bool {
         get { defaults.object(forKey: "useLocation") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "useLocation") }

@@ -116,6 +116,7 @@ struct SettingsView: View {
     @State private var fahrenheit = AppSettings.shared.fahrenheit
     @State private var windMS = AppSettings.shared.windMS
     @State private var useLocation = AppSettings.shared.useLocation
+    @State private var iconStyle = AppSettings.shared.iconStyle
     @State private var source = AppSettings.shared.source
     @State private var key = AppSettings.shared.forecaKey
     @State private var keyStatus: Bool?
@@ -126,6 +127,16 @@ struct SettingsView: View {
                 Section(L("section_display")) {
                     Picker(L("temperature"), selection: $fahrenheit) { Text("°C").tag(false); Text("°F").tag(true) }
                     Picker(L("wind"), selection: $windMS) { Text(L("unit_kmh")).tag(false); Text(L("unit_ms")).tag(true) }
+                    Picker(L("icon_style"), selection: $iconStyle) {
+                        ForEach(IconStyle.allCases, id: \.self) { style in
+                            HStack {
+                                ForEach([1250, 1220, 1140], id: \.self) { WeatherGlyph(code: $0, size: 16, style: style) }
+                                Text(style.label)
+                            }
+                            .tag(style)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
                 }
                 Section {
                     Picker(L("section_source"), selection: $source) {
@@ -156,12 +167,13 @@ struct SettingsView: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("done")) { dismiss() } } }
             .onDisappear {
                 let s = AppSettings.shared
-                let changed = s.fahrenheit != fahrenheit || s.windMS != windMS || s.useLocation != useLocation || s.source != source || s.forecaKey != key
+                let changed = s.fahrenheit != fahrenheit || s.windMS != windMS || s.useLocation != useLocation || s.source != source || s.forecaKey != key || s.iconStyle != iconStyle
                 s.fahrenheit = fahrenheit
                 s.windMS = windMS
                 s.useLocation = useLocation
                 s.source = source
                 s.forecaKey = key
+                s.iconStyle = iconStyle
                 if changed { model.settingsChanged() }
             }
         }

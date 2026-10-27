@@ -1,11 +1,6 @@
 import SwiftUI
 import WidgetKit
 
-/// The widget's look: Sky Glass (C), Glass Capsules (B), or the classic Spectrum colors.
-enum SpectrumStyle: String, CaseIterable, Sendable {
-    case sky, capsules, classic
-}
-
 /// A liquid-glass surface drawn by the widget itself: a translucent white fill, a rim that is
 /// bright on top and faint below, and a soft highlight.
 struct GlassSurface: ViewModifier {
@@ -28,14 +23,15 @@ extension View {
 struct GlassSpectrumView: View {
     let entry: SpectrumEntry
     var small: Bool
-    var style: SpectrumStyle
+    private var style: SpectrumLayout { entry.options.layout }
+    private var count: Int { entry.options.dayCount }
 
     var body: some View {
         let now = entry.forecast?.currentHour()
         let night = now.map { WeatherCodes.isNight($0.t) } ?? false
         let rainy = now.map { WeatherCodes.isRainy($0.code) } ?? false
         Group {
-            if let f = entry.forecast, let now, f.days(4).count >= 3 {
+            if let f = entry.forecast, let now, f.days(count).count >= 3 {
                 switch (style, small) {
                 case (.capsules, true): capsulesSmall(f, now, night)
                 case (.capsules, false): capsulesMedium(f, now, night)
@@ -68,7 +64,7 @@ struct GlassSpectrumView: View {
     }
 
     private func icon(_ code: Int, night: Bool = false, size: CGFloat) -> some View {
-        WeatherIcon(code: code, night: night).font(.system(size: size))
+        WeatherGlyph(code: code, night: night, size: size, cloud: .white)
     }
 
     private var updated: String { entry.updated.map { " · " + Fmt.time($0) } ?? "" }
@@ -92,7 +88,7 @@ struct GlassSpectrumView: View {
     }
 
     private func skyMedium(_ f: Forecast, _ now: Hour, _ night: Bool) -> some View {
-        let days = f.days(4)
+        let days = f.days(count)
         let lo = days.compactMap(\.min).min() ?? 0
         let hi = max(days.compactMap(\.max).max() ?? lo, lo + 1)
         return HStack(spacing: 12) {
@@ -144,7 +140,7 @@ struct GlassSpectrumView: View {
     }
 
     private func capsulesMedium(_ f: Forecast, _ now: Hour, _ night: Bool) -> some View {
-        let days = f.days(4)
+        let days = f.days(count)
         return VStack(spacing: 8) {
             HStack(spacing: 10) {
                 icon(now.code, night: night, size: 22).frame(width: 44, height: 44).glass(22)

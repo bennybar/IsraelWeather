@@ -43,3 +43,7 @@
 "about_body" = "Forecasts: Israel Meteorological Service, ECMWF via Open-Meteo (CC BY 4.0), or Foreca with your key. Warnings: Israel Meteorological Service.";
 "settings" = "Settings";
 "done" = "Done";
+"w_feels" = "Feels";
+"icon_style" = "Weather icons";
+"icons_glass" = "Glass";
+"icons_oneui" = "One UI style";

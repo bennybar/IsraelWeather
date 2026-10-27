@@ -30,17 +30,19 @@ struct PlaceQuery: EntityQuery {
     func defaultResult() async -> PlaceEntity? { .myLocation }
 }
 
+extension SpectrumLayout: AppEnum {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Layout"
+    static var caseDisplayRepresentations: [SpectrumLayout: DisplayRepresentation] = [
+        .sky: "Sky Glass", .capsules: "Glass Capsules", .classic: "Classic", .refined: "Refined",
+        .tiles: "Tiles", .aurora: "Aurora", .bold: "Bold", .boldLines: "Bold lines",
+    ]
+}
+
 extension SpectrumColor: AppEnum {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Color"
     static var caseDisplayRepresentations: [SpectrumColor: DisplayRepresentation] = [
         .lavender: "Lavender", .orange: "Orange", .twilight: "Twilight", .sky: "Sky",
-    ]
-}
-
-extension SpectrumStyle: AppEnum {
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Style"
-    static var caseDisplayRepresentations: [SpectrumStyle: DisplayRepresentation] = [
-        .sky: "Sky Glass", .capsules: "Glass Capsules", .classic: "Classic colors",
+        .mint: "Mint", .rose: "Rose", .glass: "Liquid glass", .aurora: "Aurora",
     ]
 }
 
@@ -48,16 +50,43 @@ struct SpectrumIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Spectrum"
     static var description = IntentDescription("Now, and the next days with temperature ranges and rain chances.")
     @Parameter(title: "Place") var place: PlaceEntity?
-    @Parameter(title: "Style", default: .sky) var style: SpectrumStyle
+    @Parameter(title: "Layout", default: .sky) var layout: SpectrumLayout
     @Parameter(title: "Color", default: .lavender) var color: SpectrumColor
+    @Parameter(title: "Days", default: 4, inclusiveRange: (2, 5)) var days: Int
+    @Parameter(title: "Feels, humidity and wind", default: true) var stats: Bool
+    @Parameter(title: "Wind each day", default: false) var wind: Bool
+    @Parameter(title: "Wind as arrow pills", default: false) var windCapsules: Bool
+    @Parameter(title: "Same-size rain pills", default: false) var equalPills: Bool
 
-    // Color only applies to the classic style.
+    // Only the settings the chosen layout uses.
     static var parameterSummary: some ParameterSummary {
-        When(\.$style, .equalTo, .classic) {
-            Summary { \.$place; \.$style; \.$color }
-        } otherwise: {
-            Summary { \.$place; \.$style }
+        Switch(\.$layout) {
+            Case(.classic) {
+                Summary { \.$place; \.$layout; \.$color; \.$days; \.$stats; \.$wind; \.$windCapsules; \.$equalPills }
+            }
+            Case(.refined) {
+                Summary { \.$place; \.$layout; \.$color; \.$stats }
+            }
+            Case(.tiles) {
+                Summary { \.$place; \.$layout; \.$color; \.$days; \.$stats }
+            }
+            Case(.aurora) {
+                Summary { \.$place; \.$layout; \.$color; \.$days }
+            }
+            Case(.bold) {
+                Summary { \.$place; \.$layout; \.$color; \.$days }
+            }
+            Case(.boldLines) {
+                Summary { \.$place; \.$layout; \.$color; \.$days }
+            }
+            DefaultCase {
+                Summary { \.$place; \.$layout; \.$days }
+            }
         }
+    }
+
+    var options: WidgetOptions {
+        WidgetOptions(layout: layout, color: color, days: days, stats: stats, wind: wind, windCapsules: windCapsules, equalPills: equalPills)
     }
 }
 
@@ -65,7 +94,7 @@ struct SpectrumIntent: WidgetConfigurationIntent {
 
 struct SpectrumProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SpectrumEntry {
-        SpectrumEntry(date: Date(), place: "Yavne", forecast: SampleData.forecast, updated: Date(), color: .lavender, style: .sky)
+        SpectrumEntry(date: Date(), place: "Yavne", forecast: SampleData.forecast, updated: Date())
     }
 
     func snapshot(for configuration: SpectrumIntent, in context: Context) async -> SpectrumEntry {
@@ -85,9 +114,9 @@ struct SpectrumProvider: AppIntentTimelineProvider {
         let forecastID = chosen == currentID ? s.currentForecastID : s.forecastID(for: chosen)
         let name = await Repository.shared.place(for: chosen == currentID ? currentID : chosen)?.name(english: Fmt.english) ?? ""
         guard let fid = forecastID, let (f, at) = await Repository.shared.forecast(fid) else {
-            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, color: c.color, style: c.style)
+            return SpectrumEntry(date: Date(), place: name, forecast: nil, updated: nil, options: c.options)
         }
-        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, color: c.color, style: c.style)
+        return SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, options: c.options)
     }
 }
 
@@ -112,11 +141,5 @@ struct IsraelWeatherWidgets: WidgetBundle {
 struct SpectrumFamilyView: View {
     let entry: SpectrumEntry
     @Environment(\.widgetFamily) var family
-    var body: some View {
-        if entry.style == .classic {
-            SpectrumWidgetView(entry: entry, small: family == .systemSmall)
-        } else {
-            GlassSpectrumView(entry: entry, small: family == .systemSmall, style: entry.style)
-        }
-    }
+    var body: some View { SpectrumWidgetView(entry: entry, small: family == .systemSmall) }
 }

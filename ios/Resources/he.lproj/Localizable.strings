@@ -43,3 +43,7 @@
 "about_body" = "תחזיות: השירות המטאורולוגי הישראלי, ECMWF דרך Open-Meteo (CC BY 4.0), או Foreca עם המפתח שלכם. התראות: השירות המטאורולוגי הישראלי.";
 "settings" = "הגדרות";
 "done" = "סיום";
+"w_feels" = "מורגש";
+"icon_style" = "אייקוני מזג אוויר";
+"icons_glass" = "זכוכית";
+"icons_oneui" = "בסגנון One UI";

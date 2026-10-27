@@ -5,8 +5,10 @@
 set -e
 cd "$(dirname "$0")"
 xcodegen generate -q
+# A new build number every time: iOS caches widget settings and previews per build number.
 xcodebuild -scheme IsraelWeather -configuration Release -destination generic/platform=iOS \
-  -archivePath build/IsraelWeather.xcarchive -allowProvisioningUpdates archive -quiet
+  -archivePath build/IsraelWeather.xcarchive -allowProvisioningUpdates archive -quiet \
+  CURRENT_PROJECT_VERSION="$(date +%y%m%d%H%M)"
 rm -rf build/export build/ota
 xcodebuild -exportArchive -archivePath build/IsraelWeather.xcarchive -exportPath build/export \
   -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates -quiet

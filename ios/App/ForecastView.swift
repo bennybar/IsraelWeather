@@ -91,8 +91,7 @@ struct ForecastPage: View {
                     ForEach(Array(f.upcoming(12).enumerated()), id: \.offset) { i, h in
                         VStack(spacing: 8) {
                             Text(i == 0 ? L("now") : Fmt.hour(h.date)).font(.subheadline.weight(.semibold))
-                            Image(systemName: WeatherCodes.symbol(h.code, night: WeatherCodes.isNight(h.t)))
-                                .symbolRenderingMode(.multicolor).font(.title3).frame(height: 26)
+                            WeatherGlyph(code: h.code, night: WeatherCodes.isNight(h.t), size: 20).frame(height: 26)
                             if let c = h.rainChance, c >= 20 {
                                 Text("\(Int(c))%").font(.caption2.weight(.semibold)).foregroundStyle(Color(hex: 0x9FD2FF))
                             }
@@ -115,7 +114,7 @@ struct ForecastPage: View {
                     if i > 0 { Divider().overlay(.white.opacity(0.2)) }
                     HStack(spacing: 10) {
                         Text(Fmt.dayLabel(d.date)).font(.body.weight(.semibold)).frame(width: 52, alignment: .leading)
-                        Image(systemName: WeatherCodes.symbol(d.code)).symbolRenderingMode(.multicolor).frame(width: 26)
+                        WeatherGlyph(code: d.code, size: 17).frame(width: 26)
                         Text(f.rainChance(d).flatMap { $0 >= 20 ? "\($0)%" : nil } ?? "")
                             .font(.caption.weight(.semibold)).foregroundStyle(Color(hex: 0x9FD2FF)).frame(width: 34)
                         Text(Fmt.temp(d.min)).opacity(0.7).frame(width: 34, alignment: .trailing)

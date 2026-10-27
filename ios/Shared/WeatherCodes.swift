@@ -48,6 +48,22 @@ enum WeatherCodes {
         return mid < rise || mid >= set
     }
 
+    /// The icon a code shows in the bundled sets (Android's icon names): sun, partly, cloud, rain…
+    static func family(_ code: Int, night: Bool = false) -> String {
+        switch code {
+        case 1250, 1310, 1580: return night ? "moon" : "sun"
+        case 1220, 1270: return night ? "partly_night" : "partly"
+        case 1570, 1010: return "dust"
+        case 1160: return "fog"
+        case 1300, 1080, 1070, 1060, 1520: return "snow"
+        case 1530, 1540: return "partly_rain"
+        case 1560, 1140: return "rain"
+        case 1020, 1510: return "storm"
+        case 1260: return "wind"
+        default: return "cloud"
+        }
+    }
+
     /// Clear / partly cloudy / cloudy / rain…: the sky family, for picking widget backgrounds.
     static func isRainy(_ code: Int) -> Bool { [1530, 1540, 1560, 1140, 1020, 1510, 1080, 1070, 1060, 1520].contains(code) }
 }
