@@ -25,17 +25,38 @@ enum WidgetSnapshots {
             ("aurora", WidgetOptions(layout: .aurora, color: .aurora, days: 4)),
             ("bold", WidgetOptions(layout: .bold, color: .twilight, days: 4)),
             ("boldLines", WidgetOptions(layout: .boldLines, color: .glass, days: 4)),
+            ("capC", WidgetOptions(layout: .capsules, capsulesSmall: .hours)),
+            ("capD", WidgetOptions(layout: .capsules, capsulesSmall: .rain)),
+            ("capE", WidgetOptions(layout: .capsules, capsulesSmall: .now)),
+            ("capF", WidgetOptions(layout: .capsules, capsulesSmall: .rows)),
+            ("glassLight", WidgetOptions(layout: .boldLines, color: .glass, days: 4)),
         ]
         for (name2, o) in looks {
             for small in [true, false] {
-                let entry = SpectrumEntry(date: Date(), place: name, forecast: f, updated: at, options: o)
+                // Rain watch with rain faked into the next hours, to see its rainy look on a dry day.
+                var shown = f
+                if name2 == "capD" {
+                    let next = Set(f.upcoming(8).map(\.t))
+                    let chances: [Double] = [10, 20, 40, 70, 90, 60, 30, 10]
+                    var k = 0
+                    shown.hourly = f.hourly.map { h in
+                        guard next.contains(h.t) else { return h }
+                        defer { k += 1 }
+                        return Hour(t: h.t, code: h.code, temp: h.temp, rainChance: chances[min(k, 7)], rh: h.rh, wind: h.wind, windDir: h.windDir)
+                    }
+                    shown.now = nil
+                }
+                let entry = SpectrumEntry(date: Date(), place: name, forecast: shown, updated: at, options: o)
                 let content = SpectrumWidgetView(entry: entry, small: small)
+                    .environment(\.colorScheme, name2 == "glassLight" ? .light : .dark)
                 // containerBackground isn't drawn outside a widget: approximate it for the snapshot.
                 let night = f.currentHour().map { WeatherCodes.isNight($0.t) } ?? false
-                let bg: [Color] = o.layout == .capsules
+                let rainy = f.currentHour().map { WeatherCodes.isRainy($0.code) } ?? false
+                let bg: [Color] = o.layout == .capsules && rainy ? [Color(hex: 0x3B4559), Color(hex: 0x222A3A)]
+                    : o.layout == .capsules
                     ? (night ? [Color(hex: 0x1C2142), Color(hex: 0x2A1E4A)] : [Color(hex: 0x33478A), Color(hex: 0x3A2A66)])
                     : o.layout == .sky ? (night ? [Color(hex: 0x23305A), Color(hex: 0x2B2552)] : [Color(hex: 0x5294EC), Color(hex: 0x2552B0)])
-                    : Palette.of(o.color).bg
+                    : name2 == "glassLight" ? Palette.glassLight.bg : Palette.of(o.color).bg
                 let view = content
                     .padding(16)
                     .frame(width: small ? 170 : 364, height: 170)

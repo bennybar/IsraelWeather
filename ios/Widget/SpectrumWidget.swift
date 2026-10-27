@@ -38,6 +38,13 @@ extension SpectrumLayout: AppEnum {
     ]
 }
 
+extension CapsulesSmall: AppEnum {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Small style"
+    static var caseDisplayRepresentations: [CapsulesSmall: DisplayRepresentation] = [
+        .days: "Two days", .hours: "Next hours", .rain: "Rain watch", .now: "Big now", .rows: "Stacked days",
+    ]
+}
+
 extension SpectrumColor: AppEnum {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Color"
     static var caseDisplayRepresentations: [SpectrumColor: DisplayRepresentation] = [
@@ -51,6 +58,7 @@ struct SpectrumIntent: WidgetConfigurationIntent {
     static var description = IntentDescription("Now, and the next days with temperature ranges and rain chances.")
     @Parameter(title: "Place") var place: PlaceEntity?
     @Parameter(title: "Layout", default: .sky) var layout: SpectrumLayout
+    @Parameter(title: "Small style", default: .days) var capsulesSmall: CapsulesSmall
     @Parameter(title: "Color", default: .lavender) var color: SpectrumColor
     @Parameter(title: "Days", default: 4, inclusiveRange: (2, 5)) var days: Int
     @Parameter(title: "Feels, humidity and wind", default: true) var stats: Bool
@@ -79,6 +87,9 @@ struct SpectrumIntent: WidgetConfigurationIntent {
             Case(.boldLines) {
                 Summary { \.$place; \.$layout; \.$color; \.$days }
             }
+            Case(.capsules) {
+                Summary { \.$place; \.$layout; \.$capsulesSmall; \.$days }
+            }
             DefaultCase {
                 Summary { \.$place; \.$layout; \.$days }
             }
@@ -86,7 +97,7 @@ struct SpectrumIntent: WidgetConfigurationIntent {
     }
 
     var options: WidgetOptions {
-        WidgetOptions(layout: layout, color: color, days: days, stats: stats, wind: wind, windCapsules: windCapsules, equalPills: equalPills)
+        WidgetOptions(layout: layout, capsulesSmall: capsulesSmall, color: color, days: days, stats: stats, wind: wind, windCapsules: windCapsules, equalPills: equalPills)
     }
 }
 

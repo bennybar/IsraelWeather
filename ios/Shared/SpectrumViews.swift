@@ -14,9 +14,15 @@ enum SpectrumColor: String, CaseIterable, Sendable {
     case lavender, orange, twilight, sky, mint, rose, glass, aurora
 }
 
+/// Glass Capsules' small widget: two days (A), next hours (C), rain watch (D), big now (E), stacked days (F).
+enum CapsulesSmall: String, CaseIterable, Sendable {
+    case days, hours, rain, now, rows
+}
+
 /// One widget's settings.
 struct WidgetOptions: Sendable {
     var layout: SpectrumLayout = .sky
+    var capsulesSmall: CapsulesSmall = .days
     var color: SpectrumColor = .lavender
     var days = 4
     /// Feels-like, humidity and wind under the header (Classic, Refined, Tiles).
@@ -128,6 +134,17 @@ struct Palette {
         }
     }
 
+    /// Liquid glass on a light Home Screen: frosted white with dark text.
+    static let glassLight = Palette(bg: [Color(hex: 0xF7F9FE), Color(hex: 0xE6ECF8)], today: .white, soft: .white.opacity(0.6), ink: Color(hex: 0x1B2240),
+                                    muted: Color(hex: 0x56607F), track: Color(hex: 0x1B2240).opacity(0.1), ring: Color(hex: 0x3A6FE0),
+                                    gradient: [Color(hex: 0x8FA8FF), Color(hex: 0xB48CFF), Color(hex: 0xFF9F6B)],
+                                    chip: Color(hex: 0xE8EEFB), chipBorder: Color(hex: 0xC9D5F2), chipInk: Color(hex: 0x2F5FC8), chipStrong: Color(hex: 0x2F5FC8), sheen: true)
+
+    /// The palette for [c] on this Home Screen: Liquid glass follows its light / dark / clear look.
+    static func of(_ c: SpectrumColor, scheme: ColorScheme, mode: WidgetRenderingMode) -> Palette {
+        c == .glass && scheme == .light && mode == .fullColor ? glassLight : of(c)
+    }
+
     static let gradient = [Color(hex: 0x8FA8FF), Color(hex: 0xB48CFF), Color(hex: 0xFF9F6B)]
 }
 
@@ -140,13 +157,15 @@ extension Color {
 struct SpectrumWidgetView: View {
     let entry: SpectrumEntry
     var small: Bool
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.widgetRenderingMode) private var mode
 
     var body: some View {
         let o = entry.options
         if o.layout == .sky || o.layout == .capsules {
             GlassSpectrumView(entry: entry, small: small)
         } else {
-            let p = Palette.of(o.color)
+            let p = Palette.of(o.color, scheme: scheme, mode: mode)
             Group {
                 if let f = entry.forecast, let now = f.currentHour(), f.days(o.dayCount).count >= 2 {
                     SpectrumLayouts(c: SpectrumContext(entry: entry, f: f, now: now, p: p, small: small))
@@ -189,7 +208,14 @@ struct SpectrumLayouts: View {
     var body: some View {
         Group {
             if c.small {
-                small
+                switch c.o.layout {
+                case .refined: smallRefined
+                case .tiles: smallTiles
+                case .aurora: smallAurora
+                case .bold: smallBold(lines: false)
+                case .boldLines: smallBold(lines: true)
+                default: small
+                }
             } else {
                 switch c.o.layout {
                 case .refined: refined
@@ -346,6 +372,148 @@ struct SpectrumLayouts: View {
                 }
                 .padding(.horizontal, 5).padding(.vertical, 2)
                 .background(RoundedRectangle(cornerRadius: 8).fill(i == 0 ? p.today : .clear))
+            }
+        }
+    }
+
+    /// The small widgets' top: place and temperature, the icon in the corner.
+    private var smallHeader: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: -2) {
+                Text(c.entry.place).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(Fmt.temp(c.now.temp)).font(.system(size: 28, weight: .bold))
+            }
+            Spacer(minLength: 0)
+            glyph(c.now.code, night: c.night, 20)
+        }
+    }
+
+    /// Refined, small: three rows of day, icon, high/low and the rain pill.
+    private var smallRefined: some View {
+        VStack(spacing: 2) {
+            smallHeader
+            Spacer(minLength: 0)
+            ForEach(Array(c.days.prefix(3).enumerated()), id: \.offset) { i, d in
+                HStack(spacing: 4) {
+                    dayName(d, 10.5, today: i == 0).frame(width: 30, alignment: .leading)
+                    glyph(d.code, 10).frame(width: 13)
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        Text(Fmt.temp(d.max)).font(.system(size: 11, weight: .bold))
+                        Text(Fmt.temp(d.min)).font(.system(size: 9.5)).foregroundStyle(p.muted)
+                    }
+                    .fixedSize()
+                    Spacer(minLength: 0)
+                    rainPill(d, size: 9, width: nil).fixedSize()
+                }
+                .padding(.horizontal, 4).padding(.vertical, 2.5)
+                .background(RoundedRectangle(cornerRadius: 8).fill(i == 0 ? p.today : .clear))
+            }
+        }
+    }
+
+    /// Tiles, small: today and tomorrow as two tiles.
+    private var smallTiles: some View {
+        VStack(spacing: 6) {
+            smallHeader
+            HStack(spacing: 5) {
+                ForEach(Array(c.days.prefix(2).enumerated()), id: \.offset) { i, d in
+                    VStack(spacing: 2) {
+                        dayName(d, 11, today: i == 0, color: i == 0 ? p.ring : p.ink)
+                        glyph(d.code, 15)
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(Fmt.temp(d.max)).font(.system(size: 14, weight: .bold))
+                            Text(Fmt.temp(d.min)).font(.system(size: 10.5)).foregroundStyle(p.muted)
+                        }
+                        .lineLimit(1)
+                        bar(d, today: i == 0).frame(height: 4).padding(.bottom, 2)
+                        rainPill(d, size: 9.5, width: nil)
+                    }
+                    .padding(.horizontal, 5).padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(i == 0 ? p.today : p.soft))
+                }
+            }
+        }
+    }
+
+    /// Aurora, small: the big accent temperature and the icon on its blob; today and tomorrow below.
+    private var smallAurora: some View {
+        VStack(spacing: 5) {
+            HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: -3) {
+                    Text(Fmt.temp(c.now.temp)).font(.system(size: 34, weight: .bold)).foregroundStyle(p.ring)
+                    HStack(spacing: 2) {
+                        Image(systemName: "location.fill").font(.system(size: 8))
+                        Text(c.entry.place).font(.system(size: 12, weight: .bold)).lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 0)
+                ZStack {
+                    Blob().fill(p.blob ?? p.track)
+                    glyph(c.now.code, night: c.night, 20)
+                }
+                .frame(width: 46, height: 38)
+            }
+            HStack(spacing: 5) {
+                ForEach(Array(c.days.prefix(2).enumerated()), id: \.offset) { i, d in
+                    let ink = i == 0 ? p.todayInk ?? p.ink : p.ink
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(Fmt.dayLabel(d.date)).font(.system(size: 11, weight: .bold)).lineLimit(1).minimumScaleFactor(0.8)
+                        HStack(spacing: 2) {
+                            glyph(d.code, 16)
+                            Spacer(minLength: 0)
+                            VStack(alignment: .trailing, spacing: -2) {
+                                Text(Fmt.temp(d.max)).font(.system(size: 14, weight: .bold))
+                                Text(Fmt.temp(d.min)).font(.system(size: 11, weight: .bold)).opacity(0.75)
+                            }
+                        }
+                        HStack(spacing: 2) {
+                            Image(systemName: "drop.fill").font(.system(size: 7))
+                            Text(Fmt.pct(c.f.rainChance(d)))
+                        }
+                        .font(.system(size: 9.5))
+                    }
+                    .foregroundStyle(ink)
+                    .padding(.horizontal, 6).padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 13).fill(i == 0 ? p.today : p.soft))
+                }
+            }
+        }
+    }
+
+    /// Bold, small: two columns led by the big high (Bold lines: no tiles, a hairline, today's pill).
+    private func smallBold(lines: Bool) -> some View {
+        VStack(spacing: 4) {
+            smallHeader
+            HStack(spacing: lines ? 0 : 5) {
+                ForEach(Array(c.days.prefix(2).enumerated()), id: \.offset) { i, d in
+                    if i > 0 && lines {
+                        Rectangle().fill(p.chipBorder).frame(width: 1).padding(.vertical, 6).padding(.horizontal, 5)
+                    }
+                    let today = i == 0
+                    let ink = today && !lines ? p.todayInk ?? p.ink : p.ink
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 2) {
+                            if today && lines {
+                                Text(Fmt.dayLabel(d.date)).font(.system(size: 10, weight: .bold)).foregroundStyle(p.ringInk).fixedSize()
+                                    .padding(.horizontal, 4).padding(.vertical, 1).background(Capsule().fill(p.ring))
+                            } else {
+                                Text(Fmt.dayLabel(d.date)).font(.system(size: 11, weight: .bold)).foregroundStyle(today ? p.ring : ink)
+                            }
+                            Spacer(minLength: 0)
+                            glyph(d.code, 13)
+                        }
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                        Text(Fmt.temp(d.max)).font(.system(size: 20, weight: .bold))
+                        Text("▾ " + Fmt.temp(d.min)).font(.system(size: 10.5, weight: .bold)).foregroundStyle(p.muted)
+                        bar(d, today: today).frame(height: 4).padding(.top, 3)
+                    }
+                    .foregroundStyle(ink)
+                    .padding(.horizontal, 6).padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 13).fill(lines ? .clear : today ? p.today : p.soft))
+                }
             }
         }
     }
