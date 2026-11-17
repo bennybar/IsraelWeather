@@ -91,7 +91,7 @@ struct ForecastPage: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 1) {
                     if current {
-                        Label(L("my_location"), systemImage: "location.fill").font(.caption.weight(.semibold)).opacity(0.8)
+                        MyLocationLabel().opacity(0.8)
                     }
                     Text(model.places[id]?.name(english: Fmt.english) ?? "").font(.title2.weight(.semibold)).lineLimit(1)
                     if count > 1 {
@@ -129,7 +129,7 @@ struct ForecastPage: View {
     /// A line about the next hours, then 24 hours with the details chosen in Settings.
     private func hourly(_ f: Forecast) -> some View {
         let details = model.settings.hourDetails
-        return Card {
+        return Card(title: L("hourly_title"), icon: "clock") {
             if let today = f.days(1).first {
                 NavigationLink(value: DayRoute(page: id, day: today.date)) {
                     HStack(spacing: 6) {
@@ -213,7 +213,7 @@ struct ForecastPage: View {
                     .accessibilityLabel(sun.map { "\(L("sunrise")) \(Fmt.time($0.0)), \(L("sunset")) \(Fmt.time($0.1))" } ?? "")
             }
             Tile(title: L("humidity"), icon: "humidity", value: now?.rh.map { "\(Int($0))%" } ?? "–")
-            Tile(title: L("wind"), icon: "wind", value: "\(Fmt.wind(now?.wind)) \(Fmt.windUnit())")
+            Tile(title: L("wind"), icon: "wind", value: Fmt.wind(now?.wind), unit: Fmt.windUnit())
             Tile(title: L("uv"), icon: "sun.max", value: now?.uv.map { "\(Int($0.rounded()))" } ?? "–")
         }
     }
@@ -248,13 +248,13 @@ struct HourColumn: View {
                     detail("drop.fill", "\(c)%").foregroundStyle(Color(hex: 0x9FD2FF)).opacity(c >= 20 ? 1 : 0.55)
                 }
                 if details.contains(.wind) {
-                    HStack(spacing: 2) {
-                        if let dir = h.windDir {
-                            Image(systemName: "location.north.fill").font(.system(size: 8)).rotationEffect(.degrees(dir + 180))
-                        }
+                    HStack(spacing: 3) {
+                        Image(systemName: "location.north.fill").font(.system(size: 9)).frame(width: 11)
+                            .rotationEffect(.degrees((h.windDir ?? 0) + 180)).opacity(h.windDir == nil ? 0 : 1)
                         Text(Fmt.wind(h.wind))
                     }
                     .font(.caption.weight(.semibold))
+                    .lineLimit(1)
                 }
                 if details.contains(.feels) {
                     detail("thermometer.medium", Fmt.temp(Sun.apparent(temp: h.temp, rh: h.rh, windKmh: h.wind)))
@@ -275,8 +275,8 @@ struct HourColumn: View {
     }
 
     private func detail(_ icon: String, _ value: String) -> some View {
-        HStack(spacing: 2) {
-            Image(systemName: icon).font(.system(size: 9))
+        HStack(spacing: 3) {
+            Image(systemName: icon).font(.system(size: 9)).frame(width: 11)
             Text(value)
         }
         .font(.caption.weight(.semibold))
@@ -299,20 +299,20 @@ struct Card<Content: View>: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // Light frosted glass: enough darkening for white text to read on any sky, no heavier.
-        .background {
-            RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial).environment(\.colorScheme, .dark).opacity(0.55)
-        }
-        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white.opacity(0.18), lineWidth: 1))
+        .glassCard()
     }
 }
 
 struct Tile: View {
     let title: String, icon: String, value: String
+    var unit: String? = nil
 
     var body: some View {
         Card(title: title, icon: icon) {
-            Text(value).font(.title.weight(.medium))
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(value).font(.title.weight(.medium))
+                if let unit { Text(unit).font(.subheadline) }
+            }
         }
     }
 }
@@ -328,5 +328,25 @@ struct SettingsButton: View {
                 .background(.white.opacity(0.15), in: .circle)
         }
         .accessibilityLabel(L("settings"))
+    }
+}
+
+extension View {
+    /// The app's card: light frosted glass with a thin rim, so white text reads on any sky.
+    func glassCard(radius: CGFloat = 22) -> some View {
+        background {
+            RoundedRectangle(cornerRadius: radius).fill(.ultraThinMaterial).environment(\.colorScheme, .dark).opacity(0.55)
+        }
+        .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(.white.opacity(0.18), lineWidth: 1))
+    }
+}
+
+/// "My Location" with its small arrow, above a place's name.
+struct MyLocationLabel: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "location.fill").font(.system(size: 9))
+            Text(L("my_location")).font(.caption.weight(.semibold))
+        }
     }
 }

@@ -81,3 +81,4 @@
 "no_warnings_body" = "The Israel Meteorological Service has no warnings for your places.";
 "sunrise" = "Sunrise";
 "see_day" = "Today in detail";
+"hourly_title" = "Hourly forecast";

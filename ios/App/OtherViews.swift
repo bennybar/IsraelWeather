@@ -19,6 +19,7 @@ struct PlacesView: View {
                         Button { model.page = 0; tab = 0 } label: { PlaceCard(id: mine.id, current: true) }
                             .buttonStyle(.plain)
                             .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 14))
                     }
                     ForEach(model.savedPlaces, id: \.self) { id in
                         Button {
@@ -27,6 +28,7 @@ struct PlacesView: View {
                         } label: { PlaceCard(id: id) }
                         .buttonStyle(.plain)
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 14))
                     }
                     .onDelete { model.remove(at: $0) }
                     .onMove { model.move(from: $0, to: $1) }
@@ -34,6 +36,7 @@ struct PlacesView: View {
                         Label(L("places_hint"), systemImage: "magnifyingglass")
                             .font(.subheadline).foregroundStyle(.white.opacity(0.85))
                             .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 14))
                     }
                 } else {
                     let english = Fmt.english
@@ -94,23 +97,25 @@ struct PlaceCard: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 if current {
-                    Label(L("my_location"), systemImage: "location.fill").font(.caption.weight(.semibold)).opacity(0.85)
+                    MyLocationLabel().opacity(0.85)
                 }
-                Text(name).font(.title3.bold())
+                Text(name).font(.title2.weight(.semibold)).lineLimit(1)
                 Spacer()
-                Text(now.map { WeatherCodes.describe($0.code) } ?? "").font(.footnote).opacity(0.85)
+                HStack(spacing: 6) {
+                    if let now { WeatherGlyph(code: now.code, night: WeatherCodes.isNight(now.t), size: 15) }
+                    Text(now.map { WeatherCodes.describe($0.code) } ?? "").font(.subheadline.weight(.medium))
+                }
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(Fmt.temp(now?.temp)).font(.system(size: 44, weight: .light))
-                if let today { Text(String(format: L("high_low"), Fmt.temp(today.max), Fmt.temp(today.min))).font(.footnote).opacity(0.85) }
+                Text(Fmt.temp(now?.temp)).font(.system(size: 44, weight: .thin))
+                if let today { Text(String(format: L("high_low"), Fmt.temp(today.max), Fmt.temp(today.min))).font(.subheadline.weight(.medium)) }
             }
         }
         .foregroundStyle(.white)
-        .padding(16)
+        .padding(14)
         .frame(height: 104)
-        .background(SkyBackground(code: now?.code ?? 1250, night: now.map { WeatherCodes.isNight($0.t) } ?? false).clipShape(.rect(cornerRadius: 22)))
-        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white.opacity(0.25), lineWidth: 1))
+        .glassCard()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([current ? L("my_location") : nil, name, now.map { WeatherCodes.describe($0.code) }, Fmt.temp(now?.temp)]
             .compactMap { $0 }.joined(separator: ", "))
@@ -149,11 +154,13 @@ struct AlertsView: View {
                     }
                 }
                 .padding(.horizontal, 14)
+                .padding(.top, 12)
                 .padding(.bottom, 24)
             }
             .foregroundStyle(.white)
             .background(SkyBackground(code: 1250, night: false))
             .navigationTitle(L("tab_alerts"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .refreshable { await model.refreshAll(force: true) }
         }
@@ -207,6 +214,7 @@ struct SettingsView: View {
                         Text("Foreca").tag(ForecastSource.foreca)
                     }
                     .pickerStyle(.inline)
+                    .labelsHidden()
                     if source == .foreca {
                         TextField(L("foreca_key"), text: $key).textInputAutocapitalization(.never).autocorrectionDisabled()
                         HStack {

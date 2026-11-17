@@ -28,6 +28,8 @@ struct RootView: View {
             Tab(L("tab_alerts"), systemImage: "exclamationmark.triangle.fill", value: 1) { AlertsView() }
             Tab(L("tab_places"), systemImage: "list.bullet", value: 2) { PlacesView(tab: $tab) }
         }
+        // The whole app sits on the sky: light text, icons and bars everywhere (Settings too).
+        .preferredColorScheme(.dark)
     }
 }
 

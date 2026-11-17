@@ -84,8 +84,8 @@ struct DayView: View {
     private func summary(_ f: Forecast, _ d: Day) -> some View {
         HStack(alignment: .center, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(Fmt.temp(d.max)).font(.system(size: 52, weight: .light))
-                Text(Fmt.temp(d.min)).font(.system(size: 26, weight: .light)).opacity(0.75)
+                Text(Fmt.temp(d.max)).font(.system(size: 52, weight: .thin))
+                Text(Fmt.temp(d.min)).font(.system(size: 26, weight: .thin)).opacity(0.75)
             }
             WeatherGlyph(code: d.code, size: 30)
             Text(DaySummary.day(f, d)).font(.subheadline).fixedSize(horizontal: false, vertical: true)
@@ -151,7 +151,7 @@ struct DayView: View {
         let total = hours.compactMap(\.rain).reduce(0, +)
         return Card(title: L("rain_chance"), icon: "drop.fill") {
             HStack(alignment: .firstTextBaseline) {
-                Text("\(peak)%").font(.title2.weight(.semibold))
+                Text("\(peak)%").font(.title.weight(.medium))
                 Text(peak >= 20 ? L("at_peak") : L("no_rain_day")).font(.subheadline).opacity(0.8)
                 Spacer()
                 if let first = wet.first, let last = wet.last {
@@ -202,10 +202,12 @@ struct DayView: View {
             }
             Card(title: L("sun"), icon: "sunrise.fill") {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(sun.map { Fmt.time($0.0) } ?? "–").font(.title.weight(.medium))
-                    Text("\(L("sunset")) \(sun.map { Fmt.time($0.1) } ?? "–")").font(.subheadline)
-                    Text("UV \(d.uv.map { "\(Int($0.rounded()))" } ?? "–") · \(L("humidity")) \(rh.isEmpty ? "–" : "\(Int(rh.reduce(0, +) / Double(rh.count)))%")")
-                        .font(.caption).opacity(0.75)
+                    // Sunrise–sunset, as on the forecast page's tile.
+                    Text(sun.map { "\(Fmt.time($0.0))–\(Fmt.time($0.1))" } ?? "–")
+                        .font(.title.weight(.medium)).lineLimit(1).minimumScaleFactor(0.5)
+                        .accessibilityLabel(sun.map { "\(L("sunrise")) \(Fmt.time($0.0)), \(L("sunset")) \(Fmt.time($0.1))" } ?? "")
+                    Text("\(L("uv")) \(d.uv.map { "\(Int($0.rounded()))" } ?? "–")").font(.subheadline)
+                    Text("\(L("humidity")) \(rh.isEmpty ? "–" : "\(Int(rh.reduce(0, +) / Double(rh.count)))%")").font(.caption).opacity(0.75)
                 }
             }
         }
