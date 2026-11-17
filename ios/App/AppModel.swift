@@ -36,6 +36,15 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         return out.map { (id: $0.0, current: $0.1) }
     }
 
+    /// The sky behind every screen: the shown page's current weather, and night after sunset.
+    var sky: (code: Int, night: Bool) {
+        let shown = pages.indices.contains(page) ? pages[page] : pages.first
+        if let now = shown.flatMap({ forecasts[$0.id]?.0.currentHour() }) {
+            return (now.code, WeatherCodes.isNight(now.t))
+        }
+        return (1250, WeatherCodes.isNight(Fmt.slot(Date())))
+    }
+
     func start() {
         if settings.useLocation {
             if location.authorizationStatus == .notDetermined { location.requestWhenInUseAuthorization() } else { location.requestLocation() }

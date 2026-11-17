@@ -17,7 +17,7 @@ struct ForecastView: View {
             Group {
                 if pages.isEmpty {
                     ZStack(alignment: .topTrailing) {
-                        SkyBackground(code: 1250, night: false)
+                        SkyBackground(code: model.sky.code, night: model.sky.night)
                         VStack(spacing: 12) {
                             Image(systemName: "location.slash").font(.largeTitle)
                             Text(L("no_location")).multilineTextAlignment(.center)
@@ -34,7 +34,7 @@ struct ForecastView: View {
                     }
                     // The page dots live in the header card (the system's float over the content).
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .background(SkyBackground(code: 1250, night: false))
+                    .background(SkyBackground(code: model.sky.code, night: model.sky.night))
                 }
             }
             .toolbar(.hidden, for: .navigationBar)

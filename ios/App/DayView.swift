@@ -23,7 +23,8 @@ struct DayView: View {
         let days = f?.days(7) ?? []
         let d = days.first { $0.date == day }
         ZStack {
-            SkyBackground(code: d?.code ?? 1250, night: false)
+            // Today's screen at night gets the night sky, like the forecast page behind it.
+            SkyBackground(code: d?.code ?? 1250, night: day == Fmt.dayString(Date()) && model.sky.night)
             ScrollView {
                 VStack(spacing: 12) {
                     dateStrip(days)

@@ -66,7 +66,7 @@ struct PlacesView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(SkyBackground(code: 1250, night: false))
+            .background(SkyBackground(code: model.sky.code, night: model.sky.night))
             .navigationTitle(L("tab_places"))
             .toolbarColorScheme(.dark, for: .navigationBar)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: L("search_prompt"))
@@ -158,7 +158,7 @@ struct AlertsView: View {
                 .padding(.bottom, 24)
             }
             .foregroundStyle(.white)
-            .background(SkyBackground(code: 1250, night: false))
+            .background(SkyBackground(code: model.sky.code, night: model.sky.night))
             .navigationTitle(L("tab_alerts"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarColorScheme(.dark, for: .navigationBar)
