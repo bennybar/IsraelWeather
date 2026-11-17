@@ -20,3 +20,5 @@ proxy/.wrangler
 ios/build/
 ios/*.xcodeproj/xcuserdata/
 ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+tools/accuracy/.cache/
+tools/accuracy/results.json
