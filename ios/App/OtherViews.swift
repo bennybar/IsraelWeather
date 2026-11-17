@@ -8,13 +8,20 @@ struct PlacesView: View {
     @State private var query = ""
     @State private var results: [ECMWF.GeoPlace] = []
     @State private var allIMS: [Place] = []
+    @FocusState private var searching: Bool
 
     var body: some View {
         NavigationStack {
             List {
                 if query.isEmpty {
                     ForEach(model.savedPlaces, id: \.self) { id in
-                        PlaceCard(id: id).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        // Opens the place's page on the Forecast tab.
+                        Button {
+                            if let i = model.pages.firstIndex(where: { !$0.current && $0.id == id }) { model.page = i }
+                            tab = 0
+                        } label: { PlaceCard(id: id) }
+                        .buttonStyle(.plain)
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     }
                     .onDelete { model.remove(at: $0) }
                     .onMove { model.move(from: $0, to: $1) }
@@ -22,13 +29,13 @@ struct PlacesView: View {
                     let english = Fmt.english
                     let ims = allIMS.filter { $0.he.contains(query) || $0.en.localizedCaseInsensitiveContains(query) }.prefix(10)
                     ForEach(Array(ims)) { p in
-                        Button(p.name(english: english)) { model.add(ims: p); query = "" }
+                        Button(p.name(english: english)) { model.add(ims: p); query = ""; searching = false }
                     }
                     if !results.isEmpty {
                         Section(L("more_places")) {
                             ForEach(results.filter { r in !ims.contains { $0.he == r.he } }) { g in
                                 Button {
-                                    Task { await model.add(geo: g); query = "" }
+                                    Task { await model.add(geo: g); query = ""; searching = false }
                                 } label: {
                                     VStack(alignment: .leading) {
                                         Text(english ? g.en : g.he)
@@ -43,6 +50,7 @@ struct PlacesView: View {
             .listStyle(.plain)
             .navigationTitle(L("tab_places"))
             .searchable(text: $query, prompt: L("search_prompt"))
+            .searchFocused($searching)
             .task { allIMS = await Repository.shared.places() }
             .task(id: query) {
                 guard query.count >= 2 else { results = []; return }
@@ -71,7 +79,7 @@ struct PlaceCard: View {
             Spacer()
             VStack(alignment: .trailing) {
                 Text(Fmt.temp(now?.temp)).font(.system(size: 44, weight: .light))
-                if let today { Text("\(L("high")):\(Fmt.temp(today.max)) \(L("low")):\(Fmt.temp(today.min))").font(.footnote).opacity(0.85) }
+                if let today { Text(String(format: L("high_low"), Fmt.temp(today.max), Fmt.temp(today.min))).font(.footnote).opacity(0.85) }
             }
         }
         .foregroundStyle(.white)
@@ -121,6 +129,7 @@ struct SettingsView: View {
     @State private var source = AppSettings.shared.source
     @State private var key = AppSettings.shared.forecaKey
     @State private var keyStatus: Bool?
+    @State private var refetch = false
 
     var body: some View {
         NavigationStack {
@@ -174,18 +183,16 @@ struct SettingsView: View {
             }
             .navigationTitle(L("settings"))
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("done")) { dismiss() } } }
-            .onDisappear {
-                let s = AppSettings.shared
-                let changed = s.fahrenheit != fahrenheit || s.windMS != windMS || s.useLocation != useLocation || s.source != source || s.forecaKey != key || s.iconStyle != iconStyle || s.hourDetails != hourDetails
-                s.fahrenheit = fahrenheit
-                s.windMS = windMS
-                s.useLocation = useLocation
-                s.source = source
-                s.forecaKey = key
-                s.iconStyle = iconStyle
-                s.hourDetails = hourDetails
-                if changed { model.settingsChanged() }
-            }
+            // Each change is saved as it's made (a swiped-away sheet must not lose it). Display
+            // changes just redraw; a new source, key or location setting refetches when the sheet closes.
+            .onChange(of: fahrenheit) { _, v in AppSettings.shared.fahrenheit = v; model.displayChanged() }
+            .onChange(of: windMS) { _, v in AppSettings.shared.windMS = v; model.displayChanged() }
+            .onChange(of: iconStyle) { _, v in AppSettings.shared.iconStyle = v; model.displayChanged() }
+            .onChange(of: hourDetails) { _, v in AppSettings.shared.hourDetails = v; model.displayChanged() }
+            .onChange(of: useLocation) { _, v in AppSettings.shared.useLocation = v; refetch = true }
+            .onChange(of: source) { _, v in AppSettings.shared.source = v; refetch = true }
+            .onChange(of: key) { _, v in AppSettings.shared.forecaKey = v; refetch = true }
+            .onDisappear { if refetch { model.settingsChanged() } }
         }
     }
 }

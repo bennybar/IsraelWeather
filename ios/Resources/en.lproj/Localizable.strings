@@ -76,3 +76,4 @@
 "dir_5" = "southwest";
 "dir_6" = "west";
 "dir_7" = "northwest";
+"high_low" = "H:%@  L:%@";

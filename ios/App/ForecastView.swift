@@ -9,37 +9,33 @@ struct DayRoute: Hashable {
 /// Pages for my location and each saved place, swiped sideways; a day opens its own screen.
 struct ForecastView: View {
     @EnvironmentObject var model: AppModel
-    @State private var page = 0
     @State private var showSettings = false
 
     var body: some View {
         let pages = model.pages
         NavigationStack {
-            ZStack(alignment: .topTrailing) {
+            Group {
                 if pages.isEmpty {
-                    ZStack {
+                    ZStack(alignment: .topTrailing) {
                         SkyBackground(code: 1250, night: false)
                         VStack(spacing: 12) {
                             Image(systemName: "location.slash").font(.largeTitle)
                             Text(L("no_location")).multilineTextAlignment(.center)
-                        }.foregroundStyle(.white).padding()
+                        }
+                        .foregroundStyle(.white).padding()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        SettingsButton { showSettings = true }.padding(.trailing, 16)
                     }
                 } else {
-                    TabView(selection: $page) {
+                    TabView(selection: $model.page) {
                         ForEach(Array(pages.enumerated()), id: \.offset) { i, p in
-                            ForecastPage(id: p.id, current: p.current).tag(i)
+                            ForecastPage(id: p.id, current: p.current, index: i, count: pages.count) { showSettings = true }.tag(i)
                         }
                     }
-                    .tabViewStyle(.page(indexDisplayMode: pages.count > 1 ? .automatic : .never))
-                    .ignoresSafeArea()
+                    // The page dots live in the header card (the system's float over the content).
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .background(SkyBackground(code: 1250, night: false))
                 }
-                Button { showSettings = true } label: {
-                    Image(systemName: "gearshape.fill").font(.title3).foregroundStyle(.white).padding(12)
-                        .background(.ultraThinMaterial, in: .circle)
-                        .environment(\.colorScheme, .dark)
-                }
-                .accessibilityLabel(L("settings"))
-                .padding(.trailing, 16)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: DayRoute.self) { DayView(route: $0) }
@@ -52,6 +48,9 @@ struct ForecastPage: View {
     @EnvironmentObject var model: AppModel
     let id: Int
     let current: Bool
+    var index = 0
+    var count = 1
+    var openSettings: () -> Void
 
     var body: some View {
         let entry = model.forecasts[id]
@@ -73,38 +72,58 @@ struct ForecastPage: View {
                     }
                 }
                 .padding(.horizontal, 14)
-                .padding(.bottom, 30)
+                .padding(.bottom, 24)
             }
+            // Content fades under the status bar as it scrolls (iOS's own edge effect).
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .refreshable { await model.refreshAll(force: true) }
         }
         .foregroundStyle(.white)
     }
 
-    /// Compact: the place, then the temperature with the condition, high/low and feels-like beside it.
+    /// The place and now, in a card: name and settings on top, then the temperature with the
+    /// condition, high/low and feels-like beside it.
     private func header(_ f: Forecast?, _ now: Hour?) -> some View {
         let today = f?.days(1).first
         let feels = Sun.apparent(temp: now?.temp, rh: now?.rh, windKmh: now?.wind)
-        return VStack(alignment: .leading, spacing: 6) {
-            VStack(alignment: .leading, spacing: 0) {
-                if current { Text(L("my_location").uppercased()).font(.caption.weight(.semibold)).opacity(0.8) }
-                Text(model.places[id]?.name(english: Fmt.english) ?? "").font(.title.weight(.semibold)).lineLimit(1)
+        let night = now.map { WeatherCodes.isNight($0.t) } ?? false
+        return Card {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 1) {
+                    if current {
+                        Label(L("my_location"), systemImage: "location.fill").font(.caption.weight(.semibold)).opacity(0.8)
+                    }
+                    Text(model.places[id]?.name(english: Fmt.english) ?? "").font(.title2.weight(.semibold)).lineLimit(1)
+                    if count > 1 {
+                        // Which page this is: swipe sideways for the others.
+                        HStack(spacing: 5) {
+                            ForEach(0..<count, id: \.self) { i in
+                                Circle().fill(.white.opacity(i == index ? 1 : 0.35)).frame(width: 6, height: 6)
+                            }
+                        }
+                        .padding(.top, 3)
+                        .accessibilityLabel("\(index + 1) / \(count)")
+                    }
+                }
+                Spacer(minLength: 8)
+                SettingsButton(action: openSettings)
             }
-            // Room for the settings button at the top corner.
-            .padding(.trailing, 56)
-            HStack(alignment: .center, spacing: 14) {
-                Text(Fmt.temp(now?.temp)).font(.system(size: 76, weight: .thin)).lineLimit(1)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(now.map { WeatherCodes.describe($0.code) } ?? "").font(.title3.weight(.semibold))
+            HStack(alignment: .center, spacing: 16) {
+                Text(Fmt.temp(now?.temp)).font(.system(size: 72, weight: .thin)).lineLimit(1)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        if let now { WeatherGlyph(code: now.code, night: night, size: 18) }
+                        Text(now.map { WeatherCodes.describe($0.code) } ?? "").font(.headline)
+                    }
                     if let today {
-                        Text("\(L("high")):\(Fmt.temp(today.max))  \(L("low")):\(Fmt.temp(today.min))").font(.subheadline.weight(.medium))
+                        Text(String(format: L("high_low"), Fmt.temp(today.max), Fmt.temp(today.min))).font(.subheadline.weight(.medium))
                     }
                     Text("\(L("feels_like")) \(Fmt.temp(feels))").font(.subheadline).opacity(0.8)
                 }
+                Spacer(minLength: 0)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 58)
-        .padding(.bottom, 4)
+        .padding(.top, 12)
     }
 
     /// A line about the next hours, then 24 hours with the details chosen in Settings.
@@ -115,7 +134,10 @@ struct ForecastPage: View {
             Divider().overlay(.white.opacity(0.3))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 14) {
-                    ForEach(Array(f.upcoming(24).enumerated()), id: \.offset) { i, h in
+                    // "Now" is the same reading as the header (current conditions), then the hour slots.
+                    let next = f.upcoming(25)
+                    let now = f.currentHour() ?? next.first
+                    ForEach(Array(([now].compactMap { $0 } + next.dropFirst()).enumerated()), id: \.offset) { i, h in
                         HourColumn(hour: h, label: i == 0 ? L("now") : Fmt.hour(h.date), details: details)
                     }
                 }
@@ -135,21 +157,21 @@ struct ForecastPage: View {
                     if i > 0 { Divider().overlay(.white.opacity(0.25)) }
                     NavigationLink(value: DayRoute(page: id, day: d.date)) {
                         HStack(spacing: 10) {
-                            Text(Fmt.dayLabel(d.date)).font(.title3.weight(.semibold)).frame(width: 66, alignment: .leading)
+                            Text(Fmt.dayLabel(d.date)).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7).frame(width: 58, alignment: .leading)
                             VStack(spacing: 1) {
-                                WeatherGlyph(code: d.code, size: 22)
+                                WeatherGlyph(code: d.code, size: 19)
                                 if let c = f.rainChance(d), c >= 20 {
                                     Text("\(c)%").font(.caption2.weight(.bold)).foregroundStyle(Color(hex: 0x9FD2FF))
                                 }
                             }
                             .frame(width: 38)
-                            Text(Fmt.temp(d.min)).font(.title3).opacity(0.7).frame(width: 42, alignment: .trailing)
+                            Text(Fmt.temp(d.min)).font(.body).opacity(0.7).lineLimit(1).minimumScaleFactor(0.6).frame(width: 38, alignment: .trailing)
                             RangeBar(lo: lo, hi: hi, from: d.min ?? lo, to: d.max ?? hi, dot: i == 0 ? f.currentHour()?.temp : nil,
                                      track: .white.opacity(0.22), ring: .black.opacity(0.25), colors: DaySummary.warmth)
                                 .frame(height: 6)
-                            Text(Fmt.temp(d.max)).font(.title3.weight(.semibold)).frame(width: 42, alignment: .leading)
+                            Text(Fmt.temp(d.max)).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(width: 38, alignment: .leading)
                         }
-                        .frame(minHeight: 58)
+                        .frame(minHeight: 52)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -259,5 +281,19 @@ struct Tile: View {
         Card(title: title, icon: icon) {
             Text(value).font(.title.weight(.medium))
         }
+    }
+}
+
+/// The round settings button (in the header card, or alone when there are no pages).
+struct SettingsButton: View {
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "gearshape.fill").font(.body).foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(.white.opacity(0.15), in: .circle)
+        }
+        .accessibilityLabel(L("settings"))
     }
 }

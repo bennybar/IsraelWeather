@@ -13,6 +13,8 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var locationStatus: CLAuthorizationStatus = .notDetermined
     @Published var loading = false
     @Published var settingsVersion = 0
+    /// The forecast page shown (Places opens one by tapping it).
+    @Published var page = 0
 
     let settings = AppSettings.shared
     private let location = CLLocationManager()
@@ -87,6 +89,12 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func move(from: IndexSet, to: Int) {
         savedPlaces.move(fromOffsets: from, toOffset: to)
         settings.places = savedPlaces
+    }
+
+    /// Units, icons or the hours' details changed: redraw the app and the widgets, no refetch.
+    func displayChanged() {
+        settingsVersion += 1
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func settingsChanged() {
