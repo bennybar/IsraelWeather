@@ -82,3 +82,8 @@
 "sunrise" = "Sunrise";
 "see_day" = "Today in detail";
 "hourly_title" = "Hourly forecast";
+"rain" = "Rain";
+"rain_amount" = "Amount";
+"rain_when" = "When";
+"rainiest_hours" = "Rainiest hours";
+"unit_mm" = "mm";

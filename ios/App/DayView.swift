@@ -144,34 +144,70 @@ struct DayView: View {
     }
 
     /// When it rains: the peak chance, the rainy hours and how much, and a bar per hour.
+    /// Rain: how much (mm), how likely, when, a bar per hour, and the rainiest hours.
     private func rain(_ f: Forecast, _ d: Day) -> some View {
         let hours = dayHours(f, d)
         let peak = Int((hours.compactMap(\.rainChance).max() ?? 0).rounded())
         let wet = hours.filter { ($0.rainChance ?? 0) >= Double(rainyPct) }
-        let total = hours.compactMap(\.rain).reduce(0, +)
-        return Card(title: L("rain_chance"), icon: "drop.fill") {
-            HStack(alignment: .firstTextBaseline) {
-                Text("\(peak)%").font(.title.weight(.medium))
-                Text(peak >= 20 ? L("at_peak") : L("no_rain_day")).font(.subheadline).opacity(0.8)
-                Spacer()
-                if let first = wet.first, let last = wet.last {
-                    Text("\(Fmt.time(first.date))–\(Fmt.time(last.date.addingTimeInterval(3600)))" + (total >= 0.1 ? String(format: " · %.1f mm", total) : ""))
-                        .font(.subheadline).opacity(0.8)
+        let amounts = hours.compactMap(\.rain)
+        let total = amounts.reduce(0, +)
+        // The rainiest hours: by amount where the source gives one, else by chance.
+        let top = hours.filter { ($0.rain ?? 0) >= 0.1 || ($0.rainChance ?? 0) >= 20 }
+            .sorted { (($0.rain ?? 0), ($0.rainChance ?? 0)) > (($1.rain ?? 0), ($1.rainChance ?? 0)) }
+            .prefix(3)
+            .sorted { $0.t < $1.t }
+        return Card(title: L("rain"), icon: "drop.fill") {
+            if peak < 10 && total < 0.1 {
+                Text(L("no_rain_day")).font(.title3.weight(.medium))
+            } else {
+                HStack(alignment: .top, spacing: 0) {
+                    rainStat(L("rain_amount"), amounts.isEmpty ? "–" : String(format: "%.1f", total), unit: L("unit_mm"))
+                    rainStat(L("rain_chance"), "\(peak)%", unit: nil)
+                    rainStat(L("rain_when"), wet.first.map { first in
+                        "\(Fmt.time(first.date))–\(Fmt.time((wet.last ?? first).date.addingTimeInterval(3600)))"
+                    } ?? "–", unit: nil, small: true)
+                }
+                Chart(hours, id: \.t) { h in
+                    BarMark(x: .value("Hour", h.date, unit: .hour), y: .value("Chance", max(h.rainChance ?? 0, 2)))
+                        .foregroundStyle(Color(hex: 0x8EC5FF))
+                        .clipShape(.rect(cornerRadius: 2))
+                }
+                .chartYScale(domain: 0...100)
+                .chartYAxis(.hidden)
+                .chartXAxis { hourAxis }
+                .frame(height: 70)
+                if !top.isEmpty {
+                    Divider().overlay(.white.opacity(0.25))
+                    Text(L("rainiest_hours")).font(.caption.weight(.semibold)).opacity(0.75)
+                    HStack(spacing: 8) {
+                        ForEach(top, id: \.t) { h in
+                            VStack(spacing: 2) {
+                                Text(Fmt.time(h.date)).font(.subheadline.weight(.semibold))
+                                Text(h.rain.map { $0 >= 0.1 ? String(format: "%.1f %@", $0, L("unit_mm")) : "–" } ?? "–")
+                                    .font(.footnote)
+                                Text("\(Int((h.rainChance ?? 0).rounded()))%").font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color(hex: 0x9FD2FF))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(.white.opacity(0.1), in: .rect(cornerRadius: 12))
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
                 }
             }
-            // A dry day needs no chart.
-            if peak >= 10 {
-            Chart(hours, id: \.t) { h in
-                BarMark(x: .value("Hour", h.date, unit: .hour), y: .value("Chance", max(h.rainChance ?? 0, 2)))
-                    .foregroundStyle(Color(hex: 0x8EC5FF))
-                    .clipShape(.rect(cornerRadius: 2))
-            }
-            .chartYScale(domain: 0...100)
-            .chartYAxis(.hidden)
-            .chartXAxis { hourAxis }
-            .frame(height: 70)
+        }
+    }
+
+    private func rainStat(_ label: String, _ value: String, unit: String?, small: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).opacity(0.75)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(value).font(small ? .title3.weight(.medium) : .title.weight(.medium)).lineLimit(1).minimumScaleFactor(0.6)
+                if let unit { Text(unit).font(.subheadline) }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func nearest(_ hours: [Hour], _ at: Date) -> Hour? {

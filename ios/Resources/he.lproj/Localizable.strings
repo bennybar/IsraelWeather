@@ -82,3 +82,8 @@
 "sunrise" = "זריחה";
 "see_day" = "היום בפירוט";
 "hourly_title" = "תחזית שעתית";
+"rain" = "גשם";
+"rain_amount" = "כמות";
+"rain_when" = "מתי";
+"rainiest_hours" = "השעות הגשומות";
+"unit_mm" = "מ״מ";
