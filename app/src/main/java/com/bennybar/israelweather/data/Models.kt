@@ -80,6 +80,8 @@ data class Forecast(
     companion object {
         const val SOURCE_IMS = "ims"
         const val SOURCE_OPEN_METEO = "open-meteo"
+        /** NOAA's GFS through Open-Meteo. */
+        const val SOURCE_GFS = "gfs"
         const val SOURCE_FORECA = "foreca"
     }
 

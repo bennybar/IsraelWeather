@@ -23,6 +23,10 @@ data class GeoPlace(val id: Int, val he: String, val en: String, val region: Str
 data class AirQuality(val aqi: Int?, val pm10: Double?, val pm25: Double?, val dust: Double?)
 
 class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
+    companion object {
+        const val ECMWF = "ecmwf_ifs"
+        const val GFS = "gfs_global"
+    }
 
     @Serializable
     private data class Hourly(
@@ -67,15 +71,15 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     @Serializable
     private data class Response(val hourly: Hourly, val daily: Daily, val current: Current? = null)
 
-    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID): Forecast = withContext(Dispatchers.IO) {
+    /** ECMWF's 9 km IFS by default; [GFS] for NOAA's GFS (the best-graded model here, see tools/accuracy). */
+    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID, model: String = ECMWF): Forecast = withContext(Dispatchers.IO) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
             "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
             "cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
-            // ECMWF's 9 km IFS: what IMS itself calls the most reliable global model here.
-            "&models=ecmwf_ifs&timezone=Asia%2FJerusalem&forecast_days=7"
+            "&models=$model&timezone=Asia%2FJerusalem&forecast_days=7"
         val request = Request.Builder().url(url)
             .apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }
             .build()
@@ -121,7 +125,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         // Current conditions (15-minutely); rain chance and UV come from the hour they fall in.
         val now = r.current?.let { c -> nowHour(c, hours) }
-        Forecast(id = id, hourly = hours, daily = days, source = Forecast.SOURCE_OPEN_METEO, now = now)
+        Forecast(id = id, hourly = hours, daily = days, source = if (model == GFS) Forecast.SOURCE_GFS else Forecast.SOURCE_OPEN_METEO, now = now)
     }
 
     @Serializable

@@ -70,6 +70,8 @@ struct Forecast: Codable {
     static let sourceIMS = "ims"
     static let sourceECMWF = "open-meteo"
     static let sourceForeca = "foreca"
+    /// NOAA's GFS through Open-Meteo.
+    static let sourceGFS = "gfs"
 
     enum CodingKeys: String, CodingKey { case id, hourly, daily, source, now }
 

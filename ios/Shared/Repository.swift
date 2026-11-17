@@ -100,7 +100,8 @@ actor Repository {
            let f = try? await Foreca.forecast(lat: lat, lon: lon, key: settings.forecaKey, id: id) {
             return f
         }
-        return try await ECMWF.forecast(lat: lat, lon: lon, id: id, fresh: fresh)
+        return try await ECMWF.forecast(lat: lat, lon: lon, id: id, fresh: fresh,
+                                        model: settings.source == .gfs ? ECMWF.gfsModel : ECMWF.ecmwfModel)
     }
 
     // MARK: warnings

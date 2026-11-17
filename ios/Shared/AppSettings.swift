@@ -2,7 +2,7 @@ import Foundation
 
 let appGroup = "group.com.bennybar.israelweather"
 
-enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca }
+enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca, gfs }
 
 /// Extra lines under each of the next hours (Settings → Next hours).
 enum HourDetail: String, CaseIterable {

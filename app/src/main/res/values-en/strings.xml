@@ -229,4 +229,8 @@
     <string name="foreca_bad">Key not accepted</string>
     <string name="foreca_steps">1. Sign up for the free Freemium plan (non-commercial, 2,000 requests a day). Not the Free Trial, which stops after 30 days.\n2. In My API, create a key and paste it here.\n\nThe app uses 3 requests per place, at most every 30 minutes.</string>
     <string name="foreca_signup">Sign up for Foreca Freemium</string>
+    <string name="source_gfs_choice">GFS only</string>
+    <string name="source_gfs_hint">NOAA\'s GFS (via Open-Meteo) everywhere, without IMS. It graded best against Israeli airport stations over the past year. Warnings and radar still come from IMS.</string>
+    <string name="source_line_gfs">Source: GFS via Open-Meteo · exact location</string>
+    <string name="source_gfs">Forecast: GFS via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
 </resources>

@@ -87,3 +87,6 @@
 "rain_when" = "When";
 "rainiest_hours" = "Rainiest hours";
 "unit_mm" = "mm";
+"source_gfs" = "GFS only";
+"source_gfs_line" = "Source: GFS via Open-Meteo";
+"source_gfs_hint" = "NOAA's GFS (via Open-Meteo) everywhere, without IMS. It graded best against Israeli airport stations over the past year. Warnings still come from IMS.";

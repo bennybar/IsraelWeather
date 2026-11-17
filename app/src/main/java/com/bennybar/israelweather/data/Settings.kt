@@ -18,7 +18,7 @@ enum class IconStyle { MATERIAL, METEOCONS, FLUENT, NOTO, GLASS, ONEUI, MATERIAL
  * Where forecasts come from: IMS near its points with ECMWF elsewhere (and for "now"), ECMWF
  * everywhere, or Foreca everywhere (the user's own key).
  */
-enum class ForecastSource { IMS_ECMWF, ECMWF, FORECA }
+enum class ForecastSource { IMS_ECMWF, ECMWF, FORECA, GFS }
 
 /** The forecast page's sections, in their default order. */
 enum class Card { HERO, ALERTS, HOURLY, WEEK, DETAILS, RADAR, SUMMARY }

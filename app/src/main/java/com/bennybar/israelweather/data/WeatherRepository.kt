@@ -157,13 +157,14 @@ class WeatherRepository(
             .isSuccess
     }
 
-    /** An exact spot: Foreca when chosen and keyed (ECMWF if that fails), else ECMWF via Open-Meteo. */
+    /** An exact spot: Foreca when chosen and keyed (ECMWF if that fails), GFS when chosen, else ECMWF via Open-Meteo. */
     private suspend fun spotForecast(lat: Double, lon: Double, force: Boolean, id: Int): Forecast {
         val s = settings.value
         if (s.forecastSource == ForecastSource.FORECA && s.forecaKey.isNotBlank()) {
             runCatching { foreca.forecast(lat, lon, s.forecaKey, id) }.onSuccess { return it }
         }
-        return openMeteo.forecast(lat, lon, fresh = force, id = id)
+        val model = if (s.forecastSource == ForecastSource.GFS) OpenMeteo.GFS else OpenMeteo.ECMWF
+        return openMeteo.forecast(lat, lon, fresh = force, id = id, model = model)
     }
 
     /** IMS's forecast with ECMWF's current conditions as "now" (its hourly sky lags the real one). */

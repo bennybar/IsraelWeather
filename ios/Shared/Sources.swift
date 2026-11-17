@@ -71,12 +71,16 @@ enum ECMWF {
 
     private static let currentFields = "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high"
 
-    static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool) async throws -> Forecast {
+    static let ecmwfModel = "ecmwf_ifs"
+    /// NOAA's GFS: the best-graded model against Israeli airports (tools/accuracy).
+    static let gfsModel = "gfs_global"
+
+    static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min&current=\(currentFields)" +
-            "&models=ecmwf_ifs&timezone=Asia%2FJerusalem&forecast_days=7")!
+            "&models=\(model)&timezone=Asia%2FJerusalem&forecast_days=7")!
         let r = try await fetch(url, Response.self, fresh: fresh)
         // ECMWF has no UV index: take it from Open-Meteo's default blend.
         let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7")!
@@ -101,7 +105,7 @@ enum ECMWF {
             let dayCode = ((code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil) ? skyCode(3, dayCloud) : skyCode(code, dayCloud)
             return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: uv?.daily.uv_index_max[safe: i] ?? nil)
         }
-        return Forecast(id: id, hourly: hours, daily: days, source: Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
+        return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
     }
 
     /// ECMWF's current conditions at a point, for "now" at IMS places.
