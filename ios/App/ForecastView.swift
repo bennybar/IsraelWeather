@@ -10,6 +10,9 @@ struct DayRoute: Hashable {
 struct ForecastView: View {
     @EnvironmentObject var model: AppModel
     @State private var showSettings = false
+    /// The page shown, kept here so a swipe redraws only this screen, not every view watching the
+    /// app model; it's copied to the model (for the sky and Places) once the swipe settles.
+    @State private var page = 0
 
     var body: some View {
         let pages = model.pages
@@ -31,9 +34,9 @@ struct ForecastView: View {
                     // (its glass shows them). The page view clips to its own frame and handles safe
                     // areas badly, so each page gets the top inset and keeps clear of it itself.
                     GeometryReader { geo in
-                        TabView(selection: $model.page) {
+                        TabView(selection: $page) {
                             ForEach(Array(pages.enumerated()), id: \.offset) { i, p in
-                                ForecastPage(id: p.id, current: p.current, index: i, count: pages.count, topInset: geo.safeAreaInsets.top) { showSettings = true }.tag(i)
+                                ForecastPage(id: p.id, current: p.current, index: i, count: pages.count, topInset: geo.safeAreaInsets.top, showSettings: $showSettings).tag(i)
                             }
                         }
                         // The page dots live in the header card (the system's float over the content).
@@ -45,6 +48,9 @@ struct ForecastView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: DayRoute.self) { DayView(route: $0) }
+            .onAppear { page = model.page }
+            .onChange(of: page) { _, p in if model.page != p { model.page = p } }
+            .onChange(of: model.page) { _, p in if page != p { page = p } }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
     }
@@ -57,7 +63,7 @@ struct ForecastPage: View {
     var index = 0
     var count = 1
     var topInset: CGFloat = 0
-    var openSettings: () -> Void
+    @Binding var showSettings: Bool
 
     /// The status bar's height, from the window (the page view hands its pages no safe area).
     private var statusBar: CGFloat {
@@ -131,7 +137,7 @@ struct ForecastPage: View {
                     }
                 }
                 Spacer(minLength: 8)
-                SettingsButton(action: openSettings)
+                SettingsButton { showSettings = true }
             }
             HStack(alignment: .center, spacing: 16) {
                 Text(Fmt.temp(now?.temp)).font(.system(size: 72, weight: .thin)).lineLimit(1)

@@ -10,12 +10,36 @@ enum Fmt {
         return f
     }
 
+    /// Formatters and parsed dates, kept: building a DateFormatter or parsing a string is costly, and
+    /// the forecast views ask for the same few hundred dates on every redraw (each swipe frame).
+    private static let lock = NSLock()
+    private static var formatters: [String: DateFormatter] = [:]
+    private static var parsed: [String: Date] = [:]
+
+    private static func cachedFormatter(_ key: String, _ make: () -> DateFormatter) -> DateFormatter {
+        lock.lock(); defer { lock.unlock() }
+        if let f = formatters[key] { return f }
+        let f = make()
+        formatters[key] = f
+        return f
+    }
+
     private static let hourMinute = formatter("yyyy-MM-dd HH:mm")
     private static let dayOnly = formatter("yyyy-MM-dd")
     private static let clock = formatter("HH:mm")
     private static let hourOnly = formatter("HH")
 
-    static func parse(_ s: String) -> Date? { hourMinute.date(from: s.replacingOccurrences(of: "T", with: " ")) }
+    static func parse(_ s: String) -> Date? {
+        lock.lock()
+        if let d = parsed[s] { lock.unlock(); return d }
+        lock.unlock()
+        guard let d = hourMinute.date(from: s.replacingOccurrences(of: "T", with: " ")) else { return nil }
+        lock.lock()
+        if parsed.count > 4000 { parsed.removeAll() }
+        parsed[s] = d
+        lock.unlock()
+        return d
+    }
     static func parseDay(_ s: String) -> Date? { dayOnly.date(from: s) }
     static func dayString(_ d: Date) -> String { dayOnly.string(from: d) }
     static func time(_ d: Date) -> String { clock.string(from: d) }
@@ -30,10 +54,13 @@ enum Fmt {
     static func dayLabel(_ day: String, english: Bool = Fmt.english) -> String {
         if day == dayString(Date()) { return L("today") }
         guard let d = parseDay(day) else { return day }
-        let f = DateFormatter()
-        f.locale = Locale(identifier: english ? "en_US" : "he_IL")
-        f.timeZone = israelZone
-        f.dateFormat = english ? "EEE" : "EEEEE"
+        let f = cachedFormatter("label-\(english)") {
+            let f = DateFormatter()
+            f.locale = Locale(identifier: english ? "en_US" : "he_IL")
+            f.timeZone = israelZone
+            f.dateFormat = english ? "EEE" : "EEEEE"
+            return f
+        }
         let s = f.string(from: d)
         return english ? s : s.replacingOccurrences(of: "יום ", with: "")
     }
@@ -54,11 +81,13 @@ enum Fmt {
     static func pct(_ v: Int?) -> String { v.map { "\($0)%" } ?? "–" }
 
     private static func localized(_ pattern: String) -> DateFormatter {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: english ? "en_US" : "he_IL")
-        f.timeZone = israelZone
-        f.dateFormat = pattern
-        return f
+        cachedFormatter("\(english)-\(pattern)") {
+            let f = DateFormatter()
+            f.locale = Locale(identifier: english ? "en_US" : "he_IL")
+            f.timeZone = israelZone
+            f.dateFormat = pattern
+            return f
+        }
     }
 
     /// "Friday, 20 November" in the app's language.
@@ -70,7 +99,7 @@ enum Fmt {
     /// A day's weekday initial and day of the month, for the day screen's date strip.
     static func dayParts(_ day: String) -> (String, String) {
         guard let d = parseDay(day) else { return ("", day) }
-        return (localized("EEEEE").string(from: d), formatter("d").string(from: d))
+        return (localized("EEEEE").string(from: d), cachedFormatter("d") { formatter("d") }.string(from: d))
     }
 
     /// Where the wind comes from, in words ("northwest").

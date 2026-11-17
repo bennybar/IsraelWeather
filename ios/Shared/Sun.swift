@@ -2,7 +2,24 @@ import Foundation
 
 enum Sun {
     /// Sunrise and sunset from NOAA's solar equations (as on Android); nil in polar day or night.
+    private static let lock = NSLock()
+    private static var known: [String: (Date, Date)] = [:]
+
+    /// Sunrise and sunset, worked out once per day and place (the views ask on every redraw).
     static func times(day: String, lat: Double, lon: Double) -> (Date, Date)? {
+        let key = "\(day)|\(Int(lat * 100))|\(Int(lon * 100))"
+        lock.lock()
+        if let t = known[key] { lock.unlock(); return t }
+        lock.unlock()
+        guard let t = compute(day: day, lat: lat, lon: lon) else { return nil }
+        lock.lock()
+        if known.count > 500 { known.removeAll() }
+        known[key] = t
+        lock.unlock()
+        return t
+    }
+
+    private static func compute(day: String, lat: Double, lon: Double) -> (Date, Date)? {
         guard let date = Fmt.parseDay(day) else { return nil }
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
