@@ -361,7 +361,9 @@ extension View {
     /// The app's card: light frosted glass with a thin rim, so white text reads on any sky.
     func glassCard(radius: CGFloat = 22) -> some View {
         background {
-            RoundedRectangle(cornerRadius: radius).fill(.ultraThinMaterial).environment(\.colorScheme, .dark).opacity(0.55)
+            // A translucent fill, not a live blur: behind the cards is a smooth gradient, so a blur
+            // looked the same but re-rendered every card on every frame of a page swipe.
+            RoundedRectangle(cornerRadius: radius).fill(.white.opacity(0.06))
         }
         .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(.white.opacity(0.18), lineWidth: 1))
     }

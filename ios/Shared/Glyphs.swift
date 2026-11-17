@@ -41,9 +41,13 @@ struct WeatherGlyph: View {
     var night = false
     var size: CGFloat
     var cloud: Color? = nil
-    var style = AppSettings.shared.iconStyle
+    /// A set to show regardless of the setting (the setting's own picker); nil follows the setting.
+    var style: IconStyle? = nil
+    /// The setting, watched: every icon redraws when it changes, even where nothing else did.
+    @AppStorage("iconStyle", store: UserDefaults(suiteName: appGroup)) private var stored = IconStyle.apple.rawValue
 
     var body: some View {
+        let style = style ?? IconStyle(rawValue: stored) ?? .apple
         if let prefix = style.prefix {
             // The bundled icons have a little padding of their own: a slightly bigger box.
             Image("\(prefix)_\(WeatherCodes.family(code, night: night))").resizable().scaledToFit()

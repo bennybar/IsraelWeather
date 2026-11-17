@@ -38,6 +38,8 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         NSLocationWhenInUseUsageDescription: Show the forecast for where you are.
+        # ProMotion: animations and swipes at up to 120 Hz (iPhone apps are capped at 60 without it).
+        CADisableMinimumFrameDurationOnPhone: true
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleURLSchemes: [israelweather]
