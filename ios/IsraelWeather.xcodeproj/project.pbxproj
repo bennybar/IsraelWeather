@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		11FA37AEA0BB0305843AD08E /* WeatherIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 03EDDE9DB7638B451004E535 /* WeatherIcons.xcassets */; };
+		14C6305AD70263993330E747 /* WidgetSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 360C794946B57766F9C5C8CB /* WidgetSchedule.swift */; };
 		19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
 		1DC41721FA7E9C4B49525828 /* DayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BA5E590D5BEE3B7785FD91 /* DayView.swift */; };
 		20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
@@ -15,6 +16,7 @@
 		2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */; };
 		3E5EDA9D97B572EAFE919A0C /* IsraelWeatherWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
+		43C07093CC76C2E3759A1B5D /* WidgetSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 360C794946B57766F9C5C8CB /* WidgetSchedule.swift */; };
 		4A9FE67F66859863D43F8358 /* RefreshIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CF5F13DAED7FCC46C18FA /* RefreshIntent.swift */; };
 		50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E165E442BC465AA52ED926 /* AppSettings.swift */; };
 		52F5CACA20106334E0FC34FF /* SystemWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0FE652AE309C7DB31F807D /* SystemWidget.swift */; };
@@ -81,6 +83,7 @@
 		2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		2E7D9E736090F9CABFB86661 /* Glyphs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glyphs.swift; sourceTree = "<group>"; };
 		30E165E442BC465AA52ED926 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		360C794946B57766F9C5C8CB /* WidgetSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSchedule.swift; sourceTree = "<group>"; };
 		3D0FE652AE309C7DB31F807D /* SystemWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWidget.swift; sourceTree = "<group>"; };
 		4682C7BF4494BBBDF1DAB29B /* IsraelWeather.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IsraelWeather.entitlements; sourceTree = "<group>"; };
 		48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherCodes.swift; sourceTree = "<group>"; };
@@ -155,6 +158,7 @@
 				2035B33E0815BC45F32373D8 /* SystemWidgetViews.swift */,
 				48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */,
 				03EDDE9DB7638B451004E535 /* WeatherIcons.xcassets */,
+				360C794946B57766F9C5C8CB /* WidgetSchedule.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -303,6 +307,7 @@
 				965C468DA3AD5175AF894817 /* Sun.swift in Sources */,
 				C7EB59445FEE6E4453A64086 /* SystemWidgetViews.swift in Sources */,
 				9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */,
+				14C6305AD70263993330E747 /* WidgetSchedule.swift in Sources */,
 				A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -325,6 +330,7 @@
 				52F5CACA20106334E0FC34FF /* SystemWidget.swift in Sources */,
 				B2A7F3CC12088205EC47C6C1 /* SystemWidgetViews.swift in Sources */,
 				F5AC2281987C56565FAC4BA8 /* WeatherCodes.swift in Sources */,
+				43C07093CC76C2E3759A1B5D /* WidgetSchedule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

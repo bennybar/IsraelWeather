@@ -7,6 +7,8 @@ actor Repository {
     private let settings = AppSettings.shared
     private var placesCache: [Place]?
     private static let ttl: TimeInterval = 20 * 60
+    /// Downloads under way, so widgets asking for the same forecast at once share one.
+    private var inFlight: [Int: Task<(Forecast, Date)?, Never>] = [:]
 
     private var dir: URL {
         let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
@@ -71,8 +73,17 @@ actor Repository {
     @discardableResult
     func forecast(_ id: Int, force: Bool = false) async -> (Forecast, Date)? {
         if !force, let c = cached(id), Date().timeIntervalSince(c.1) < Self.ttl { return c }
+        if let running = inFlight[id] { return await running.value }
+        let task = Task { await self.download(id, fresh: force) }
+        inFlight[id] = task
+        let result = await task.value
+        inFlight[id] = nil
+        return result
+    }
+
+    private func download(_ id: Int, fresh: Bool) async -> (Forecast, Date)? {
         do {
-            let f = try await fetchForecast(id, fresh: force)
+            let f = try await fetchForecast(id, fresh: fresh)
             write("forecast-\(id)", f)
             return (f, Date())
         } catch {
@@ -106,7 +117,9 @@ actor Repository {
 
     // MARK: warnings
 
-    func warnings() async -> [Warning] {
+    func warnings(force: Bool = false) async -> [Warning] {
+        // The proxy itself refreshes warnings every 5 minutes: no point asking more often.
+        if !force, let c = read("warnings", [Warning].self), Date().timeIntervalSince(c.fetchedAt) < 300 { return c.data }
         if let w = try? await IMS.warnings() {
             write("warnings", w)
             return w

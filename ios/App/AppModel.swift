@@ -45,13 +45,16 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func refreshAll(force: Bool = false) async {
         loading = true
+        let before = forecasts.mapValues(\.1)
         for page in pages {
             let fid = page.current ? page.id : settings.forecastID(for: page.id)
             await load(page.id, forecastID: fid, force: force)
         }
-        warnings = await Repository.shared.warnings()
+        warnings = await Repository.shared.warnings(force: force)
         loading = false
-        WidgetCenter.shared.reloadAllTimelines()
+        // Widgets reload only when a forecast was actually downloaded (not on every app open:
+        // reloads count against the widgets' daily budget and wake their process).
+        if force || forecasts.mapValues(\.1) != before { WidgetCenter.shared.reloadAllTimelines() }
     }
 
     func load(_ id: Int, forecastID: Int, force: Bool = false) async {

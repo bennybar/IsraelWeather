@@ -92,6 +92,17 @@ struct Forecast: Codable {
         now = try c.decodeIfPresent(Hour.self, forKey: .now)
     }
 
+    /// This forecast as it reads at a later [date]: hours and days before it dropped and no "now",
+    /// so the views (which ask for "the current hour") show that time's hour.
+    func at(_ date: Date) -> Forecast {
+        let slot = Fmt.slot(date), day = Fmt.dayString(date)
+        var f = self
+        f.hourly = hourly.filter { $0.t >= slot }
+        f.daily = daily.filter { $0.date >= day }
+        f.now = nil
+        return f
+    }
+
     /// "Now": the source's current conditions while under an hour old, else the hour slot covering now.
     func currentHour(_ at: Date = Date()) -> Hour? {
         if let n = now, n.date <= at, n.date > at.addingTimeInterval(-3600) { return n }

@@ -41,12 +41,14 @@ enum ECMWF {
         let cloud_cover_low: [Double?]
         let cloud_cover_mid: [Double?]
         let cloud_cover_high: [Double?]
+        let uv_index: [Double?]?
     }
     private struct Daily: Decodable {
         let time: [String]
         let weather_code: [Int?]
         let temperature_2m_max: [Double?]
         let temperature_2m_min: [Double?]
+        let uv_index_max: [Double?]?
     }
     private struct Current: Decodable {
         let time: String
@@ -78,20 +80,22 @@ enum ECMWF {
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
-            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
-            "&daily=weather_code,temperature_2m_max,temperature_2m_min&current=\(currentFields)" +
+            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high,uv_index" +
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&current=\(currentFields)" +
             "&models=\(model)&timezone=Asia%2FJerusalem&forecast_days=7")!
-        let r = try await fetch(url, Response.self, fresh: fresh)
-        // ECMWF has no UV index: take it from Open-Meteo's default blend.
+        // ECMWF has no UV index: take it from Open-Meteo's default blend, at the same time (one
+        // radio wake-up, not two in a row). GFS carries its own, so it needs no second request.
         let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7")!
-        let uv = try? await fetch(uvURL, UV.self, fresh: fresh)
+        async let uvTask: UV? = model == gfsModel ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
+        let r = try await fetch(url, Response.self, fresh: fresh)
+        let uv = await uvTask
         let h = r.hourly
         let sky = h.time.indices.map { effective(h.cloud_cover_low[safe: $0] ?? nil, h.cloud_cover_mid[safe: $0] ?? nil, h.cloud_cover_high[safe: $0] ?? nil) }
         let hours = h.time.indices.map { i in
             Hour(t: h.time[i].replacingOccurrences(of: "T", with: " "), code: skyCode(h.weather_code[i], sky[i]),
                  temp: h.temperature_2m[i], rainChance: h.precipitation_probability[i], rain: h.precipitation[i],
                  rh: h.relative_humidity_2m[i], wind: h.wind_speed_10m[i], gust: h.wind_gusts_10m[i],
-                 windDir: h.wind_direction_10m[i], uv: uv?.hourly.uv_index[safe: i] ?? nil)
+                 windDir: h.wind_direction_10m[i], uv: (uv?.hourly.uv_index ?? h.uv_index)?[safe: i] ?? nil)
         }
         let d = r.daily
         let days = d.time.indices.map { i -> Day in
@@ -103,7 +107,7 @@ enum ECMWF {
             let weatherHours = daytime.filter { (h.weather_code[$0] ?? 0) > 3 }.count
             let code = d.weather_code[i]
             let dayCode = ((code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil) ? skyCode(3, dayCloud) : skyCode(code, dayCloud)
-            return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: uv?.daily.uv_index_max[safe: i] ?? nil)
+            return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: (uv?.daily.uv_index_max ?? d.uv_index_max)?[safe: i] ?? nil)
         }
         return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
     }

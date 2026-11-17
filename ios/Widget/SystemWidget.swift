@@ -37,7 +37,11 @@ struct SystemProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: SystemIntent, in context: Context) async -> Timeline<SystemEntry> {
-        Timeline(entries: [await entry(configuration)], policy: .after(Date().addingTimeInterval(30 * 60)))
+        let e = await entry(configuration)
+        let entries = WidgetSchedule.dates().enumerated().map { i, date in
+            i == 0 ? e : SystemEntry(date: date, place: e.place, forecast: e.forecast?.at(date), style: e.style, appearance: e.appearance)
+        }
+        return Timeline(entries: entries, policy: .after(WidgetSchedule.nextRefresh(hasData: e.forecast != nil)))
     }
 
     private func entry(_ c: SystemIntent) async -> SystemEntry {

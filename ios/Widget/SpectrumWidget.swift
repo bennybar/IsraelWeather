@@ -115,8 +115,12 @@ struct SpectrumProvider: AppIntentTimelineProvider {
 
     func timeline(for configuration: SpectrumIntent, in context: Context) async -> Timeline<SpectrumEntry> {
         let e = await entry(configuration)
-        // Refresh in about half an hour (iOS decides the exact moment).
-        return Timeline(entries: [e], policy: .after(Date().addingTimeInterval(30 * 60)))
+        // One download, an entry per coming hour; new data in about an hour (see WidgetSchedule).
+        let entries = WidgetSchedule.dates().enumerated().map { i, date in
+            i == 0 ? e : SpectrumEntry(date: date, place: e.place, forecast: e.forecast?.at(date), updated: e.updated,
+                                       options: e.options, placeID: e.placeID, refreshing: false)
+        }
+        return Timeline(entries: entries, policy: .after(WidgetSchedule.nextRefresh(hasData: e.forecast != nil)))
     }
 
     private func entry(_ c: SpectrumIntent) async -> SpectrumEntry {
