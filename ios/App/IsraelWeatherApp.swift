@@ -39,6 +39,12 @@ struct SkyBackground: View {
     let night: Bool
 
     var body: some View {
+        // Settings → Background can keep the day or the night sky all the time.
+        let night = switch AppSettings.shared.skyMode {
+        case .automatic: self.night
+        case .day: false
+        case .night: true
+        }
         let colors: [Color] = WeatherCodes.isRainy(code) ? [Color(hex: 0x6A7A92), Color(hex: 0x3E4B62)]
             : night ? [Color(hex: 0x1F2A4A), Color(hex: 0x2B2552)]
             : [Color(hex: 0x4A86DE), Color(hex: 0x23479A)]

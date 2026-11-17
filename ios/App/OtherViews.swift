@@ -177,6 +177,7 @@ struct SettingsView: View {
     @State private var useLocation = AppSettings.shared.useLocation
     @State private var iconStyle = AppSettings.shared.iconStyle
     @State private var hourDetails = AppSettings.shared.hourDetails
+    @State private var skyMode = AppSettings.shared.skyMode
     @State private var source = AppSettings.shared.source
     @State private var key = AppSettings.shared.forecaKey
     @State private var keyStatus: Bool?
@@ -188,6 +189,11 @@ struct SettingsView: View {
                 Section(L("section_display")) {
                     Picker(L("temperature"), selection: $fahrenheit) { Text("°C").tag(false); Text("°F").tag(true) }
                     Picker(L("wind"), selection: $windMS) { Text(L("unit_kmh")).tag(false); Text(L("unit_ms")).tag(true) }
+                    Picker(L("background"), selection: $skyMode) {
+                        Text(L("sky_automatic")).tag(SkyMode.automatic)
+                        Text(L("sky_day")).tag(SkyMode.day)
+                        Text(L("sky_night")).tag(SkyMode.night)
+                    }
                     Picker(L("icon_style"), selection: $iconStyle) {
                         ForEach(IconStyle.allCases, id: \.self) { style in
                             HStack {
@@ -242,6 +248,7 @@ struct SettingsView: View {
             .onChange(of: windMS) { _, v in AppSettings.shared.windMS = v; model.displayChanged() }
             .onChange(of: iconStyle) { _, v in AppSettings.shared.iconStyle = v; model.displayChanged() }
             .onChange(of: hourDetails) { _, v in AppSettings.shared.hourDetails = v; model.displayChanged() }
+            .onChange(of: skyMode) { _, v in AppSettings.shared.skyMode = v; model.displayChanged() }
             .onChange(of: useLocation) { _, v in AppSettings.shared.useLocation = v; refetch = true }
             .onChange(of: source) { _, v in AppSettings.shared.source = v; refetch = true }
             .onChange(of: key) { _, v in AppSettings.shared.forecaKey = v; refetch = true }

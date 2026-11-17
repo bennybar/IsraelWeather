@@ -4,6 +4,9 @@ let appGroup = "group.com.bennybar.israelweather"
 
 enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca, gfs }
 
+/// The sky behind the app: day or night by sunset, or always one of them (Settings → Background).
+enum SkyMode: String, CaseIterable { case automatic, day, night }
+
 /// Extra lines under each of the next hours (Settings → Next hours).
 enum HourDetail: String, CaseIterable {
     case rain, wind, feels, humidity, uv
@@ -43,6 +46,10 @@ final class AppSettings {
     var hourDetails: Set<HourDetail> {
         get { Set((defaults.array(forKey: "hourDetails") as? [String] ?? [HourDetail.rain.rawValue]).compactMap(HourDetail.init)) }
         set { defaults.set(HourDetail.allCases.filter(newValue.contains).map(\.rawValue), forKey: "hourDetails") }
+    }
+    var skyMode: SkyMode {
+        get { SkyMode(rawValue: defaults.string(forKey: "skyMode") ?? "") ?? .automatic }
+        set { defaults.set(newValue.rawValue, forKey: "skyMode") }
     }
     var useLocation: Bool {
         get { defaults.object(forKey: "useLocation") as? Bool ?? true }

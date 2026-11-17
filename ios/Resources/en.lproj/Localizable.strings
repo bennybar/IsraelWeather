@@ -95,3 +95,7 @@
 "coolest" = "Coolest %@";
 "widget_system_desc" = "The weather in Apple's widget style. Follows your Home Screen's light, dark or clear look.";
 "next_24h" = "next 24 hours";
+"background" = "Background";
+"sky_automatic" = "Automatic";
+"sky_day" = "Always day";
+"sky_night" = "Always night";
