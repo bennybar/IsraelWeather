@@ -39,16 +39,19 @@ struct SkyBackground: View {
     let night: Bool
 
     var body: some View {
-        // Settings → Background can keep the day or the night sky all the time.
+        LinearGradient(colors: Self.colors(code: code, night: night), startPoint: .top, endPoint: .bottom).ignoresSafeArea()
+    }
+
+    /// The sky's top and bottom colors. Settings → Background can keep the day or the night sky.
+    static func colors(code: Int, night: Bool) -> [Color] {
         let night = switch AppSettings.shared.skyMode {
-        case .automatic: self.night
+        case .automatic: night
         case .day: false
         case .night: true
         }
-        let colors: [Color] = WeatherCodes.isRainy(code) ? [Color(hex: 0x6A7A92), Color(hex: 0x3E4B62)]
+        return WeatherCodes.isRainy(code) ? [Color(hex: 0x6A7A92), Color(hex: 0x3E4B62)]
             : night ? [Color(hex: 0x1F2A4A), Color(hex: 0x2B2552)]
             : [Color(hex: 0x4A86DE), Color(hex: 0x23479A)]
-        LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom).ignoresSafeArea()
     }
 }
 

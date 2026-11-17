@@ -27,15 +27,19 @@ struct ForecastView: View {
                         SettingsButton { showSettings = true }.padding(.trailing, 16)
                     }
                 } else {
-                    TabView(selection: $model.page) {
-                        ForEach(Array(pages.enumerated()), id: \.offset) { i, p in
-                            ForecastPage(id: p.id, current: p.current, index: i, count: pages.count) { showSettings = true }.tag(i)
+                    // The pages fill the whole screen, so they run on under the floating tab bar
+                    // (its glass shows them). The page view clips to its own frame and handles safe
+                    // areas badly, so each page gets the top inset and keeps clear of it itself.
+                    GeometryReader { geo in
+                        TabView(selection: $model.page) {
+                            ForEach(Array(pages.enumerated()), id: \.offset) { i, p in
+                                ForecastPage(id: p.id, current: p.current, index: i, count: pages.count, topInset: geo.safeAreaInsets.top) { showSettings = true }.tag(i)
+                            }
                         }
+                        // The page dots live in the header card (the system's float over the content).
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .ignoresSafeArea()
                     }
-                    // The page dots live in the header card (the system's float over the content).
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    // The pages run under the floating tab bar, so its glass shows the content behind it.
-                    .ignoresSafeArea(edges: .bottom)
                     .background(SkyBackground(code: model.sky.code, night: model.sky.night))
                 }
             }
@@ -52,7 +56,13 @@ struct ForecastPage: View {
     let current: Bool
     var index = 0
     var count = 1
+    var topInset: CGFloat = 0
     var openSettings: () -> Void
+
+    /// The status bar's height, from the window (the page view hands its pages no safe area).
+    private var statusBar: CGFloat {
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.keyWindow?.safeAreaInsets.top ?? 59
+    }
 
     var body: some View {
         let entry = model.forecasts[id]
@@ -77,9 +87,21 @@ struct ForecastPage: View {
                 // Room to scroll the last card clear of the tab bar.
                 .padding(.bottom, 110)
             }
-            // Content fades under the status bar as it scrolls (iOS's own edge effect).
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            // Clear of the status bar; the band below fades content out under it as it scrolls (the
+            // page fills the screen, so iOS's own edge effect doesn't apply here).
+            .safeAreaPadding(.top, topInset)
             .refreshable { await model.refreshAll(force: true) }
+            VStack {
+                // Solid sky behind the status bar, fading out just below it.
+                let top = SkyBackground.colors(code: now?.code ?? 1250, night: night)[0]
+                LinearGradient(stops: [.init(color: top, location: 0), .init(color: top, location: statusBar / (statusBar + 22)),
+                                       .init(color: top.opacity(0), location: 1)],
+                               startPoint: .top, endPoint: .bottom)
+                    .frame(height: statusBar + 22)
+                Spacer()
+            }
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
         }
         .foregroundStyle(.white)
     }
