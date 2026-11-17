@@ -34,6 +34,8 @@ struct ForecastView: View {
                     }
                     // The page dots live in the header card (the system's float over the content).
                     .tabViewStyle(.page(indexDisplayMode: .never))
+                    // The pages run under the floating tab bar, so its glass shows the content behind it.
+                    .ignoresSafeArea(edges: .bottom)
                     .background(SkyBackground(code: model.sky.code, night: model.sky.night))
                 }
             }
@@ -72,7 +74,8 @@ struct ForecastPage: View {
                     }
                 }
                 .padding(.horizontal, 14)
-                .padding(.bottom, 24)
+                // Room to scroll the last card clear of the tab bar.
+                .padding(.bottom, 110)
             }
             // Content fades under the status bar as it scrolls (iOS's own edge effect).
             .scrollEdgeEffectStyle(.soft, for: .top)

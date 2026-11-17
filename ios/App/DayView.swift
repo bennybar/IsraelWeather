@@ -94,7 +94,19 @@ struct DayView: View {
         }
     }
 
-    private func dayHours(_ f: Forecast, _ d: Day) -> [Hour] { f.hours(on: d.date) }
+    /// Today late in the day has only a few hours left: show the next 24 instead (tonight and
+    /// tomorrow morning), so the curve, the rain and the hour list stay meaningful.
+    private func rolling(_ f: Forecast, _ d: Day) -> Bool {
+        d.date == Fmt.dayString(Date()) && f.hours(on: d.date).count < 12
+    }
+
+    private func dayHours(_ f: Forecast, _ d: Day) -> [Hour] {
+        rolling(f, d) ? f.upcoming(24) : f.hours(on: d.date)
+    }
+
+    private func title(_ key: String, _ f: Forecast, _ d: Day) -> String {
+        rolling(f, d) ? "\(L(key)) · \(L("next_24h"))" : L(key)
+    }
 
     /// The temperature through the day, with its high and low marked.
     private func temperature(_ f: Forecast, _ d: Day) -> some View {
@@ -102,7 +114,7 @@ struct DayView: View {
         let temps = hours.compactMap(\.temp)
         let lo = temps.min() ?? 0, hi = temps.max() ?? 1
         let top = hours.first { $0.temp == hi }, bottom = hours.first { $0.temp == lo }
-        return Card(title: L("temperature"), icon: "thermometer.medium") {
+        return Card(title: title("temperature", f, d), icon: "thermometer.medium") {
             Chart(hours, id: \.t) { h in
                 AreaMark(x: .value("Hour", h.date), yStart: .value("Base", lo - 3), yEnd: .value("Temp", h.temp ?? lo))
                     .foregroundStyle(LinearGradient(colors: [Color(hex: 0xFFD66B).opacity(0.35), Color(hex: 0xFFD66B).opacity(0.03)], startPoint: .top, endPoint: .bottom))
@@ -157,7 +169,7 @@ struct DayView: View {
             .sorted { (($0.rain ?? 0), ($0.rainChance ?? 0)) > (($1.rain ?? 0), ($1.rainChance ?? 0)) }
             .prefix(3)
             .sorted { $0.t < $1.t }
-        return Card(title: L("rain"), icon: "drop.fill") {
+        return Card(title: title("rain", f, d), icon: "drop.fill") {
             if peak < 10 && total < 0.1 {
                 Text(L("no_rain_day")).font(.title3.weight(.medium))
             } else {
@@ -252,7 +264,7 @@ struct DayView: View {
 
     /// Every hour of the day: time, icon, temperature, rain chance and wind.
     private func hours(_ f: Forecast, _ d: Day) -> some View {
-        Card(title: L("hour_by_hour"), icon: "clock") {
+        Card(title: title("hour_by_hour", f, d), icon: "clock") {
             VStack(spacing: 0) {
                 ForEach(Array(dayHours(f, d).enumerated()), id: \.offset) { i, h in
                     if i > 0 { Divider().overlay(.white.opacity(0.2)) }

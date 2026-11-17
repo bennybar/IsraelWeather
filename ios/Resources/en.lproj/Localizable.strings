@@ -94,3 +94,4 @@
 "warmest" = "Warmest %@";
 "coolest" = "Coolest %@";
 "widget_system_desc" = "The weather in Apple's widget style. Follows your Home Screen's light, dark or clear look.";
+"next_24h" = "next 24 hours";
