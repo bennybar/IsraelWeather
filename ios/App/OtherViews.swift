@@ -1,7 +1,8 @@
 import SwiftUI
 import WidgetKit
 
-/// Places: city cards (swipe to delete, drag to reorder) and search to add.
+/// Places: my location first, then the saved places (swipe to delete, drag to reorder), and search
+/// to add more. Tapping one opens it on the Forecast tab.
 struct PlacesView: View {
     @EnvironmentObject var model: AppModel
     @Binding var tab: Int
@@ -14,8 +15,12 @@ struct PlacesView: View {
         NavigationStack {
             List {
                 if query.isEmpty {
+                    if let mine = model.pages.first(where: \.current) {
+                        Button { model.page = 0; tab = 0 } label: { PlaceCard(id: mine.id, current: true) }
+                            .buttonStyle(.plain)
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    }
                     ForEach(model.savedPlaces, id: \.self) { id in
-                        // Opens the place's page on the Forecast tab.
                         Button {
                             if let i = model.pages.firstIndex(where: { !$0.current && $0.id == id }) { model.page = i }
                             tab = 0
@@ -25,31 +30,43 @@ struct PlacesView: View {
                     }
                     .onDelete { model.remove(at: $0) }
                     .onMove { model.move(from: $0, to: $1) }
+                    if model.savedPlaces.isEmpty {
+                        Label(L("places_hint"), systemImage: "magnifyingglass")
+                            .font(.subheadline).foregroundStyle(.white.opacity(0.85))
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    }
                 } else {
                     let english = Fmt.english
                     let ims = allIMS.filter { $0.he.contains(query) || $0.en.localizedCaseInsensitiveContains(query) }.prefix(10)
                     ForEach(Array(ims)) { p in
                         Button(p.name(english: english)) { model.add(ims: p); query = ""; searching = false }
+                            .foregroundStyle(.white)
+                            .listRowBackground(Color.white.opacity(0.1))
                     }
                     if !results.isEmpty {
-                        Section(L("more_places")) {
+                        Section {
                             ForEach(results.filter { r in !ims.contains { $0.he == r.he } }) { g in
                                 Button {
                                     Task { await model.add(geo: g); query = ""; searching = false }
                                 } label: {
                                     VStack(alignment: .leading) {
                                         Text(english ? g.en : g.he)
-                                        if let r = g.region { Text(r).font(.caption).foregroundStyle(.secondary) }
+                                        if let r = g.region { Text(r).font(.caption).opacity(0.75) }
                                     }
+                                    .foregroundStyle(.white)
                                 }
+                                .listRowBackground(Color.white.opacity(0.1))
                             }
-                        }
+                        } header: { Text(L("more_places")).foregroundStyle(.white.opacity(0.8)) }
                     }
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(SkyBackground(code: 1250, night: false))
             .navigationTitle(L("tab_places"))
-            .searchable(text: $query, prompt: L("search_prompt"))
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: L("search_prompt"))
             .searchFocused($searching)
             .task { allIMS = await Repository.shared.places() }
             .task(id: query) {
@@ -57,22 +74,29 @@ struct PlacesView: View {
                 try? await Task.sleep(for: .milliseconds(350))
                 results = (try? await ECMWF.search(query)) ?? []
             }
-            .toolbar { EditButton() }
+            .toolbar { EditButton().foregroundStyle(.white) }
         }
+        // Light-on-sky title, search field and buttons.
+        .environment(\.colorScheme, .dark)
     }
 }
 
 struct PlaceCard: View {
     @EnvironmentObject var model: AppModel
     let id: Int
+    var current = false
 
     var body: some View {
         let f = model.forecasts[id]?.0
         let now = f?.currentHour()
         let today = f?.days(1).first
+        let name = model.places[id]?.name(english: Fmt.english) ?? "…"
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(model.places[id]?.name(english: Fmt.english) ?? "…").font(.title3.bold())
+                if current {
+                    Label(L("my_location"), systemImage: "location.fill").font(.caption.weight(.semibold)).opacity(0.85)
+                }
+                Text(name).font(.title3.bold())
                 Spacer()
                 Text(now.map { WeatherCodes.describe($0.code) } ?? "").font(.footnote).opacity(0.85)
             }
@@ -86,10 +110,15 @@ struct PlaceCard: View {
         .padding(16)
         .frame(height: 104)
         .background(SkyBackground(code: now?.code ?? 1250, night: now.map { WeatherCodes.isNight($0.t) } ?? false).clipShape(.rect(cornerRadius: 22)))
+        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white.opacity(0.25), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([current ? L("my_location") : nil, name, now.map { WeatherCodes.describe($0.code) }, Fmt.temp(now?.temp)]
+            .compactMap { $0 }.joined(separator: ", "))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
-/// Active IMS warnings for the places in use.
+/// Active IMS warnings for the places in use, as glass cards on the sky.
 struct AlertsView: View {
     @EnvironmentObject var model: AppModel
 
@@ -97,23 +126,38 @@ struct AlertsView: View {
         let regions = Set(model.places.values.map(\.rid))
         let active = model.warnings.filter { $0.isActive && !Set($0.regions).isDisjoint(with: regions) }
         NavigationStack {
-            List {
-                if active.isEmpty {
-                    ContentUnavailableView(L("no_warnings"), systemImage: "checkmark.shield")
-                } else {
-                    ForEach(active) { w in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label(w.typeName?.get(english: Fmt.english) ?? L("warning"), systemImage: "exclamationmark.triangle.fill")
-                                .font(.headline).foregroundStyle(w.severity >= 3 ? .red : .orange)
-                            Text(w.text(english: Fmt.english)).font(.subheadline)
+            ScrollView {
+                VStack(spacing: 12) {
+                    if active.isEmpty {
+                        Card {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.shield.fill").font(.title)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L("no_warnings")).font(.headline)
+                                    Text(L("no_warnings_body")).font(.subheadline).opacity(0.8)
+                                }
+                            }
                         }
-                        .padding(.vertical, 4)
+                    } else {
+                        ForEach(active) { w in
+                            Card {
+                                Label(w.typeName?.get(english: Fmt.english) ?? L("warning"), systemImage: "exclamationmark.triangle.fill")
+                                    .font(.headline).foregroundStyle(w.severity >= 3 ? Color(hex: 0xFF8A80) : Color(hex: 0xFFC46B))
+                                Text(w.text(english: Fmt.english)).font(.subheadline)
+                            }
+                        }
                     }
                 }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 24)
             }
+            .foregroundStyle(.white)
+            .background(SkyBackground(code: 1250, night: false))
             .navigationTitle(L("tab_alerts"))
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .refreshable { await model.refreshAll(force: true) }
         }
+        .environment(\.colorScheme, .dark)
     }
 }
 

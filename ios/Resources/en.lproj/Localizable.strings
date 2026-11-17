@@ -77,3 +77,7 @@
 "dir_6" = "west";
 "dir_7" = "northwest";
 "high_low" = "H:%@  L:%@";
+"places_hint" = "Search above to add a city.";
+"no_warnings_body" = "The Israel Meteorological Service has no warnings for your places.";
+"sunrise" = "Sunrise";
+"see_day" = "Today in detail";

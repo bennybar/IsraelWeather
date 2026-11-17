@@ -7,6 +7,11 @@ struct DayView: View {
     @EnvironmentObject var model: AppModel
     let page: Int
     @State private var day: String
+    /// The hour picked by dragging along the temperature curve.
+    @State private var picked: Date?
+    /// When the curve was last dragged: a drag there must not also switch days.
+    @State private var chartTouched = Date.distantPast
+    @Environment(\.layoutDirection) private var direction
 
     init(route: DayRoute) {
         page = route.page
@@ -33,11 +38,24 @@ struct DayView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 30)
             }
+            // Swipe sideways for the next or previous day (mirrored in Hebrew).
+            .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { v in
+                let dx = v.translation.width
+                guard abs(dx) > 70, abs(dx) > abs(v.translation.height) * 1.5,
+                      Date().timeIntervalSince(chartTouched) > 0.6 else { return }
+                let forward = (dx < 0) != (direction == .rightToLeft)
+                step(forward ? 1 : -1, in: days)
+            })
         }
         .foregroundStyle(.white)
         .navigationTitle(Fmt.longDay(day))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func step(_ by: Int, in days: [Day]) {
+        guard let i = days.firstIndex(where: { $0.date == day }), days.indices.contains(i + by) else { return }
+        withAnimation(.snappy) { day = days[i + by].date }
     }
 
     private func dateStrip(_ days: [Day]) -> some View {
@@ -97,16 +115,31 @@ struct DayView: View {
                         .foregroundStyle(.white)
                         .annotation(position: .top) { Text("\(L("high")) \(Fmt.temp(hi))").font(.caption.weight(.bold)) }
                 }
+                if let picked, let near = nearest(hours, picked), near.t == h.t {
+                    RuleMark(x: .value("Hour", near.date))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .annotation(position: .top, overflowResolution: .init(x: .fit(to: .chart), y: .disabled)) {
+                            VStack(spacing: 1) {
+                                Text(Fmt.time(near.date)).font(.caption2.weight(.semibold)).opacity(0.85)
+                                Text(Fmt.temp(near.temp)).font(.headline)
+                                Text("\(Int((near.rainChance ?? 0).rounded()))% · \(Fmt.wind(near.wind)) \(Fmt.windUnit())").font(.caption2)
+                            }
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(.white.opacity(0.22), in: .rect(cornerRadius: 10))
+                        }
+                }
                 if h.t == bottom?.t {
                     PointMark(x: .value("Hour", h.date), y: .value("Temp", lo))
                         .foregroundStyle(.white)
                         .annotation(position: .bottom) { Text("\(L("low")) \(Fmt.temp(lo))").font(.caption.weight(.bold)) }
                 }
             }
-            .chartYScale(domain: (lo - 3)...(hi + 3))
+            .chartYScale(domain: (lo - 3)...(hi + 6))
             .chartYAxis(.hidden)
             .chartXAxis { hourAxis }
-            .frame(height: 130)
+            .chartXSelection(value: $picked)
+            .onChange(of: picked) { _, v in if v != nil { chartTouched = Date() } }
+            .frame(height: 150)
         }
     }
 
@@ -139,6 +172,10 @@ struct DayView: View {
             .frame(height: 70)
             }
         }
+    }
+
+    private func nearest(_ hours: [Hour], _ at: Date) -> Hour? {
+        hours.min { abs($0.date.timeIntervalSince(at)) < abs($1.date.timeIntervalSince(at)) }
     }
 
     private var hourAxis: some AxisContent {

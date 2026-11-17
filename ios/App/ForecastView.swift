@@ -130,7 +130,20 @@ struct ForecastPage: View {
     private func hourly(_ f: Forecast) -> some View {
         let details = model.settings.hourDetails
         return Card {
-            Text(DaySummary.nextHours(f)).font(.subheadline)
+            if let today = f.days(1).first {
+                NavigationLink(value: DayRoute(page: id, day: today.date)) {
+                    HStack(spacing: 6) {
+                        Text(DaySummary.nextHours(f)).font(.subheadline).multilineTextAlignment(.leading)
+                        Spacer(minLength: 4)
+                        Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).opacity(0.7)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(L("see_day"))
+            } else {
+                Text(DaySummary.nextHours(f)).font(.subheadline)
+            }
             Divider().overlay(.white.opacity(0.3))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 14) {
@@ -173,6 +186,8 @@ struct ForecastPage: View {
                         }
                         .frame(minHeight: 52)
                         .contentShape(Rectangle())
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(rowLabel(f, d))
                     }
                     .buttonStyle(.plain)
                 }
@@ -180,10 +195,23 @@ struct ForecastPage: View {
         }
     }
 
+    /// "Thursday, 19 November, Sunny, H:24° L:14°, Rain chance 40%" for VoiceOver.
+    private func rowLabel(_ f: Forecast, _ d: Day) -> String {
+        var parts = [Fmt.longDay(d.date), WeatherCodes.describe(d.code), String(format: L("high_low"), Fmt.temp(d.max), Fmt.temp(d.min))]
+        if let c = f.rainChance(d), c >= 20 { parts.append("\(L("rain_chance")) \(c)%") }
+        return parts.joined(separator: ", ")
+    }
+
     private func details(_ now: Hour?) -> some View {
-        let feels = Sun.apparent(temp: now?.temp, rh: now?.rh, windKmh: now?.wind)
+        let place = model.places[id]
+        let sun = place.flatMap { Sun.times(day: Fmt.dayString(Date()), lat: $0.lat, lon: $0.lon) }
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            Tile(title: L("feels_like"), icon: "thermometer.medium", value: Fmt.temp(feels))
+            // Sunrise – sunset, one line so the tile matches its neighbours' height.
+            Card(title: L("sun"), icon: "sunrise.fill") {
+                Text(sun.map { "\(Fmt.time($0.0))–\(Fmt.time($0.1))" } ?? "–")
+                    .font(.title.weight(.medium)).lineLimit(1).minimumScaleFactor(0.5)
+                    .accessibilityLabel(sun.map { "\(L("sunrise")) \(Fmt.time($0.0)), \(L("sunset")) \(Fmt.time($0.1))" } ?? "")
+            }
             Tile(title: L("humidity"), icon: "humidity", value: now?.rh.map { "\(Int($0))%" } ?? "–")
             Tile(title: L("wind"), icon: "wind", value: "\(Fmt.wind(now?.wind)) \(Fmt.windUnit())")
             Tile(title: L("uv"), icon: "sun.max", value: now?.uv.map { "\(Int($0.rounded()))" } ?? "–")
@@ -241,6 +269,9 @@ struct HourColumn: View {
             .opacity(0.9)
         }
         .frame(minWidth: 46)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([label, WeatherCodes.describe(h.code), Fmt.temp(h.temp),
+                             h.rainChance.map { "\(L("rain_chance")) \(Int($0.rounded()))%" }].compactMap { $0 }.joined(separator: ", "))
     }
 
     private func detail(_ icon: String, _ value: String) -> some View {
@@ -268,9 +299,11 @@ struct Card<Content: View>: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // Dark frosted glass (like the Weather app), so the white text reads on any sky.
-        .background(.ultraThinMaterial, in: .rect(cornerRadius: 22))
-        .environment(\.colorScheme, .dark)
+        // Light frosted glass: enough darkening for white text to read on any sky, no heavier.
+        .background {
+            RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial).environment(\.colorScheme, .dark).opacity(0.55)
+        }
+        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white.opacity(0.18), lineWidth: 1))
     }
 }
 
