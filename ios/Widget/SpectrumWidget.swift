@@ -144,7 +144,10 @@ struct SpectrumWidget: Widget {
 
 @main
 struct IsraelWeatherWidgets: WidgetBundle {
-    var body: some Widget { SpectrumWidget() }
+    var body: some Widget {
+        SystemWidget()
+        SpectrumWidget()
+    }
 }
 
 

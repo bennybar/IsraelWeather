@@ -70,6 +70,23 @@ enum WidgetSnapshots {
                 }
             }
         }
+        // The Apple-style widgets, on a light and a dark Home Screen.
+        for style in SystemStyle.allCases {
+            for scheme in [ColorScheme.light, .dark] {
+                let entry = SystemEntry(date: Date(), place: name, forecast: f, style: style)
+                let view = SystemWidgetView(entry: entry)
+                    .padding(16)
+                    .frame(width: 170, height: 170)
+                    .background(scheme == .dark ? Color(white: 0.11) : .white)
+                    .clipShape(.rect(cornerRadius: 24))
+                    .environment(\.colorScheme, scheme)
+                let r = ImageRenderer(content: view)
+                r.scale = 3
+                if let png = r.uiImage?.pngData() {
+                    try? png.write(to: dir.appendingPathComponent("sys-\(style.rawValue)-\(scheme == .dark ? "dark" : "light").png"))
+                }
+            }
+        }
         print("WIDGETS: \(dir.path)")
     }
 }

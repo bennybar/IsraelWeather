@@ -90,3 +90,7 @@
 "source_gfs" = "GFS only";
 "source_gfs_line" = "Source: GFS via Open-Meteo";
 "source_gfs_hint" = "NOAA's GFS (via Open-Meteo) everywhere, without IMS. It graded best against Israeli airport stations over the past year. Warnings still come from IMS.";
+"dry_next" = "Dry";
+"warmest" = "Warmest %@";
+"coolest" = "Coolest %@";
+"widget_system_desc" = "The weather in Apple's widget style. Follows your Home Screen's light, dark or clear look.";

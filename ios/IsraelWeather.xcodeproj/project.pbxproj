@@ -17,6 +17,7 @@
 		430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
 		4A9FE67F66859863D43F8358 /* RefreshIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CF5F13DAED7FCC46C18FA /* RefreshIntent.swift */; };
 		50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E165E442BC465AA52ED926 /* AppSettings.swift */; };
+		52F5CACA20106334E0FC34FF /* SystemWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0FE652AE309C7DB31F807D /* SystemWidget.swift */; };
 		610B290AC179793328C33CC4 /* SpectrumWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */; };
 		651C671B18542E0E288D4927 /* Glyphs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7D9E736090F9CABFB86661 /* Glyphs.swift */; };
 		67C064876A5D407A3F507882 /* Sources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2429FCDCBA9DAA5D658A827 /* Sources.swift */; };
@@ -30,8 +31,10 @@
 		9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */; };
 		A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D55FCE78ACC5CF601B32 /* WidgetSnapshots.swift */; };
 		A70BFFD1CB9851FDB8979DFA /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
+		B2A7F3CC12088205EC47C6C1 /* SystemWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2035B33E0815BC45F32373D8 /* SystemWidgetViews.swift */; };
 		B32ED9C4AF474DAAFE780E7B /* WeatherIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 03EDDE9DB7638B451004E535 /* WeatherIcons.xcassets */; };
 		BA3DF6D1B1F016A7BB346012 /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
+		C7EB59445FEE6E4453A64086 /* SystemWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2035B33E0815BC45F32373D8 /* SystemWidgetViews.swift */; };
 		E3AD498D0A0C907E982BCF75 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */; };
 		E4843C38C0B59244F25535F3 /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
 		EEB666AB15791068B3EF9AB2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 261BD4E3746477A1743E8DCC /* Assets.xcassets */; };
@@ -73,10 +76,12 @@
 		05E6B34B8CD4B7796B660D71 /* IsraelWeatherWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IsraelWeatherWidget.entitlements; sourceTree = "<group>"; };
 		0C680C2320A3AEE72489A2D5 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
 		0E47580DF0F1784E82878A5D /* Sun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sun.swift; sourceTree = "<group>"; };
+		2035B33E0815BC45F32373D8 /* SystemWidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWidgetViews.swift; sourceTree = "<group>"; };
 		261BD4E3746477A1743E8DCC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		2E7D9E736090F9CABFB86661 /* Glyphs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glyphs.swift; sourceTree = "<group>"; };
 		30E165E442BC465AA52ED926 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		3D0FE652AE309C7DB31F807D /* SystemWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWidget.swift; sourceTree = "<group>"; };
 		4682C7BF4494BBBDF1DAB29B /* IsraelWeather.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IsraelWeather.entitlements; sourceTree = "<group>"; };
 		48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherCodes.swift; sourceTree = "<group>"; };
 		5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumViews.swift; sourceTree = "<group>"; };
@@ -130,6 +135,7 @@
 				05E6B34B8CD4B7796B660D71 /* IsraelWeatherWidget.entitlements */,
 				776CF5F13DAED7FCC46C18FA /* RefreshIntent.swift */,
 				D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */,
+				3D0FE652AE309C7DB31F807D /* SystemWidget.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -146,6 +152,7 @@
 				C2429FCDCBA9DAA5D658A827 /* Sources.swift */,
 				5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */,
 				0E47580DF0F1784E82878A5D /* Sun.swift */,
+				2035B33E0815BC45F32373D8 /* SystemWidgetViews.swift */,
 				48DA6CEA11EC0A55B8FD6C95 /* WeatherCodes.swift */,
 				03EDDE9DB7638B451004E535 /* WeatherIcons.xcassets */,
 			);
@@ -294,6 +301,7 @@
 				67C064876A5D407A3F507882 /* Sources.swift in Sources */,
 				430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */,
 				965C468DA3AD5175AF894817 /* Sun.swift in Sources */,
+				C7EB59445FEE6E4453A64086 /* SystemWidgetViews.swift in Sources */,
 				9E4D7C64F5B1F7E6062036FC /* WeatherCodes.swift in Sources */,
 				A3F97293D168DE525B361758 /* WidgetSnapshots.swift in Sources */,
 			);
@@ -314,6 +322,8 @@
 				A70BFFD1CB9851FDB8979DFA /* SpectrumViews.swift in Sources */,
 				610B290AC179793328C33CC4 /* SpectrumWidget.swift in Sources */,
 				F316A3D2D236DE9758F8B730 /* Sun.swift in Sources */,
+				52F5CACA20106334E0FC34FF /* SystemWidget.swift in Sources */,
+				B2A7F3CC12088205EC47C6C1 /* SystemWidgetViews.swift in Sources */,
 				F5AC2281987C56565FAC4BA8 /* WeatherCodes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
