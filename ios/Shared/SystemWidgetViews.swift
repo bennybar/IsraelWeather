@@ -104,25 +104,29 @@ struct SystemUpNext: View {
     var body: some View {
         let today = Fmt.dayString(Date())
         let (weekday, number) = weekdayAndNumber(today)
+        // The date block, then the entries, with the free height shared evenly between them.
         VStack(alignment: .leading, spacing: 0) {
-            Text(weekday.uppercased()).font(.system(size: 11, weight: .bold)).foregroundStyle(.red).widgetAccentable()
-            HStack(alignment: .firstTextBaseline) {
-                Text(number).font(.system(size: 30, weight: .medium))
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: -2) {
+                    Text(weekday.uppercased()).font(.system(size: 11, weight: .bold)).foregroundStyle(.red).widgetAccentable()
+                    Text(number).font(.system(size: 32, weight: .medium))
+                }
                 Spacer(minLength: 0)
-                Text(Fmt.temp(now.temp)).font(.system(size: 17, weight: .semibold, design: .rounded))
-                SystemGlyph(code: now.code, night: WeatherCodes.isNight(now.t), size: 18)
+                VStack(alignment: .trailing, spacing: 3) {
+                    SystemGlyph(code: now.code, night: WeatherCodes.isNight(now.t), size: 17)
+                    Text(Fmt.temp(now.temp)).font(.system(size: 17, weight: .semibold, design: .rounded))
+                }
             }
-            Spacer(minLength: 4)
             ForEach(Array(events.enumerated()), id: \.offset) { _, e in
+                Spacer(minLength: 4)
                 HStack(alignment: .top, spacing: 6) {
                     RoundedRectangle(cornerRadius: 1.5).fill(e.color).frame(width: 3).widgetAccentable()
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(e.title).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                        Text(e.detail).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(e.title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                        Text(e.detail).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                     }
                 }
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 5)
             }
         }
     }
@@ -201,7 +205,7 @@ struct SystemHourly: View {
 
 // MARK: H · Three days
 
-/// The Weather widget's forecast rows in a small widget: day, icon, low, range bar, high.
+/// Three day columns: day, icon, high, an upright range bar on the days' shared scale, low.
 struct SystemThreeDays: View {
     let place: String
     let f: Forecast
@@ -211,30 +215,45 @@ struct SystemThreeDays: View {
         let days = f.days(3)
         let lo = days.compactMap(\.min).min() ?? 0
         let hi = max(days.compactMap(\.max).max() ?? lo, lo + 1)
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 PlaceHead(place: place)
                 Spacer(minLength: 2)
-                Text(Fmt.temp(now.temp)).font(.system(size: 20, weight: .medium, design: .rounded))
+                Text(Fmt.temp(now.temp)).font(.system(size: 17, weight: .semibold, design: .rounded))
             }
-            Spacer(minLength: 4)
-            VStack(spacing: 9) {
+            HStack(spacing: 0) {
                 ForEach(Array(days.enumerated()), id: \.offset) { i, d in
-                    HStack(spacing: 4) {
-                        Text(Fmt.dayLabel(d.date)).font(.system(size: 12, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.75)
-                            .frame(width: 34, alignment: .leading)
-                        SystemGlyph(code: d.code, size: 13).frame(width: 16)
-                        Text(Fmt.temp(d.min)).font(.system(size: 12, weight: .medium, design: .rounded)).foregroundStyle(.secondary)
-                            .lineLimit(1).fixedSize()
-                        RangeBar(lo: lo, hi: hi, from: d.min ?? lo, to: d.max ?? hi, dot: i == 0 ? now.temp : nil,
-                                 track: Color(uiColor: .systemFill), ring: .primary,
-                                 colors: [Color(uiColor: .systemCyan), Color(uiColor: .systemYellow), Color(uiColor: .systemOrange)])
-                            .frame(height: 4)
+                    VStack(spacing: 3) {
+                        Text(Fmt.dayLabel(d.date)).font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(i == 0 ? .primary : .secondary).lineLimit(1).minimumScaleFactor(0.8)
+                        SystemGlyph(code: d.code, size: 15).frame(height: 19)
+                        Text(Fmt.temp(d.max)).font(.system(size: 14, weight: .semibold, design: .rounded))
+                        UprightRangeBar(lo: lo, hi: hi, from: d.min ?? lo, to: d.max ?? hi)
+                            .frame(width: 5)
                             .widgetAccentable()
-                        Text(Fmt.temp(d.max)).font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .lineLimit(1).fixedSize()
+                        Text(Fmt.temp(d.min)).font(.system(size: 12, weight: .medium, design: .rounded)).foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(Fmt.dayLabel(d.date)), \(WeatherCodes.describe(d.code)), \(String(format: L("high_low"), Fmt.temp(d.max), Fmt.temp(d.min)))")
                 }
+            }
+        }
+    }
+}
+
+/// A min→max bar standing up: warm on top, cool below, on a shared scale.
+struct UprightRangeBar: View {
+    let lo: Double, hi: Double, from: Double, to: Double
+
+    var body: some View {
+        GeometryReader { g in
+            let h = g.size.height
+            let y = { (v: Double) in CGFloat(1 - (v - lo) / (hi - lo)).clamped() * h }
+            ZStack(alignment: .top) {
+                Capsule().fill(Color(uiColor: .systemFill))
+                LinearGradient(colors: [Color(uiColor: .systemOrange), Color(uiColor: .systemYellow), Color(uiColor: .systemCyan)], startPoint: .top, endPoint: .bottom)
+                    .mask(alignment: .top) { Capsule().frame(height: max(y(from) - y(to), g.size.width)).offset(y: y(to)) }
             }
         }
     }
