@@ -4,6 +4,21 @@ let appGroup = "group.com.bennybar.israelweather"
 
 enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca }
 
+/// Extra lines under each of the next hours (Settings → Next hours).
+enum HourDetail: String, CaseIterable {
+    case rain, wind, feels, humidity, uv
+
+    var icon: String {
+        switch self {
+        case .rain: return "drop.fill"
+        case .wind: return "wind"
+        case .feels: return "thermometer.medium"
+        case .humidity: return "humidity.fill"
+        case .uv: return "sun.max.fill"
+        }
+    }
+}
+
 /// Settings, in the App Group so the widgets read the same values (and the last location).
 final class AppSettings {
     static let shared = AppSettings()
@@ -23,6 +38,11 @@ final class AppSettings {
     var iconStyle: IconStyle {
         get { IconStyle(rawValue: defaults.string(forKey: "iconStyle") ?? "") ?? .apple }
         set { defaults.set(newValue.rawValue, forKey: "iconStyle") }
+    }
+    /// What the forecast page's next hours show under each hour's temperature.
+    var hourDetails: Set<HourDetail> {
+        get { Set((defaults.array(forKey: "hourDetails") as? [String] ?? [HourDetail.rain.rawValue]).compactMap(HourDetail.init)) }
+        set { defaults.set(HourDetail.allCases.filter(newValue.contains).map(\.rawValue), forKey: "hourDetails") }
     }
     var useLocation: Bool {
         get { defaults.object(forKey: "useLocation") as? Bool ?? true }

@@ -117,6 +117,7 @@ struct SettingsView: View {
     @State private var windMS = AppSettings.shared.windMS
     @State private var useLocation = AppSettings.shared.useLocation
     @State private var iconStyle = AppSettings.shared.iconStyle
+    @State private var hourDetails = AppSettings.shared.hourDetails
     @State private var source = AppSettings.shared.source
     @State private var key = AppSettings.shared.forecaKey
     @State private var keyStatus: Bool?
@@ -138,6 +139,14 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.navigationLink)
                 }
+                Section {
+                    ForEach(HourDetail.allCases, id: \.self) { d in
+                        Toggle(isOn: Binding(get: { hourDetails.contains(d) },
+                                             set: { on in if on { hourDetails.insert(d) } else { hourDetails.remove(d) } })) {
+                            Label(L("detail_\(d.rawValue)"), systemImage: d.icon)
+                        }
+                    }
+                } header: { Text(L("next_hours")) } footer: { Text(L("next_hours_footer")) }
                 Section {
                     Picker(L("section_source"), selection: $source) {
                         Text(L("source_ims_ecmwf")).tag(ForecastSource.imsEcmwf)
@@ -167,13 +176,14 @@ struct SettingsView: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("done")) { dismiss() } } }
             .onDisappear {
                 let s = AppSettings.shared
-                let changed = s.fahrenheit != fahrenheit || s.windMS != windMS || s.useLocation != useLocation || s.source != source || s.forecaKey != key || s.iconStyle != iconStyle
+                let changed = s.fahrenheit != fahrenheit || s.windMS != windMS || s.useLocation != useLocation || s.source != source || s.forecaKey != key || s.iconStyle != iconStyle || s.hourDetails != hourDetails
                 s.fahrenheit = fahrenheit
                 s.windMS = windMS
                 s.useLocation = useLocation
                 s.source = source
                 s.forecaKey = key
                 s.iconStyle = iconStyle
+                s.hourDetails = hourDetails
                 if changed { model.settingsChanged() }
             }
         }

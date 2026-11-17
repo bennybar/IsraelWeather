@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		11FA37AEA0BB0305843AD08E /* WeatherIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 03EDDE9DB7638B451004E535 /* WeatherIcons.xcassets */; };
 		19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8687ECA21E024CC5B146CF0 /* Repository.swift */; };
+		1DC41721FA7E9C4B49525828 /* DayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BA5E590D5BEE3B7785FD91 /* DayView.swift */; };
 		20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
 		266EB4257006A45DCD795D06 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
 		2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */; };
@@ -87,6 +88,7 @@
 		8E6C215635E2C5081B833A77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		945586967142489A20048C10 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsraelWeatherApp.swift; sourceTree = "<group>"; };
+		A6BA5E590D5BEE3B7785FD91 /* DayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayView.swift; sourceTree = "<group>"; };
 		B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fmt.swift; sourceTree = "<group>"; };
 		C2429FCDCBA9DAA5D658A827 /* Sources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources.swift; sourceTree = "<group>"; };
 		D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumWidget.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 			children = (
 				2C7CCDE4F40CD4D86A895D6D /* AppModel.swift */,
 				261BD4E3746477A1743E8DCC /* Assets.xcassets */,
+				A6BA5E590D5BEE3B7785FD91 /* DayView.swift */,
 				0C680C2320A3AEE72489A2D5 /* ForecastView.swift */,
 				5295685A5FC9285E4DBB7F8A /* Info.plist */,
 				4682C7BF4494BBBDF1DAB29B /* IsraelWeather.entitlements */,
@@ -279,6 +282,7 @@
 			files = (
 				FC7443FD7AD55F3D6004682E /* AppModel.swift in Sources */,
 				50E94316454B9CAB4C1DD682 /* AppSettings.swift in Sources */,
+				1DC41721FA7E9C4B49525828 /* DayView.swift in Sources */,
 				F50407C594C1E5DCBB1CB0B5 /* Fmt.swift in Sources */,
 				9810EE1D337D9B3BBAF4EE0D /* ForecastView.swift in Sources */,
 				20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */,

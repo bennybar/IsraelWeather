@@ -52,6 +52,31 @@ enum Fmt {
     static func windUnit(_ s: AppSettings = .shared) -> String { L(s.windMS ? "unit_ms" : "unit_kmh") }
 
     static func pct(_ v: Int?) -> String { v.map { "\($0)%" } ?? "–" }
+
+    private static func localized(_ pattern: String) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: english ? "en_US" : "he_IL")
+        f.timeZone = israelZone
+        f.dateFormat = pattern
+        return f
+    }
+
+    /// "Friday, 20 November" in the app's language.
+    static func longDay(_ day: String) -> String {
+        guard let d = parseDay(day) else { return day }
+        return localized(english ? "EEEE, d MMMM" : "EEEE, d בMMMM").string(from: d)
+    }
+
+    /// A day's weekday initial and day of the month, for the day screen's date strip.
+    static func dayParts(_ day: String) -> (String, String) {
+        guard let d = parseDay(day) else { return ("", day) }
+        return (localized("EEEEE").string(from: d), formatter("d").string(from: d))
+    }
+
+    /// Where the wind comes from, in words ("northwest").
+    static func compass(_ deg: Double) -> String {
+        L("dir_\(Int(((deg.truncatingRemainder(dividingBy: 360) + 360 + 22.5) / 45)) % 8)")
+    }
 }
 
 /// A localized string from Localizable.strings.
