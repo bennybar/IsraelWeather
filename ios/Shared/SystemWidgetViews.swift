@@ -11,7 +11,8 @@ enum SystemStyle: String, CaseIterable, Sendable {
     case upNext, hourly, threeDays
 }
 
-/// The widget's appearance: the Home Screen's, or pinned.
+/// The widget's appearance: the Home Screen's, or pinned. (Transparent glass is the Home
+/// Screen's own Clear mode: iOS gives a widget no way to drop its background by itself.)
 enum SystemAppearance: String, CaseIterable, Sendable {
     case automatic, light, dark
 }
@@ -24,8 +25,9 @@ struct SystemEntry: TimelineEntry {
     var appearance: SystemAppearance = .automatic
 }
 
-/// Apple's widget background: white in light mode, dark grey in dark mode.
-let systemWidgetBackground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.11, alpha: 1) : .white })
+/// Apple's widget background: white in light mode, black in dark mode (iOS adds its glass sheen
+/// on top, which is what makes Apple's dark widgets the near-black they are).
+let systemWidgetBackground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? .black : .white })
 
 struct SystemWidgetView: View {
     let entry: SystemEntry
@@ -59,7 +61,7 @@ struct SystemWidgetView: View {
             switch entry.appearance {
             case .automatic: systemWidgetBackground
             case .light: Color.white
-            case .dark: Color(white: 0.11)
+            case .dark: Color.black
             }
         }
     }
