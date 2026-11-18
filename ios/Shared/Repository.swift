@@ -133,16 +133,21 @@ actor Repository {
         let lat = (loc.coordinate.latitude * 1000).rounded() / 1000
         let lon = (loc.coordinate.longitude * 1000).rounded() / 1000
         guard let (place, km) = await nearest(lat: lat, lon: lon) else { return }
+        // Moved more than about a kilometer: the exact-spot forecast saved for "my location" is for
+        // the old spot, so drop it (it would otherwise be reused for up to 20 minutes).
+        if let oldLat = settings.currentLat, let oldLon = settings.currentLon, Self.km(oldLat, oldLon, lat, lon) > 1 {
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent("forecast-\(currentID)"))
+        }
         settings.currentLat = lat
         settings.currentLon = lon
         settings.currentPlace = place.id
         settings.currentKm = km
-        if km > imsRadiusKm {
-            let cell = "\((lat * 100).rounded()),\((lon * 100).rounded())"
-            if settings.currentTownCell != cell || settings.currentTown == nil {
-                settings.currentTown = await Self.town(loc)
-                settings.currentTownCell = cell
-            }
+        // The town's name for every new ~1 km square, near an IMS point or not: "my location" is
+        // named after it with any source (only skipping it near IMS points left the old name).
+        let cell = "\((lat * 100).rounded()),\((lon * 100).rounded())"
+        if settings.currentTownCell != cell || settings.currentTown == nil {
+            settings.currentTown = await Self.town(loc)
+            settings.currentTownCell = cell
         }
     }
 

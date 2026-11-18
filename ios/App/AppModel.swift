@@ -128,9 +128,20 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         Task { @MainActor in await apply(loc) }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
+    /// A fix can fail (no signal yet, or "location unknown"): try once more a few seconds later.
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        Task { @MainActor in
+            guard !retriedFix else { return }
+            retriedFix = true
+            try? await Task.sleep(for: .seconds(5))
+            manager.requestLocation()
+        }
+    }
+
+    private var retriedFix = false
 
     private func apply(_ loc: CLLocation) async {
+        retriedFix = false
         await Repository.shared.updateLocation(loc)
         await refreshAll()
     }
