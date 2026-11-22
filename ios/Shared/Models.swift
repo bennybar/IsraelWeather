@@ -72,6 +72,8 @@ struct Forecast: Codable {
     static let sourceForeca = "foreca"
     /// NOAA's GFS through Open-Meteo.
     static let sourceGFS = "gfs"
+    /// Open-Meteo's best match: its blend of the best models for each place.
+    static let sourceBest = "best-match"
 
     enum CodingKeys: String, CodingKey { case id, hourly, daily, source, now }
 

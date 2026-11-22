@@ -99,3 +99,6 @@
 "sky_automatic" = "Automatic";
 "sky_day" = "Always day";
 "sky_night" = "Always night";
+"source_best" = "Best match";
+"source_best_line" = "Source: Open-Meteo best match";
+"source_best_hint" = "Open-Meteo's automatic blend of the best models for each place, without IMS. It had the most accurate temperatures against Israeli airport stations. Warnings still come from IMS.";

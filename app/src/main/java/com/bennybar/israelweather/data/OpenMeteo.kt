@@ -26,6 +26,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     companion object {
         const val ECMWF = "ecmwf_ifs"
         const val GFS = "gfs_global"
+        const val BEST = "best_match"
     }
 
     @Serializable
@@ -88,7 +89,8 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             json.decodeFromString(Response.serializer(), res.body.string())
         }
         // ECMWF has no UV index: take it from Open-Meteo's default blend (same hours and days).
-        val uv = runCatching { uvIndex(lat, lon, fresh) }.getOrNull()
+        // GFS and best match carry their own, so they need no second request.
+        val uv = if (model == ECMWF) runCatching { uvIndex(lat, lon, fresh) }.getOrNull() else null
         val h = r.hourly.copy(uv_index = uv?.hourly?.uv_index ?: r.hourly.uv_index)
         val dailyUv = uv?.daily?.uv_index_max ?: r.daily.uv_index_max
         val sky = h.time.indices.map { i -> effectiveCloud(h.cloud_cover_low.getOrNull(i), h.cloud_cover_mid.getOrNull(i), h.cloud_cover_high.getOrNull(i)) }
@@ -125,7 +127,11 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         // Current conditions (15-minutely); rain chance and UV come from the hour they fall in.
         val now = r.current?.let { c -> nowHour(c, hours) }
-        Forecast(id = id, hourly = hours, daily = days, source = if (model == GFS) Forecast.SOURCE_GFS else Forecast.SOURCE_OPEN_METEO, now = now)
+        Forecast(id = id, hourly = hours, daily = days, source = when (model) {
+            GFS -> Forecast.SOURCE_GFS
+            BEST -> Forecast.SOURCE_BEST
+            else -> Forecast.SOURCE_OPEN_METEO
+        }, now = now)
     }
 
     @Serializable

@@ -178,6 +178,7 @@ fun SettingsScreen() {
                         ForecastSource.IMS_ECMWF to R.string.source_ims_ecmwf,
                         ForecastSource.ECMWF to R.string.source_ecmwf,
                         ForecastSource.GFS to R.string.source_gfs_choice,
+                        ForecastSource.BEST to R.string.source_best_choice,
                         ForecastSource.FORECA to R.string.source_foreca_choice,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -198,6 +199,7 @@ fun SettingsScreen() {
                                 ForecastSource.IMS_ECMWF -> R.string.source_ims_ecmwf_hint
                                 ForecastSource.ECMWF -> R.string.source_ecmwf_hint
                                 ForecastSource.GFS -> R.string.source_gfs_hint
+                                ForecastSource.BEST -> R.string.source_best_hint
                                 ForecastSource.FORECA -> R.string.source_foreca_hint
                             },
                         ),

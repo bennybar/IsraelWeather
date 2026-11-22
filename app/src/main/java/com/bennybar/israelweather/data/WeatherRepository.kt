@@ -163,7 +163,11 @@ class WeatherRepository(
         if (s.forecastSource == ForecastSource.FORECA && s.forecaKey.isNotBlank()) {
             runCatching { foreca.forecast(lat, lon, s.forecaKey, id) }.onSuccess { return it }
         }
-        val model = if (s.forecastSource == ForecastSource.GFS) OpenMeteo.GFS else OpenMeteo.ECMWF
+        val model = when (s.forecastSource) {
+            ForecastSource.GFS -> OpenMeteo.GFS
+            ForecastSource.BEST -> OpenMeteo.BEST
+            else -> OpenMeteo.ECMWF
+        }
         return openMeteo.forecast(lat, lon, fresh = force, id = id, model = model)
     }
 

@@ -112,7 +112,7 @@ actor Repository {
             return f
         }
         return try await ECMWF.forecast(lat: lat, lon: lon, id: id, fresh: fresh,
-                                        model: settings.source == .gfs ? ECMWF.gfsModel : ECMWF.ecmwfModel)
+                                        model: settings.source == .gfs ? ECMWF.gfsModel : settings.source == .best ? ECMWF.bestModel : ECMWF.ecmwfModel)
     }
 
     // MARK: warnings

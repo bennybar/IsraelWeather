@@ -194,6 +194,7 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                             when (it.source) {
                                 Forecast.SOURCE_OPEN_METEO -> R.string.source_line_om
                                 Forecast.SOURCE_GFS -> R.string.source_line_gfs
+                                Forecast.SOURCE_BEST -> R.string.source_line_best
                                 Forecast.SOURCE_FORECA -> R.string.source_line_foreca
                                 else -> R.string.source_line_ims
                             },
@@ -235,6 +236,7 @@ private fun ForecastPage(id: Int, current: Boolean, dots: @Composable () -> Unit
                                 when (data.source) {
                                     Forecast.SOURCE_OPEN_METEO -> R.string.source_om
                                     Forecast.SOURCE_GFS -> R.string.source_gfs
+                                    Forecast.SOURCE_BEST -> R.string.source_best
                                     Forecast.SOURCE_FORECA -> R.string.source_foreca
                                     else -> R.string.source_ims
                                 },

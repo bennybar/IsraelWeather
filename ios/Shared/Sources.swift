@@ -76,6 +76,8 @@ enum ECMWF {
     static let ecmwfModel = "ecmwf_ifs"
     /// NOAA's GFS: the best-graded model against Israeli airports (tools/accuracy).
     static let gfsModel = "gfs_global"
+    /// Open-Meteo's blend: the most accurate temperatures against Israeli airports (tools/accuracy).
+    static let bestModel = "best_match"
 
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))" +
@@ -86,7 +88,7 @@ enum ECMWF {
         // ECMWF has no UV index: take it from Open-Meteo's default blend, at the same time (one
         // radio wake-up, not two in a row). GFS carries its own, so it needs no second request.
         let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7")!
-        async let uvTask: UV? = model == gfsModel ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
+        async let uvTask: UV? = model != ecmwfModel ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
         let r = try await fetch(url, Response.self, fresh: fresh)
         let uv = await uvTask
         let h = r.hourly
@@ -109,7 +111,7 @@ enum ECMWF {
             let dayCode = ((code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil) ? skyCode(3, dayCloud) : skyCode(code, dayCloud)
             return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: (uv?.daily.uv_index_max ?? d.uv_index_max)?[safe: i] ?? nil)
         }
-        return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
+        return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : model == bestModel ? Forecast.sourceBest : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
     }
 
     /// ECMWF's current conditions at a point, for "now" at IMS places.

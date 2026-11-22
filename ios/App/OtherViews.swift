@@ -218,6 +218,7 @@ struct SettingsView: View {
                         Text(L("source_ims_ecmwf")).tag(ForecastSource.imsEcmwf)
                         Text(L("source_ecmwf")).tag(ForecastSource.ecmwf)
                         Text(L("source_gfs")).tag(ForecastSource.gfs)
+                        Text(L("source_best")).tag(ForecastSource.best)
                         Text("Foreca").tag(ForecastSource.foreca)
                     }
                     .pickerStyle(.inline)
@@ -231,7 +232,7 @@ struct SettingsView: View {
                         }
                         Link(L("foreca_signup"), destination: URL(string: "https://developer.foreca.com/checkout?plan=Freemium-EUR-Monthly&mode=paid")!)
                     }
-                } header: { Text(L("section_source")) } footer: { Text(L(source == .foreca ? "source_foreca_hint" : source == .ecmwf ? "source_ecmwf_hint" : source == .gfs ? "source_gfs_hint" : "source_ims_ecmwf_hint")) }
+                } header: { Text(L("section_source")) } footer: { Text(L(source == .foreca ? "source_foreca_hint" : source == .ecmwf ? "source_ecmwf_hint" : source == .gfs ? "source_gfs_hint" : source == .best ? "source_best_hint" : "source_ims_ecmwf_hint")) }
                 Section(L("section_location")) {
                     Toggle(L("use_location"), isOn: $useLocation)
                 }

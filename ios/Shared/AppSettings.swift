@@ -2,7 +2,7 @@ import Foundation
 
 let appGroup = "group.com.bennybar.israelweather"
 
-enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca, gfs }
+enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, foreca, gfs, best }
 
 /// The sky behind the app: day or night by sunset, or always one of them (Settings → Background).
 enum SkyMode: String, CaseIterable { case automatic, day, night }

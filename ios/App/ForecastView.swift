@@ -254,6 +254,7 @@ struct ForecastPage: View {
         switch f.source {
         case Forecast.sourceECMWF: src = L("source_ecmwf_line")
         case Forecast.sourceGFS: src = L("source_gfs_line")
+        case Forecast.sourceBest: src = L("source_best_line")
         case Forecast.sourceForeca: src = L("source_foreca_line")
         default: src = L("source_ims_line")
         }
