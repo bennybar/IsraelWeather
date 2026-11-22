@@ -234,7 +234,7 @@
     <string name="source_line_gfs">מקור: GFS דרך Open-Meteo · מיקום מדויק</string>
     <string name="source_gfs">תחזית: GFS דרך Open-Meteo · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
     <string name="source_best_choice">Best Combined</string>
-    <string name="source_best_hint">טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, מהירות רוח מ-GFS ו-Météo-France; שמיים, משבים ומזג האוויר הנוכחי מ-best match. בבדיקה מול תחנות שדות התעופה בשנה האחרונה, 1–3 ימים קדימה, היה מדויק מכל מודל בודד, בעיקר בזכות טמפרטורות מדויקות יותר. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
+    <string name="source_best_hint">טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, רוח ומשבים מ-GFS ו-Météo-France; שמיים ולחות מ-best match, עם סמל גשם בכל מקום שהשילוב צופה בו גשם. בבדיקה מול תחנות שדות התעופה בשנה האחרונה, 1–3 ימים קדימה, היה מדויק מכל מודל בודד, בעיקר בזכות טמפרטורות מדויקות יותר. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
     <string name="source_line_best">מקור: Best Combined (כמה מודלים דרך Open-Meteo) · מיקום מדויק</string>
     <string name="source_best">תחזית: Best Combined, כמה מודלים דרך Open-Meteo · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
 </resources>

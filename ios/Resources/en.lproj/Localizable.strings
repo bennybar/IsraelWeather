@@ -101,4 +101,4 @@
 "sky_night" = "Always night";
 "source_best" = "Best Combined";
 "source_best_line" = "Source: Best Combined (several models via Open-Meteo)";
-"source_best_hint" = "Temperature from Open-Meteo best match and ECMWF's AI model, rain from GFS, Météo-France and ICON, wind speed from GFS and Météo-France; sky, gusts and current conditions from best match. Over the past year, 1–3 days ahead, it beat every single model against Israeli airport stations, mostly thanks to more accurate temperatures. Warnings still come from IMS.";
+"source_best_hint" = "Temperature from Open-Meteo best match and ECMWF's AI model, rain from GFS, Météo-France and ICON, wind and gusts from GFS and Météo-France; sky and humidity from best match, with a rain icon wherever the blend has rain. Over the past year, 1–3 days ahead, it beat every single model against Israeli airport stations, mostly thanks to more accurate temperatures. Warnings still come from IMS.";

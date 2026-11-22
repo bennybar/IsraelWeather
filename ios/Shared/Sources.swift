@@ -82,10 +82,11 @@ enum ECMWF {
     /// "Best Combined", from one multi-model response (fields suffixed with each model's name): each
     /// measure averaged over the models that forecast it best 1–3 days ahead against Israeli airports
     /// (tools/accuracy). Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON
-    /// (chance: GFS and ICON, the others give none). Wind speed: GFS and Météo-France. The sky,
-    /// humidity, gusts, wind direction, UV and "now": best match, kept consistent with the blend (a wet
-    /// blend gets a rain icon, gusts never below the speed, the day's high and low from the hours).
-    /// An hour no chosen model covers falls back to best match; a missing column is all nils.
+    /// (chance: GFS and ICON, the others give none). Wind speed and gusts: GFS and Météo-France. The
+    /// sky, humidity, wind direction and UV: best match, kept consistent with the blend (a wet blend
+    /// gets a rain code, gusts never below the speed, the day's high and low from the hours, "now"
+    /// shifted to the blend of its hour). An hour no chosen model covers falls back to best match; a
+    /// missing column is all nils.
     private static func combine(_ data: Data) throws -> Response {
         guard let o = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let h = o["hourly"] as? [String: Any], let d = o["daily"] as? [String: Any],
@@ -103,27 +104,29 @@ enum ECMWF {
                 return v.isEmpty ? fallback[i] : v.reduce(0, +) / Double(v.count)
             }
         }
+        // A dry or foggy code (0–3, 45, 48) with `mm` of blended rain from `from` up: light rain, or
+        // rain from `heavy` up. Other codes (drizzle, rain, storms) stay.
+        func wetCode(_ code: Int?, _ mm: Double?, _ from: Double, _ heavy: Double) -> Int? {
+            guard let code, let mm, mm >= from, code <= 3 || code == 45 || code == 48 else { return code }
+            return mm >= heavy ? 61 : 51
+        }
         let n = hTimes.count, nd = dTimes.count
+        let bestTemp = best(h, "temperature_2m", n)
         let temp = mean(h, "temperature_2m", n, ["best_match", "ecmwf_aifs025_single"])
         let rain = mean(h, "precipitation", n, ["gfs_global", "meteofrance_arpege_world", "icon_global"])
         let wind = mean(h, "wind_speed_10m", n, ["gfs_global", "meteofrance_arpege_world"])
-        // Best match's sky code, but a clearly wet blended hour (0.2 mm+) it calls dry becomes light rain.
-        let hourCodes = best(h, "weather_code", n)
-        let codes: [Int?] = (0..<n).map { i -> Int? in
-            guard let c = hourCodes[i].map({ Int($0) }) else { return nil }
-            return c <= 3 && (rain[i] ?? 0) >= 0.2 ? 61 : c
-        }
-        let bestGusts = best(h, "wind_gusts_10m", n)
+        let rawGusts = mean(h, "wind_gusts_10m", n, ["gfs_global", "meteofrance_arpege_world"])
         let gusts: [Double?] = (0..<n).map { i -> Double? in
-            guard let g = bestGusts[i], let w = wind[i] else { return bestGusts[i] }
+            guard let g = rawGusts[i], let w = wind[i] else { return rawGusts[i] }
             return max(g, w)
         }
+        let hourCodes = best(h, "weather_code", n)
         let hourly = Hourly(
             time: hTimes,
             temperature_2m: temp,
             precipitation_probability: mean(h, "precipitation_probability", n, ["gfs_global", "icon_global"]),
             precipitation: rain,
-            weather_code: codes,
+            weather_code: (0..<n).map { i -> Int? in wetCode(hourCodes[i].map { Int($0) }, rain[i], 0.2, 1.0) },
             relative_humidity_2m: best(h, "relative_humidity_2m", n),
             wind_speed_10m: wind,
             wind_direction_10m: best(h, "wind_direction_10m", n),
@@ -136,23 +139,26 @@ enum ECMWF {
         let dayCodes = best(d, "weather_code", nd), bestMax = best(d, "temperature_2m_max", nd), bestMin = best(d, "temperature_2m_min", nd)
         let daily = Daily(
             time: dTimes,
-            // A day with 1 mm+ of blended rain that best match calls dry gets a rain code too.
+            // Rain in the daytime (07–17) makes the day rainy, as forecast() keeps it (wetDayMM).
             weather_code: (0..<nd).map { i -> Int? in
-                guard let c = dayCodes[i].map({ Int($0) }) else { return nil }
-                let wet = dayHours[i].reduce(0.0) { $0 + (rain[$1] ?? 0) }
-                return c <= 3 && wet >= 1 ? 61 : c
+                let daytime = dayHours[i].filter { (7...17).contains(Int(hTimes[$0].dropFirst(11).prefix(2)) ?? 0) }
+                return wetCode(dayCodes[i].map { Int($0) }, daytime.reduce(0.0) { $0 + (rain[$1] ?? 0) }, wetDayMM, 2.0)
             },
             // The day's high and low from the blended hours, so they agree with the hourly row.
             temperature_2m_max: (0..<nd).map { i -> Double? in dayHours[i].compactMap { temp[$0] }.max() ?? bestMax[i] },
             temperature_2m_min: (0..<nd).map { i -> Double? in dayHours[i].compactMap { temp[$0] }.min() ?? bestMin[i] },
             uv_index_max: best(d, "uv_index_max", nd))
-        // "Now" is best match's, with the blended wind of the hour it falls in (gusts never below it).
+        // "Now" is best match's (15-minutely), moved onto the blend of the hour it falls in: its
+        // temperature shifted by the blend's difference, the blended wind and gusts, a rain code if wet.
         var current = try (o["current"]).map { try JSONDecoder().decode(Current.self, from: JSONSerialization.data(withJSONObject: $0)) }
-        if let c = current {
-            let w = hTimes.lastIndex(where: { $0 <= c.time }).flatMap { wind[$0] } ?? c.wind_speed_10m
-            current = Current(time: c.time, temperature_2m: c.temperature_2m, relative_humidity_2m: c.relative_humidity_2m,
-                              weather_code: c.weather_code, wind_speed_10m: w, wind_direction_10m: c.wind_direction_10m,
-                              wind_gusts_10m: c.wind_gusts_10m.map { g in w.map { max(g, $0) } ?? g },
+        if let c = current, let slot = hTimes.lastIndex(where: { $0 <= c.time }) {
+            let shift = temp[slot].flatMap { t in bestTemp[slot].map { t - $0 } } ?? 0
+            let w = wind[slot] ?? c.wind_speed_10m
+            current = Current(time: c.time, temperature_2m: c.temperature_2m.map { $0 + shift },
+                              relative_humidity_2m: c.relative_humidity_2m,
+                              weather_code: wetCode(c.weather_code, rain[slot], 0.2, 1.0),
+                              wind_speed_10m: w, wind_direction_10m: c.wind_direction_10m,
+                              wind_gusts_10m: gusts[slot] ?? c.wind_gusts_10m.map { g in w.map { max(g, $0) } ?? g },
                               cloud_cover_low: c.cloud_cover_low, cloud_cover_mid: c.cloud_cover_mid, cloud_cover_high: c.cloud_cover_high)
         }
         return Response(hourly: hourly, daily: daily, current: current)
@@ -166,6 +172,8 @@ enum ECMWF {
     /// "Best Combined": several models in one request, each measure from the ones best at it.
     static let bestModel = "combined"
     // best_match must stay first: Open-Meteo answers `current` for the first model listed.
+    /// Best Combined: daytime (07–17) blended rain that makes a day rainy, whatever its hour codes.
+    private static let wetDayMM = 0.5
     private static let combinedModels = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
 
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
@@ -196,8 +204,10 @@ enum ECMWF {
             let clouds = daytime.compactMap { sky[$0] }
             let dayCloud = clouds.isEmpty ? nil : clouds.reduce(0, +) / Double(clouds.count)
             let weatherHours = daytime.filter { (h.weather_code[$0] ?? 0) > 3 }.count
+            // Best Combined: a day with real daytime rain keeps its rain code however few hours it took.
+            let wetDay = model == bestModel && daytime.reduce(0.0) { $0 + (h.precipitation[$1] ?? 0) } >= wetDayMM
             let code = d.weather_code[i]
-            let dayCode = ((code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil) ? skyCode(3, dayCloud) : skyCode(code, dayCloud)
+            let dayCode = ((code ?? 0) > 3 && weatherHours < 3 && !wetDay && dayCloud != nil) ? skyCode(3, dayCloud) : skyCode(code, dayCloud)
             return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: (uv?.daily.uv_index_max ?? d.uv_index_max)?[safe: i] ?? nil)
         }
         return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : model == bestModel ? Forecast.sourceBest : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })

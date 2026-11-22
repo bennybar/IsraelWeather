@@ -120,6 +120,28 @@ def model_forecasts(model, lat, lon, start, end):
     return out
 
 
+# Best Combined, as the apps build it: each measure averaged over the models listed for it, an
+# hour none of them covers taking best match's value.
+BLEND = {"temp": ["best_match", "ecmwf_aifs025_single"],
+         "rain": ["gfs_global", "meteofrance_arpege_world", "icon_global"],
+         "wind": ["gfs_global", "meteofrance_arpege_world"]}
+
+
+def blend_forecasts(lat, lon, start, end):
+    models = {m for ms in BLEND.values() for m in ms} | {"best_match"}
+    fc = {m: model_forecasts(m, lat, lon, start, end) for m in models}
+    out = {}
+    for lead in LEADS:
+        out[lead] = {}
+        for k, base in fc["best_match"][lead].items():
+            vals = []
+            for i, measure in enumerate(("temp", "rain", "wind")):
+                v = [fc[m][lead][k][i] for m in BLEND[measure] if k in fc[m][lead] and fc[m][lead][k][i] is not None]
+                vals.append(sum(v) / len(v) if v else base[i])
+            out[lead][k] = tuple(vals)
+    return out
+
+
 def score(obs, fc):
     """Errors of one source at one station, given {(day, hour): (temp, precip, wind)}."""
     by_day = collections.defaultdict(list)
@@ -238,13 +260,15 @@ def main():
                       ("app_best", "Best match (logged)"),
                       ("app_combined", "Best Combined as the app gets it (logged)")):
         sources[src] = ("log", name)
+    sources["combined"] = ("blend", "Best Combined (the app's blend)")
 
     results = {}
     for src, (kind, name) in sources.items():
         per_lead = {lead: [] for lead in LEADS}
         per_station = {}
         for icao, (_, lat, lon) in STATIONS.items():
-            fc = model_forecasts(src, lat, lon, start, end) if kind == "model" else logged_forecasts(args.logs, src, icao)
+            fc = (model_forecasts(src, lat, lon, start, end) if kind == "model" else
+                  blend_forecasts(lat, lon, start, end) if kind == "blend" else logged_forecasts(args.logs, src, icao))
             for lead in LEADS:
                 if fc[lead]:
                     sc = score(obs[icao], fc[lead])

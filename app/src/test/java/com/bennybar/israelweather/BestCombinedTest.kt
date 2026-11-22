@@ -56,45 +56,67 @@ class BestCombinedTest {
         }
     }
 
-    /** A made-up wet response: best match says cloudy and dry, the rain models say wet; humidity missing. */
+    /**
+     * A made-up three-day response. Day 1: rain only at night (01–04). Day 2: best match says fog all
+     * day, light rain at 09–10. Day 3: best match says cloudy, one rainy hour at 09, then 0.19 mm
+     * (stays dry) and 0.2 mm (turns wet), and Météo-France gone from 12:00. Wind and gusts vary by
+     * hour; humidity is missing and mid cloud too short.
+     */
     @Test
     fun keepsTheBlendConsistent() = runBlocking {
-        val hours = (0 until 48).map { "2026-12-%02dT%02d:00".format(1 + it / 24, it % 24) }
-        fun col(v: (Int) -> Any?) = hours.indices.joinToString(",", "[", "]") { v(it)?.toString() ?: "null" }
-        val wet = 30 until 36 // day 2, 06:00-11:00
+        val n = 72
+        val hours = (0 until n).map { "2026-12-%02dT%02d:00".format(1 + it / 24, it % 24) }
+        fun col(v: (Int) -> Any?) = (0 until n).joinToString(",", "[", "]") { v(it)?.toString() ?: "null" }
+        val rainAll = mapOf(1 to 1.5, 2 to 1.5, 3 to 1.5, 4 to 1.5, 33 to 0.4, 34 to 0.4, 57 to 0.6, 58 to 0.19, 59 to 0.2)
         val body = """{"hourly":{"time":${hours.joinToString(",", "[", "]") { "\"$it\"" }},
             "temperature_2m_best_match":${col { 10 + it % 24 * 0.5 }},"temperature_2m_ecmwf_aifs025_single":${col { 12 + it % 24 * 0.5 }},
-            "precipitation_best_match":${col { 0 }},"precipitation_gfs_global":${col { if (it in wet) 1.2 else 0 }},
-            "precipitation_meteofrance_arpege_world":${col { if (it < 40) (if (it in wet) 0.9 else 0) else null }},"precipitation_icon_global":${col { if (it in wet) 0.6 else 0 }},
-            "precipitation_probability_best_match":${col { 10 }},"precipitation_probability_gfs_global":${col { 80 }},"precipitation_probability_icon_global":${col { 60 }},
-            "weather_code_best_match":${col { 3 }},
-            "wind_speed_10m_best_match":${col { 5 }},"wind_speed_10m_gfs_global":${col { 30 }},"wind_speed_10m_meteofrance_arpege_world":${col { 20 }},
-            "wind_direction_10m_best_match":${col { 270 }},"wind_gusts_10m_best_match":${col { 15 }},"uv_index_best_match":${col { 2 }},
-            "cloud_cover_low_best_match":${col { 90 }},"cloud_cover_mid_best_match":${col { 0 }},"cloud_cover_high_best_match":${col { 0 }}},
-          "daily":{"time":["2026-12-01","2026-12-02"],"weather_code_best_match":[3,3],
-            "temperature_2m_max_best_match":[30,30],"temperature_2m_min_best_match":[0,0],"uv_index_max_best_match":[2,2]},
-          "current":{"time":"2026-12-02T07:15","interval":900,"temperature_2m":14,"weather_code":3,"wind_speed_10m":5,"wind_gusts_10m":15,"wind_direction_10m":270}}"""
+            "precipitation_best_match":${col { 0 }},"precipitation_gfs_global":${col { if (it == 62) 0.4 else rainAll[it] ?: 0 }},
+            "precipitation_meteofrance_arpege_world":${col { if (it >= 60) null else rainAll[it] ?: 0 }},"precipitation_icon_global":${col { if (it == 62) 0.2 else rainAll[it] ?: 0 }},
+            "precipitation_probability_gfs_global":${col { 80 }},"precipitation_probability_icon_global":${col { 60 }},
+            "weather_code_best_match":${col { if (it / 24 == 1) 45 else if (it / 24 == 0) 0 else 3 }},
+            "wind_speed_10m_best_match":${col { 1 }},"wind_speed_10m_gfs_global":${col { 20 + it }},"wind_speed_10m_meteofrance_arpege_world":${col { 10 + it }},
+            "wind_gusts_10m_best_match":${col { 1 }},"wind_gusts_10m_gfs_global":${col { 30 + it }},"wind_gusts_10m_meteofrance_arpege_world":${col { 5 }},
+            "wind_direction_10m_best_match":${col { 270 }},"uv_index_best_match":${col { 2 }},
+            "cloud_cover_low_best_match":${col { 90 }},"cloud_cover_mid_best_match":[0,0,0,0,0,0,0,0,0,0],"cloud_cover_high_best_match":${col { 0 }}},
+          "daily":{"time":["2026-12-01","2026-12-02","2026-12-03"],"weather_code_best_match":[0,45,3],
+            "temperature_2m_max_best_match":[30,30,30],"temperature_2m_min_best_match":[0,0,0],"uv_index_max_best_match":[2,2,2]},
+          "current":{"time":"2026-12-01T03:15","interval":900,"temperature_2m":20,"weather_code":0,"wind_speed_10m":1,"wind_gusts_10m":1,"wind_direction_10m":270,"cloud_cover_low":90}}"""
         val fake = OkHttpClient.Builder().addInterceptor { chain ->
             Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("OK")
                 .body(body.toResponseBody("application/json".toMediaType())).build()
         }.build()
         val f = OpenMeteo(fake, json).forecast(31.8, 34.8, model = OpenMeteo.BEST)
-        // Wet blended hours get rain icons even though best match says cloudy; dry ones stay cloudy.
-        val rainCodes = f.hourly.filter { it.t.substring(0, 13) in hours.slice(wet).map { h -> h.replace('T', ' ').substring(0, 13) } }.map { it.code }.toSet()
-        val dryCode = f.hourly[0].code
-        assertTrue("wet hours $rainCodes vs dry $dryCode", rainCodes.none { it == dryCode })
-        assertEquals(dryCode, f.daily[0].code)
-        assertTrue(f.daily[1].code != dryCode)
-        assertEquals(0.9, f.hourly[32].rain!!, 0.001) // mean of 1.2, 0.9, 0.6
-        // Wind blended (25), gusts lifted to it; "now" uses the blended wind of its hour.
-        assertEquals(25.0, f.hourly[0].wind!!, 0.001)
-        assertTrue(f.hourly.all { it.gust!! >= it.wind!! })
-        assertEquals(25.0, f.now!!.wind!!, 0.001)
-        assertEquals(25.0, f.now!!.gust!!, 0.001)
-        // The day's high and low from the blended hours (11 + 11.5 = 22.5 max, 11 min), not best match's 30 and 0.
+        val rain = 1140; val light = 1560; val fog = 1160; val cloudy = 1230
+        // Hours: 1 mm+ is rain, 0.2 mm+ light rain (also over fog), under 0.2 mm keeps its sky.
+        assertEquals(cloudy, f.hourly[0].code)
+        assertTrue((1..4).all { f.hourly[it].code == rain })
+        assertEquals(fog, f.hourly[30].code)
+        assertEquals(light, f.hourly[33].code)
+        assertEquals(light, f.hourly[57].code)
+        assertEquals(cloudy, f.hourly[58].code)
+        assertEquals(light, f.hourly[59].code)
+        // Days: night rain only stays a dry day; daytime rain makes it light rain, over fog too, and
+        // even when it lasted a single hour.
+        assertTrue(f.daily[0].code != rain && f.daily[0].code != light)
+        assertEquals(light, f.daily[1].code)
+        assertEquals(light, f.daily[2].code)
+        // Rain is the models' mean, of the ones left once Météo-France ends.
+        assertEquals(1.5, f.hourly[2].rain!!, 0.001)
+        assertEquals(0.3, f.hourly[62].rain!!, 0.001)
+        // Wind and gusts are GFS and Météo-France's; gusts lifted to the wind only where below it.
+        assertEquals(18.0, f.hourly[3].wind!!, 0.001)
+        assertEquals(19.0, f.hourly[3].gust!!, 0.001)
+        assertEquals(55.0, f.hourly[40].gust!!, 0.001)
+        // "Now" (03:15) takes 03:00's blend: wind, gust, rain code, and best match's temperature + 1°.
+        assertEquals(18.0, f.now!!.wind!!, 0.001)
+        assertEquals(19.0, f.now!!.gust!!, 0.001)
+        assertEquals(rain, f.now!!.code)
+        assertEquals(21.0, f.now!!.temp!!, 0.001)
+        // The day's high and low from the blended hours, not best match's 30 and 0.
         assertEquals(22.5, f.daily[0].max!!, 0.001)
         assertEquals(11.0, f.daily[0].min!!, 0.001)
-        // A missing column (humidity) is empty, not a crash.
+        // Missing or short columns are empty, not a crash.
+        assertEquals(n, f.hourly.size)
         assertTrue(f.hourly.all { it.rh == null })
     }
 }
