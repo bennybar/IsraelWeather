@@ -80,46 +80,81 @@ enum ECMWF {
     private struct CurrentOnly: Decodable { let current: Current }
 
     /// "Best Combined", from one multi-model response (fields suffixed with each model's name): each
-    /// measure averaged over the models that forecast it best against Israeli airports (tools/accuracy).
-    /// Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON (chance: GFS and
-    /// ICON, the others give none). Wind speed: GFS and Météo-France. The sky, humidity, gusts, wind
-    /// direction, UV and "now": best match. An hour a model doesn't cover falls back to best match.
+    /// measure averaged over the models that forecast it best 1–3 days ahead against Israeli airports
+    /// (tools/accuracy). Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON
+    /// (chance: GFS and ICON, the others give none). Wind speed: GFS and Météo-France. The sky,
+    /// humidity, gusts, wind direction, UV and "now": best match, kept consistent with the blend (a wet
+    /// blend gets a rain icon, gusts never below the speed, the day's high and low from the hours).
+    /// An hour no chosen model covers falls back to best match; a missing column is all nils.
     private static func combine(_ data: Data) throws -> Response {
         guard let o = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let h = o["hourly"] as? [String: Any], let d = o["daily"] as? [String: Any] else { throw HTTPError.status(0) }
-        func times(_ obj: [String: Any]) -> [String] { obj["time"] as? [String] ?? [] }
-        func nums(_ obj: [String: Any], _ key: String) -> [Double?] { (obj[key] as? [Any])?.map { ($0 as? NSNumber)?.doubleValue } ?? [] }
-        func best(_ obj: [String: Any], _ field: String) -> [Double?] { nums(obj, "\(field)_best_match") }
-        func mean(_ obj: [String: Any], _ field: String, _ models: [String]) -> [Double?] {
-            let cols = models.map { nums(obj, "\(field)_\($0)") }
-            let fallback = best(obj, field)
-            return times(obj).indices.map { i in
-                let v = cols.compactMap { $0[safe: i] ?? nil }
-                return v.isEmpty ? (fallback[safe: i] ?? nil) : v.reduce(0, +) / Double(v.count)
+              let h = o["hourly"] as? [String: Any], let d = o["daily"] as? [String: Any],
+              let hTimes = h["time"] as? [String], let dTimes = d["time"] as? [String] else { throw HTTPError.status(0) }
+        func nums(_ obj: [String: Any], _ key: String, _ n: Int) -> [Double?] {
+            let a = obj[key] as? [Any] ?? []
+            return (0..<n).map { i in i < a.count ? (a[i] as? NSNumber)?.doubleValue : nil }
+        }
+        func best(_ obj: [String: Any], _ field: String, _ n: Int) -> [Double?] { nums(obj, "\(field)_best_match", n) }
+        func mean(_ obj: [String: Any], _ field: String, _ n: Int, _ models: [String]) -> [Double?] {
+            let cols = models.map { nums(obj, "\(field)_\($0)", n) }
+            let fallback = best(obj, field, n)
+            return (0..<n).map { i in
+                let v = cols.compactMap { $0[i] }
+                return v.isEmpty ? fallback[i] : v.reduce(0, +) / Double(v.count)
             }
         }
-        let temp = ["best_match", "ecmwf_aifs025_single"]
+        let n = hTimes.count, nd = dTimes.count
+        let temp = mean(h, "temperature_2m", n, ["best_match", "ecmwf_aifs025_single"])
+        let rain = mean(h, "precipitation", n, ["gfs_global", "meteofrance_arpege_world", "icon_global"])
+        let wind = mean(h, "wind_speed_10m", n, ["gfs_global", "meteofrance_arpege_world"])
+        // Best match's sky code, but a clearly wet blended hour (0.2 mm+) it calls dry becomes light rain.
+        let hourCodes = best(h, "weather_code", n)
+        let codes: [Int?] = (0..<n).map { i -> Int? in
+            guard let c = hourCodes[i].map({ Int($0) }) else { return nil }
+            return c <= 3 && (rain[i] ?? 0) >= 0.2 ? 61 : c
+        }
+        let bestGusts = best(h, "wind_gusts_10m", n)
+        let gusts: [Double?] = (0..<n).map { i -> Double? in
+            guard let g = bestGusts[i], let w = wind[i] else { return bestGusts[i] }
+            return max(g, w)
+        }
         let hourly = Hourly(
-            time: times(h),
-            temperature_2m: mean(h, "temperature_2m", temp),
-            precipitation_probability: mean(h, "precipitation_probability", ["gfs_global", "icon_global"]),
-            precipitation: mean(h, "precipitation", ["gfs_global", "meteofrance_arpege_world", "icon_global"]),
-            weather_code: best(h, "weather_code").map { $0.map { Int($0) } },
-            relative_humidity_2m: best(h, "relative_humidity_2m"),
-            wind_speed_10m: mean(h, "wind_speed_10m", ["gfs_global", "meteofrance_arpege_world"]),
-            wind_direction_10m: best(h, "wind_direction_10m"),
-            wind_gusts_10m: best(h, "wind_gusts_10m"),
-            cloud_cover_low: best(h, "cloud_cover_low"),
-            cloud_cover_mid: best(h, "cloud_cover_mid"),
-            cloud_cover_high: best(h, "cloud_cover_high"),
-            uv_index: best(h, "uv_index"))
+            time: hTimes,
+            temperature_2m: temp,
+            precipitation_probability: mean(h, "precipitation_probability", n, ["gfs_global", "icon_global"]),
+            precipitation: rain,
+            weather_code: codes,
+            relative_humidity_2m: best(h, "relative_humidity_2m", n),
+            wind_speed_10m: wind,
+            wind_direction_10m: best(h, "wind_direction_10m", n),
+            wind_gusts_10m: gusts,
+            cloud_cover_low: best(h, "cloud_cover_low", n),
+            cloud_cover_mid: best(h, "cloud_cover_mid", n),
+            cloud_cover_high: best(h, "cloud_cover_high", n),
+            uv_index: best(h, "uv_index", n))
+        let dayHours: [[Int]] = dTimes.map { day in hTimes.indices.filter { hTimes[$0].hasPrefix(day) } }
+        let dayCodes = best(d, "weather_code", nd), bestMax = best(d, "temperature_2m_max", nd), bestMin = best(d, "temperature_2m_min", nd)
         let daily = Daily(
-            time: times(d),
-            weather_code: best(d, "weather_code").map { $0.map { Int($0) } },
-            temperature_2m_max: mean(d, "temperature_2m_max", temp),
-            temperature_2m_min: mean(d, "temperature_2m_min", temp),
-            uv_index_max: best(d, "uv_index_max"))
-        let current = try (o["current"]).map { try JSONDecoder().decode(Current.self, from: JSONSerialization.data(withJSONObject: $0)) }
+            time: dTimes,
+            // A day with 1 mm+ of blended rain that best match calls dry gets a rain code too.
+            weather_code: (0..<nd).map { i -> Int? in
+                guard let c = dayCodes[i].map({ Int($0) }) else { return nil }
+                let wet = dayHours[i].reduce(0.0) { $0 + (rain[$1] ?? 0) }
+                return c <= 3 && wet >= 1 ? 61 : c
+            },
+            // The day's high and low from the blended hours, so they agree with the hourly row.
+            temperature_2m_max: (0..<nd).map { i -> Double? in dayHours[i].compactMap { temp[$0] }.max() ?? bestMax[i] },
+            temperature_2m_min: (0..<nd).map { i -> Double? in dayHours[i].compactMap { temp[$0] }.min() ?? bestMin[i] },
+            uv_index_max: best(d, "uv_index_max", nd))
+        // "Now" is best match's, with the blended wind of the hour it falls in (gusts never below it).
+        var current = try (o["current"]).map { try JSONDecoder().decode(Current.self, from: JSONSerialization.data(withJSONObject: $0)) }
+        if let c = current {
+            let w = hTimes.lastIndex(where: { $0 <= c.time }).flatMap { wind[$0] } ?? c.wind_speed_10m
+            current = Current(time: c.time, temperature_2m: c.temperature_2m, relative_humidity_2m: c.relative_humidity_2m,
+                              weather_code: c.weather_code, wind_speed_10m: w, wind_direction_10m: c.wind_direction_10m,
+                              wind_gusts_10m: c.wind_gusts_10m.map { g in w.map { max(g, $0) } ?? g },
+                              cloud_cover_low: c.cloud_cover_low, cloud_cover_mid: c.cloud_cover_mid, cloud_cover_high: c.cloud_cover_high)
+        }
         return Response(hourly: hourly, daily: daily, current: current)
     }
 
@@ -130,6 +165,7 @@ enum ECMWF {
     static let gfsModel = "gfs_global"
     /// "Best Combined": several models in one request, each measure from the ones best at it.
     static let bestModel = "combined"
+    // best_match must stay first: Open-Meteo answers `current` for the first model listed.
     private static let combinedModels = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
 
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {

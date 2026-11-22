@@ -101,4 +101,4 @@
 "sky_night" = "תמיד לילה";
 "source_best" = "Best Combined";
 "source_best_line" = "מקור: Best Combined (כמה מודלים דרך Open-Meteo)";
-"source_best_hint" = "כל מדד מהמודלים שחוזים אותו הכי טוב בישראל: טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, רוח מ-GFS ו-Météo-France. בבדיקה מול תחנות שדות התעופה בשנה האחרונה היה מדויק מכל מודל בודד. ההתראות עדיין מהשירות המטאורולוגי.";
+"source_best_hint" = "טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, מהירות רוח מ-GFS ו-Météo-France; שמיים, משבים ומזג האוויר הנוכחי מ-best match. בבדיקה מול תחנות שדות התעופה בשנה האחרונה, 1–3 ימים קדימה, היה מדויק מכל מודל בודד, בעיקר בזכות טמפרטורות מדויקות יותר. ההתראות עדיין מהשירות המטאורולוגי.";

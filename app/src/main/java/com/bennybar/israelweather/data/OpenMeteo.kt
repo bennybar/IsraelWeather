@@ -34,6 +34,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         const val GFS = "gfs_global"
         /** "Best Combined": several models in one request, each measure from the ones best at it. */
         const val BEST = "combined"
+        // best_match must stay first: Open-Meteo answers `current` for the first model listed.
         private const val COMBINED_MODELS = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
     }
 
@@ -145,47 +146,72 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
 
     /**
      * "Best Combined", from one multi-model response (fields suffixed with each model's name): each
-     * measure averaged over the models that forecast it best against Israeli airports (tools/accuracy).
-     * Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON (chance: GFS and
-     * ICON, the others give none). Wind speed: GFS and Météo-France. The sky, humidity, gusts, wind
-     * direction, UV and "now": best match. An hour a model doesn't cover falls back to best match.
+     * measure averaged over the models that forecast it best 1–3 days ahead against Israeli airports
+     * (tools/accuracy). Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON
+     * (chance: GFS and ICON, the others give none). Wind speed: GFS and Météo-France. The sky,
+     * humidity, gusts, wind direction, UV and "now": best match, kept consistent with the blend (a wet
+     * blend gets a rain icon, gusts never below the speed, the day's high and low from the hours).
+     * An hour no chosen model covers falls back to best match; a missing column is all nulls.
      */
     private fun combine(o: JsonObject): Response {
         val h = o["hourly"]!!.jsonObject
         val d = o["daily"]!!.jsonObject
-        fun times(obj: JsonObject) = obj["time"]!!.jsonArray.map { it.jsonPrimitive.content }
-        fun nums(obj: JsonObject, key: String) = (obj[key] as? JsonArray)?.map { it.jsonPrimitive.doubleOrNull } ?: emptyList()
-        fun best(obj: JsonObject, field: String) = nums(obj, "${field}_best_match")
-        fun mean(obj: JsonObject, field: String, vararg models: String): List<Double?> {
-            val cols = models.map { nums(obj, "${field}_$it") }
-            val fallback = best(obj, field)
-            return times(obj).indices.map { i ->
-                cols.mapNotNull { it.getOrNull(i) }.takeIf { it.isNotEmpty() }?.average() ?: fallback.getOrNull(i)
-            }
+        val hTimes = h["time"]!!.jsonArray.map { it.jsonPrimitive.content }
+        val dTimes = d["time"]!!.jsonArray.map { it.jsonPrimitive.content }
+        fun nums(obj: JsonObject, key: String, n: Int): List<Double?> {
+            val a = obj[key] as? JsonArray
+            return List(n) { i -> a?.getOrNull(i)?.jsonPrimitive?.doubleOrNull }
         }
+        fun best(obj: JsonObject, field: String, n: Int) = nums(obj, "${field}_best_match", n)
+        fun mean(obj: JsonObject, field: String, n: Int, vararg models: String): List<Double?> {
+            val cols = models.map { nums(obj, "${field}_$it", n) }
+            val fallback = best(obj, field, n)
+            return List(n) { i -> cols.mapNotNull { it[i] }.takeIf { it.isNotEmpty() }?.average() ?: fallback[i] }
+        }
+        val n = hTimes.size
+        val nd = dTimes.size
+        val temp = mean(h, "temperature_2m", n, "best_match", "ecmwf_aifs025_single")
+        val rain = mean(h, "precipitation", n, "gfs_global", "meteofrance_arpege_world", "icon_global")
+        val wind = mean(h, "wind_speed_10m", n, "gfs_global", "meteofrance_arpege_world")
+        // Best match's sky code, but a clearly wet blended hour (0.2 mm+) it calls dry becomes light rain.
+        val codes = best(h, "weather_code", n).mapIndexed { i, c ->
+            c?.toInt()?.let { if (it <= 3 && (rain[i] ?: 0.0) >= 0.2) 61 else it }
+        }
+        val gusts = best(h, "wind_gusts_10m", n).mapIndexed { i, g -> wind[i]?.let { w -> g?.let { maxOf(it, w) } } ?: g }
         val hourly = Hourly(
-            time = times(h),
-            temperature_2m = mean(h, "temperature_2m", "best_match", "ecmwf_aifs025_single"),
-            precipitation_probability = mean(h, "precipitation_probability", "gfs_global", "icon_global"),
-            precipitation = mean(h, "precipitation", "gfs_global", "meteofrance_arpege_world", "icon_global"),
-            weather_code = best(h, "weather_code").map { it?.toInt() },
-            relative_humidity_2m = best(h, "relative_humidity_2m"),
-            wind_speed_10m = mean(h, "wind_speed_10m", "gfs_global", "meteofrance_arpege_world"),
-            wind_direction_10m = best(h, "wind_direction_10m"),
-            wind_gusts_10m = best(h, "wind_gusts_10m"),
-            uv_index = best(h, "uv_index"),
-            cloud_cover_low = best(h, "cloud_cover_low"),
-            cloud_cover_mid = best(h, "cloud_cover_mid"),
-            cloud_cover_high = best(h, "cloud_cover_high"),
+            time = hTimes,
+            temperature_2m = temp,
+            precipitation_probability = mean(h, "precipitation_probability", n, "gfs_global", "icon_global"),
+            precipitation = rain,
+            weather_code = codes,
+            relative_humidity_2m = best(h, "relative_humidity_2m", n),
+            wind_speed_10m = wind,
+            wind_direction_10m = best(h, "wind_direction_10m", n),
+            wind_gusts_10m = gusts,
+            uv_index = best(h, "uv_index", n),
+            cloud_cover_low = best(h, "cloud_cover_low", n),
+            cloud_cover_mid = best(h, "cloud_cover_mid", n),
+            cloud_cover_high = best(h, "cloud_cover_high", n),
         )
+        val dayHours = dTimes.map { day -> hTimes.indices.filter { hTimes[it].startsWith(day) } }
+        val bestMax = best(d, "temperature_2m_max", nd)
+        val bestMin = best(d, "temperature_2m_min", nd)
         val daily = Daily(
-            time = times(d),
-            weather_code = best(d, "weather_code").map { it?.toInt() },
-            temperature_2m_max = mean(d, "temperature_2m_max", "best_match", "ecmwf_aifs025_single"),
-            temperature_2m_min = mean(d, "temperature_2m_min", "best_match", "ecmwf_aifs025_single"),
-            uv_index_max = best(d, "uv_index_max"),
+            time = dTimes,
+            // A day with 1 mm+ of blended rain that best match calls dry gets a rain code too.
+            weather_code = best(d, "weather_code", nd).mapIndexed { i, c ->
+                c?.toInt()?.let { if (it <= 3 && dayHours[i].sumOf { j -> rain[j] ?: 0.0 } >= 1.0) 61 else it }
+            },
+            // The day's high and low from the blended hours, so they agree with the hourly row.
+            temperature_2m_max = dTimes.indices.map { i -> dayHours[i].mapNotNull { temp[it] }.maxOrNull() ?: bestMax[i] },
+            temperature_2m_min = dTimes.indices.map { i -> dayHours[i].mapNotNull { temp[it] }.minOrNull() ?: bestMin[i] },
+            uv_index_max = best(d, "uv_index_max", nd),
         )
-        val current = o["current"]?.let { json.decodeFromJsonElement(Current.serializer(), it) }
+        // "Now" is best match's, with the blended wind of the hour it falls in (gusts never below it).
+        val current = o["current"]?.let { json.decodeFromJsonElement(Current.serializer(), it) }?.let { c ->
+            val w = wind.getOrNull(hTimes.indexOfLast { it <= c.time }) ?: c.wind_speed_10m
+            c.copy(wind_speed_10m = w, wind_gusts_10m = c.wind_gusts_10m?.let { g -> w?.let { maxOf(g, it) } ?: g })
+        }
         return Response(hourly, daily, current)
     }
 

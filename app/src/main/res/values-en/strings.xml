@@ -234,7 +234,7 @@
     <string name="source_line_gfs">Source: GFS via Open-Meteo · exact location</string>
     <string name="source_gfs">Forecast: GFS via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
     <string name="source_best_choice">Best Combined</string>
-    <string name="source_best_hint">Each measure from the models that forecast it best in Israel: temperature from Open-Meteo best match and ECMWF\'s AI model, rain from GFS, Météo-France and ICON, wind from GFS and Météo-France. Over the past year it beat every single model against Israeli airport stations. Warnings and radar still come from IMS.</string>
+    <string name="source_best_hint">Temperature from Open-Meteo best match and ECMWF\'s AI model, rain from GFS, Météo-France and ICON, wind speed from GFS and Météo-France; sky, gusts and current conditions from best match. Over the past year, 1–3 days ahead, it beat every single model against Israeli airport stations, mostly thanks to more accurate temperatures. Warnings and radar still come from IMS.</string>
     <string name="source_line_best">Source: Best Combined (several models via Open-Meteo) · exact location</string>
     <string name="source_best">Forecast: Best Combined, several models via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
 </resources>
