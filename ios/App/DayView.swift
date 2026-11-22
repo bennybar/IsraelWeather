@@ -294,7 +294,8 @@ struct DayView: View {
 enum DaySummary {
     static let warmth = [Color(hex: 0x8EC5FF), Color(hex: 0xFFD66B), Color(hex: 0xFF9A5A)]
 
-    private static func wet(_ h: Hour) -> Bool { (h.rainChance ?? 0) >= Double(rainyPct) }
+    /// Likely rain, or a rain icon (so a summary never says "no rain" under one).
+    private static func wet(_ h: Hour) -> Bool { (h.rainChance ?? 0) >= Double(rainyPct) || WeatherCodes.isRainy(h.code) }
 
     /// "Rain eases around 10:00.", "Rain likely from 15:00.", or the day's sky.
     static func nextHours(_ f: Forecast) -> String {

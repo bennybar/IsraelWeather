@@ -18,6 +18,9 @@ certificates on this Mac.
   comparison uses just the hours a station reported.
 - **Rain**: Israeli METARs carry no amounts, so a day is wet when any report shows rain,
   drizzle, showers or thunder. A forecast says wet at 0.5 mm or more over the same hours.
+- **Best Combined** (`BLEND` in `backtest.py`) is graded on temperature, rain and wind like the
+  models. Météo-France's archived wind only starts in August 2026, so its share of the wind blend
+  rests on a few months; gusts and rain chance aren't graded.
 - **Grades**: temperature (daily high and low error) 50%, rain (critical success index)
   30%, wind (hourly speed error) 20%. Scales are in `backtest.py` (`SCALES`).
 

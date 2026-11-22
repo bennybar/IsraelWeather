@@ -37,6 +37,10 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         // best_match must stay first: Open-Meteo answers `current` for the first model listed.
         /** Best Combined: daytime (07–17) blended rain that makes a day rainy, whatever its hour codes. */
         private const val WET_DAY_MM = 0.5
+        /** Best Combined: blended rain in an hour that makes it light rain (1 mm: rain). */
+        private const val WET_HOUR_MM = 0.2
+        /** Slack for thresholds: a mean of tenths can land a hair under them (0.6 / 3 = 0.19999…). */
+        private const val EPS = 1e-6
         private const val COMBINED_MODELS = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
     }
 
@@ -129,10 +133,17 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             // Fog, drizzle, rain, snow or storms only when they last (3+ daytime hours): a single foggy
             // dawn hour made the whole day a fog icon. Otherwise the day's sky from its average cloud.
             val weatherHours = daytime.count { (h.weather_code[it] ?: 0) > 3 }
-            // Best Combined: a day with real daytime rain keeps its rain code however few hours it took.
-            val wetDay = model == BEST && daytime.sumOf { h.precipitation[it] ?: 0.0 } >= WET_DAY_MM
+            // Best Combined: real daytime rain (0.5 mm+, at least one wet hour) makes the day light rain
+            // (rain from 2 mm) however few hours it took; best match's daily code, often set by a night
+            // shower, doesn't decide. A day already coded wet over 3+ daytime hours keeps its code.
+            val daytimeRain = daytime.sumOf { h.precipitation[it] ?: 0.0 }
+            val wetDay = model == BEST && daytimeRain >= WET_DAY_MM - EPS &&
+                daytime.any { (h.precipitation[it] ?: 0.0) >= WET_HOUR_MM - EPS }
             val code = d.weather_code[i]
-            val dayCode = if ((code ?: 0) > 3 && weatherHours < 3 && !wetDay && dayCloud != null) {
+            val codedWet = code != null && code > 3 && code != 45 && code != 48
+            val dayCode = if (wetDay && (weatherHours < 3 || !codedWet)) {
+                skyCode(if (daytimeRain >= 2.0 - EPS) 61 else 51, dayCloud)
+            } else if ((code ?: 0) > 3 && weatherHours < 3 && dayCloud != null) {
                 skyCode(3, dayCloud) // a plain sky code, so the cloud decides
             } else {
                 skyCode(code, dayCloud)
@@ -173,12 +184,14 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val fallback = best(obj, field, n)
             return List(n) { i -> cols.mapNotNull { it[i] }.takeIf { it.isNotEmpty() }?.average() ?: fallback[i] }
         }
-        // A dry or foggy code (0–3, 45, 48) with [mm] of blended rain from [from] up: light rain, or
-        // rain from [heavy] up. Other codes (drizzle, rain, storms) stay.
-        fun wetCode(code: Int?, mm: Double?, from: Double, heavy: Double): Int? = when {
-            code == null || mm == null || mm < from || (code > 3 && code != 45 && code != 48) -> code
-            mm >= heavy -> 61
-            else -> 51
+        // The hour's code against its blended rain: a dry, foggy or missing code (0–3, 45, 48) from
+        // 0.2 mm becomes light rain, from 1 mm rain; best match's drizzle or rain (51–67, 80–82) under
+        // 0.1 mm becomes a plain sky code (the cloud decides). Storms and snow stay.
+        fun wetCode(code: Int?, mm: Double?): Int? = when {
+            mm == null -> code
+            (code == null || code <= 3 || code == 45 || code == 48) && mm >= WET_HOUR_MM - EPS -> if (mm >= 1.0 - EPS) 61 else 51
+            code != null && (code in 51..67 || code in 80..82) && mm < 0.1 - EPS -> 3
+            else -> code
         }
         val n = hTimes.size
         val nd = dTimes.size
@@ -194,7 +207,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             temperature_2m = temp,
             precipitation_probability = mean(h, "precipitation_probability", n, "gfs_global", "icon_global"),
             precipitation = rain,
-            weather_code = best(h, "weather_code", n).mapIndexed { i, c -> wetCode(c?.toInt(), rain[i], 0.2, 1.0) },
+            weather_code = best(h, "weather_code", n).mapIndexed { i, c -> wetCode(c?.toInt(), rain[i]) },
             relative_humidity_2m = best(h, "relative_humidity_2m", n),
             wind_speed_10m = wind,
             wind_direction_10m = best(h, "wind_direction_10m", n),
@@ -209,11 +222,8 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val bestMin = best(d, "temperature_2m_min", nd)
         val daily = Daily(
             time = dTimes,
-            // Rain in the daytime (07–17) makes the day rainy, as forecast() keeps it (WET_DAY_MM).
-            weather_code = best(d, "weather_code", nd).mapIndexed { i, c ->
-                val daytimeRain = dayHours[i].filter { hTimes[it].substring(11, 13).toInt() in 7..17 }.sumOf { rain[it] ?: 0.0 }
-                wetCode(c?.toInt(), daytimeRain, WET_DAY_MM, 2.0)
-            },
+            // best match's; forecast() sets rainy days from the blended daytime rain (WET_DAY_MM).
+            weather_code = best(d, "weather_code", nd).map { it?.toInt() },
             // The day's high and low from the blended hours, so they agree with the hourly row.
             temperature_2m_max = dTimes.indices.map { i -> dayHours[i].mapNotNull { temp[it] }.maxOrNull() ?: bestMax[i] },
             temperature_2m_min = dTimes.indices.map { i -> dayHours[i].mapNotNull { temp[it] }.minOrNull() ?: bestMin[i] },
@@ -228,7 +238,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val w = wind[slot] ?: c.wind_speed_10m
             c.copy(
                 temperature_2m = c.temperature_2m?.plus(shift),
-                weather_code = wetCode(c.weather_code, rain[slot], 0.2, 1.0),
+                weather_code = wetCode(c.weather_code, rain[slot]),
                 wind_speed_10m = w,
                 wind_gusts_10m = gusts[slot] ?: c.wind_gusts_10m?.let { g -> w?.let { maxOf(g, it) } ?: g },
             )
