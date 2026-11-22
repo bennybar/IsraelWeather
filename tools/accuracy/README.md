@@ -4,8 +4,8 @@ Grades forecast sources against what Israeli airports actually measured.
 
 - `backtest.py` grades every model Open-Meteo archives (what each forecast 1, 2 and 3 days
   ahead) over the past year, plus whatever `logger.py` has recorded. Writes `results.json`.
-- `logger.py` records IMS, Foreca, and ECMWF and best match (as the app gets them) three times a day (each source once per day), since IMS and
-  Foreca keep no forecast history.
+- `logger.py` records IMS, Foreca, ECMWF, best match and Best Combined (as the app gets
+  them) once a day, since IMS and Foreca keep no forecast history.
 
 Run them with the system Python (`/usr/bin/python3`): Python.org's build can't verify HTTPS
 certificates on this Mac.
@@ -22,7 +22,7 @@ certificates on this Mac.
 
 ## Daily logging
 
-A launchd job runs `logger.py` at 06:00 (or on wake) and saves to
+A launchd job runs `logger.py` at 06:00, 12:00 and 18:00 (or on wake; later runs only fill gaps) and saves to
 `~/Library/Application Support/IsraelWeather/accuracy/`:
 
     ~/Library/LaunchAgents/com.bennybar.israelweather.accuracy.plist

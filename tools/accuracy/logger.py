@@ -49,6 +49,24 @@ def foreca(lat, lon, key):
              "rain": h.get("precipAccum")} for h in f.get("forecast", [])], {}
 
 
+def combined(lat, lon):
+    """Best Combined as the app gets it: temperature best match + AIFS, rain GFS + ARPEGE + ICON,
+    wind GFS + ARPEGE, each averaged over the models that cover the hour."""
+    q = urllib.parse.urlencode({"latitude": lat, "longitude": lon, "hourly": "temperature_2m,precipitation,wind_speed_10m",
+                                "models": "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global",
+                                "timezone": "Asia/Jerusalem", "forecast_days": 5})
+    h = fetch("https://api.open-meteo.com/v1/forecast?" + q)["hourly"]
+
+    def mean(field, models, i):
+        v = [h[f"{field}_{m}"][i] for m in models if h.get(f"{field}_{m}") and h[f"{field}_{m}"][i] is not None]
+        return sum(v) / len(v) if v else h[f"{field}_best_match"][i]
+    return [{"t": t.replace("T", " "),
+             "temp": mean("temperature_2m", ["best_match", "ecmwf_aifs025_single"], i),
+             "rain": mean("precipitation", ["gfs_global", "meteofrance_arpege_world", "icon_global"], i),
+             "wind": mean("wind_speed_10m", ["gfs_global", "meteofrance_arpege_world"], i)}
+            for i, t in enumerate(h["time"])], {}
+
+
 def open_meteo(lat, lon, model):
     """An Open-Meteo model as the app gets it: ECMWF (ecmwf_ifs) or best match (best_match)."""
     q = urllib.parse.urlencode({"latitude": lat, "longitude": lon, "hourly": "temperature_2m,precipitation,wind_speed_10m",
@@ -65,7 +83,8 @@ def main():
     key = open(KEY_FILE).read().strip() if os.path.exists(KEY_FILE) else None
     for icao, (_, lat, lon) in STATIONS.items():
         jobs = {"ims": lambda: ims(lat, lon, places), "app_ecmwf": lambda: open_meteo(lat, lon, "ecmwf_ifs"),
-                "app_best": lambda: open_meteo(lat, lon, "best_match")}
+                "app_best": lambda: open_meteo(lat, lon, "best_match"),
+                "app_combined": lambda: combined(lat, lon)}
         if key:
             jobs["foreca"] = lambda: foreca(lat, lon, key)
         for source, job in jobs.items():

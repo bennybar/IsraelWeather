@@ -1,5 +1,11 @@
 package com.bennybar.israelweather.data
 
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -26,7 +32,9 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     companion object {
         const val ECMWF = "ecmwf_ifs"
         const val GFS = "gfs_global"
-        const val BEST = "best_match"
+        /** "Best Combined": several models in one request, each measure from the ones best at it. */
+        const val BEST = "combined"
+        private const val COMBINED_MODELS = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
     }
 
     @Serializable
@@ -80,13 +88,14 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
             "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
             "cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
-            "&models=$model&timezone=Asia%2FJerusalem&forecast_days=7"
+            "&models=${if (model == BEST) COMBINED_MODELS else model}&timezone=Asia%2FJerusalem&forecast_days=7"
         val request = Request.Builder().url(url)
             .apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }
             .build()
         val r = http.newCall(request).execute().use { res ->
             if (!res.isSuccessful) throw HttpException(res.code)
-            json.decodeFromString(Response.serializer(), res.body.string())
+            val body = res.body.string()
+            if (model == BEST) combine(json.parseToJsonElement(body).jsonObject) else json.decodeFromString(Response.serializer(), body)
         }
         // ECMWF has no UV index: take it from Open-Meteo's default blend (same hours and days).
         // GFS and best match carry their own, so they need no second request.
@@ -132,6 +141,52 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             BEST -> Forecast.SOURCE_BEST
             else -> Forecast.SOURCE_OPEN_METEO
         }, now = now)
+    }
+
+    /**
+     * "Best Combined", from one multi-model response (fields suffixed with each model's name): each
+     * measure averaged over the models that forecast it best against Israeli airports (tools/accuracy).
+     * Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON (chance: GFS and
+     * ICON, the others give none). Wind speed: GFS and Météo-France. The sky, humidity, gusts, wind
+     * direction, UV and "now": best match. An hour a model doesn't cover falls back to best match.
+     */
+    private fun combine(o: JsonObject): Response {
+        val h = o["hourly"]!!.jsonObject
+        val d = o["daily"]!!.jsonObject
+        fun times(obj: JsonObject) = obj["time"]!!.jsonArray.map { it.jsonPrimitive.content }
+        fun nums(obj: JsonObject, key: String) = (obj[key] as? JsonArray)?.map { it.jsonPrimitive.doubleOrNull } ?: emptyList()
+        fun best(obj: JsonObject, field: String) = nums(obj, "${field}_best_match")
+        fun mean(obj: JsonObject, field: String, vararg models: String): List<Double?> {
+            val cols = models.map { nums(obj, "${field}_$it") }
+            val fallback = best(obj, field)
+            return times(obj).indices.map { i ->
+                cols.mapNotNull { it.getOrNull(i) }.takeIf { it.isNotEmpty() }?.average() ?: fallback.getOrNull(i)
+            }
+        }
+        val hourly = Hourly(
+            time = times(h),
+            temperature_2m = mean(h, "temperature_2m", "best_match", "ecmwf_aifs025_single"),
+            precipitation_probability = mean(h, "precipitation_probability", "gfs_global", "icon_global"),
+            precipitation = mean(h, "precipitation", "gfs_global", "meteofrance_arpege_world", "icon_global"),
+            weather_code = best(h, "weather_code").map { it?.toInt() },
+            relative_humidity_2m = best(h, "relative_humidity_2m"),
+            wind_speed_10m = mean(h, "wind_speed_10m", "gfs_global", "meteofrance_arpege_world"),
+            wind_direction_10m = best(h, "wind_direction_10m"),
+            wind_gusts_10m = best(h, "wind_gusts_10m"),
+            uv_index = best(h, "uv_index"),
+            cloud_cover_low = best(h, "cloud_cover_low"),
+            cloud_cover_mid = best(h, "cloud_cover_mid"),
+            cloud_cover_high = best(h, "cloud_cover_high"),
+        )
+        val daily = Daily(
+            time = times(d),
+            weather_code = best(d, "weather_code").map { it?.toInt() },
+            temperature_2m_max = mean(d, "temperature_2m_max", "best_match", "ecmwf_aifs025_single"),
+            temperature_2m_min = mean(d, "temperature_2m_min", "best_match", "ecmwf_aifs025_single"),
+            uv_index_max = best(d, "uv_index_max"),
+        )
+        val current = o["current"]?.let { json.decodeFromJsonElement(Current.serializer(), it) }
+        return Response(hourly, daily, current)
     }
 
     @Serializable

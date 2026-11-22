@@ -235,7 +235,8 @@ def main():
     obs = {s: observations(s, start, end) for s in STATIONS}
     sources = {m: ("model", MODELS[m]) for m in MODELS}
     for src, name in (("ims", "IMS (logged)"), ("foreca", "Foreca (logged)"), ("app_ecmwf", "ECMWF as the app gets it (logged)"),
-                      ("app_best", "Best match as the app gets it (logged)")):
+                      ("app_best", "Best match (logged)"),
+                      ("app_combined", "Best Combined as the app gets it (logged)")):
         sources[src] = ("log", name)
 
     results = {}

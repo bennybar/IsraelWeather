@@ -99,6 +99,6 @@
 "sky_automatic" = "אוטומטי";
 "sky_day" = "תמיד יום";
 "sky_night" = "תמיד לילה";
-"source_best" = "Best match";
-"source_best_line" = "מקור: Open-Meteo best match";
-"source_best_hint" = "השילוב האוטומטי של Open-Meteo בין המודלים הטובים ביותר לכל מקום, בלי השירות המטאורולוגי. בבדיקה מול תחנות שדות התעופה קיבל את תחזיות הטמפרטורה המדויקות ביותר. ההתראות עדיין מהשירות המטאורולוגי.";
+"source_best" = "Best Combined";
+"source_best_line" = "מקור: Best Combined (כמה מודלים דרך Open-Meteo)";
+"source_best_hint" = "כל מדד מהמודלים שחוזים אותו הכי טוב בישראל: טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, רוח מ-GFS ו-Météo-France. בבדיקה מול תחנות שדות התעופה בשנה האחרונה היה מדויק מכל מודל בודד. ההתראות עדיין מהשירות המטאורולוגי.";

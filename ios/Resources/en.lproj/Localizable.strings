@@ -99,6 +99,6 @@
 "sky_automatic" = "Automatic";
 "sky_day" = "Always day";
 "sky_night" = "Always night";
-"source_best" = "Best match";
-"source_best_line" = "Source: Open-Meteo best match";
-"source_best_hint" = "Open-Meteo's automatic blend of the best models for each place, without IMS. It had the most accurate temperatures against Israeli airport stations. Warnings still come from IMS.";
+"source_best" = "Best Combined";
+"source_best_line" = "Source: Best Combined (several models via Open-Meteo)";
+"source_best_hint" = "Each measure from the models that forecast it best in Israel: temperature from Open-Meteo best match and ECMWF's AI model, rain from GFS, Météo-France and ICON, wind from GFS and Météo-France. Over the past year it beat every single model against Israeli airport stations. Warnings still come from IMS.";

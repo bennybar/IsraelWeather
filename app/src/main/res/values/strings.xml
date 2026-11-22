@@ -233,8 +233,8 @@
     <string name="source_gfs_hint">GFS של NOAA (דרך Open-Meteo) בכל מקום, בלי השירות המטאורולוגי. בבדיקה מול תחנות שדות התעופה בשנה האחרונה קיבל את הציון הגבוה ביותר. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
     <string name="source_line_gfs">מקור: GFS דרך Open-Meteo · מיקום מדויק</string>
     <string name="source_gfs">תחזית: GFS דרך Open-Meteo · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
-    <string name="source_best_choice">Best match</string>
-    <string name="source_best_hint">השילוב האוטומטי של Open-Meteo בין המודלים הטובים ביותר לכל מקום, בלי השירות המטאורולוגי. בבדיקה מול תחנות שדות התעופה קיבל את תחזיות הטמפרטורה המדויקות ביותר. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
-    <string name="source_line_best">מקור: Open-Meteo best match · מיקום מדויק</string>
-    <string name="source_best">תחזית: Open-Meteo best match · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
+    <string name="source_best_choice">Best Combined</string>
+    <string name="source_best_hint">כל מדד מהמודלים שחוזים אותו הכי טוב בישראל: טמפרטורה מ-Open-Meteo best match ומודל ה-AI של ECMWF, גשם מ-GFS, ‏Météo-France ו-ICON, רוח מ-GFS ו-Météo-France. בבדיקה מול תחנות שדות התעופה בשנה האחרונה היה מדויק מכל מודל בודד. התראות ומכ״ם עדיין מהשירות המטאורולוגי.</string>
+    <string name="source_line_best">מקור: Best Combined (כמה מודלים דרך Open-Meteo) · מיקום מדויק</string>
+    <string name="source_best">תחזית: Best Combined, כמה מודלים דרך Open-Meteo · התראות ומכ״ם: השירות המטאורולוגי הישראלי</string>
 </resources>

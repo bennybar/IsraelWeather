@@ -233,8 +233,8 @@
     <string name="source_gfs_hint">NOAA\'s GFS (via Open-Meteo) everywhere, without IMS. It graded best against Israeli airport stations over the past year. Warnings and radar still come from IMS.</string>
     <string name="source_line_gfs">Source: GFS via Open-Meteo · exact location</string>
     <string name="source_gfs">Forecast: GFS via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
-    <string name="source_best_choice">Best match</string>
-    <string name="source_best_hint">Open-Meteo\'s automatic blend of the best models for each place, without IMS. It had the most accurate temperatures against Israeli airport stations. Warnings and radar still come from IMS.</string>
-    <string name="source_line_best">Source: Open-Meteo best match · exact location</string>
-    <string name="source_best">Forecast: Open-Meteo best match · Warnings &amp; radar: Israel Meteorological Service</string>
+    <string name="source_best_choice">Best Combined</string>
+    <string name="source_best_hint">Each measure from the models that forecast it best in Israel: temperature from Open-Meteo best match and ECMWF\'s AI model, rain from GFS, Météo-France and ICON, wind from GFS and Météo-France. Over the past year it beat every single model against Israeli airport stations. Warnings and radar still come from IMS.</string>
+    <string name="source_line_best">Source: Best Combined (several models via Open-Meteo) · exact location</string>
+    <string name="source_best">Forecast: Best Combined, several models via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
 </resources>

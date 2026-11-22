@@ -82,8 +82,8 @@ data class Forecast(
         const val SOURCE_OPEN_METEO = "open-meteo"
         /** NOAA's GFS through Open-Meteo. */
         const val SOURCE_GFS = "gfs"
-        /** Open-Meteo's best match: its blend of the best models for each place. */
-        const val SOURCE_BEST = "best-match"
+        /** "Best Combined": several Open-Meteo models, each measure from the ones best at it. */
+        const val SOURCE_BEST = "combined"
         const val SOURCE_FORECA = "foreca"
     }
 

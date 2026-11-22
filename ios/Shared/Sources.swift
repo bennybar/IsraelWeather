@@ -16,6 +16,14 @@ private func fetch<T: Decodable>(_ url: URL, _ type: T.Type, bearer: String? = n
     return try JSONDecoder().decode(T.self, from: data)
 }
 
+private func fetchData(_ url: URL, fresh: Bool = false) async throws -> Data {
+    var req = URLRequest(url: url)
+    if fresh { req.cachePolicy = .reloadIgnoringLocalCacheData }
+    let (data, res) = try await session.data(for: req)
+    if let http = res as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { throw HTTPError.status(http.statusCode) }
+    return data
+}
+
 private func f4(_ v: Double) -> String { String(format: "%.4f", locale: Locale(identifier: "en_US_POSIX"), v) }
 
 /// The Israel Weather proxy (proxy/ in the repo): IMS places, forecasts and warnings.
@@ -71,25 +79,70 @@ enum ECMWF {
     }
     private struct CurrentOnly: Decodable { let current: Current }
 
+    /// "Best Combined", from one multi-model response (fields suffixed with each model's name): each
+    /// measure averaged over the models that forecast it best against Israeli airports (tools/accuracy).
+    /// Temperature: best match and ECMWF's AI model. Rain: GFS, Météo-France and ICON (chance: GFS and
+    /// ICON, the others give none). Wind speed: GFS and Météo-France. The sky, humidity, gusts, wind
+    /// direction, UV and "now": best match. An hour a model doesn't cover falls back to best match.
+    private static func combine(_ data: Data) throws -> Response {
+        guard let o = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let h = o["hourly"] as? [String: Any], let d = o["daily"] as? [String: Any] else { throw HTTPError.status(0) }
+        func times(_ obj: [String: Any]) -> [String] { obj["time"] as? [String] ?? [] }
+        func nums(_ obj: [String: Any], _ key: String) -> [Double?] { (obj[key] as? [Any])?.map { ($0 as? NSNumber)?.doubleValue } ?? [] }
+        func best(_ obj: [String: Any], _ field: String) -> [Double?] { nums(obj, "\(field)_best_match") }
+        func mean(_ obj: [String: Any], _ field: String, _ models: [String]) -> [Double?] {
+            let cols = models.map { nums(obj, "\(field)_\($0)") }
+            let fallback = best(obj, field)
+            return times(obj).indices.map { i in
+                let v = cols.compactMap { $0[safe: i] ?? nil }
+                return v.isEmpty ? (fallback[safe: i] ?? nil) : v.reduce(0, +) / Double(v.count)
+            }
+        }
+        let temp = ["best_match", "ecmwf_aifs025_single"]
+        let hourly = Hourly(
+            time: times(h),
+            temperature_2m: mean(h, "temperature_2m", temp),
+            precipitation_probability: mean(h, "precipitation_probability", ["gfs_global", "icon_global"]),
+            precipitation: mean(h, "precipitation", ["gfs_global", "meteofrance_arpege_world", "icon_global"]),
+            weather_code: best(h, "weather_code").map { $0.map { Int($0) } },
+            relative_humidity_2m: best(h, "relative_humidity_2m"),
+            wind_speed_10m: mean(h, "wind_speed_10m", ["gfs_global", "meteofrance_arpege_world"]),
+            wind_direction_10m: best(h, "wind_direction_10m"),
+            wind_gusts_10m: best(h, "wind_gusts_10m"),
+            cloud_cover_low: best(h, "cloud_cover_low"),
+            cloud_cover_mid: best(h, "cloud_cover_mid"),
+            cloud_cover_high: best(h, "cloud_cover_high"),
+            uv_index: best(h, "uv_index"))
+        let daily = Daily(
+            time: times(d),
+            weather_code: best(d, "weather_code").map { $0.map { Int($0) } },
+            temperature_2m_max: mean(d, "temperature_2m_max", temp),
+            temperature_2m_min: mean(d, "temperature_2m_min", temp),
+            uv_index_max: best(d, "uv_index_max"))
+        let current = try (o["current"]).map { try JSONDecoder().decode(Current.self, from: JSONSerialization.data(withJSONObject: $0)) }
+        return Response(hourly: hourly, daily: daily, current: current)
+    }
+
     private static let currentFields = "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high"
 
     static let ecmwfModel = "ecmwf_ifs"
     /// NOAA's GFS: the best-graded model against Israeli airports (tools/accuracy).
     static let gfsModel = "gfs_global"
-    /// Open-Meteo's blend: the most accurate temperatures against Israeli airports (tools/accuracy).
-    static let bestModel = "best_match"
+    /// "Best Combined": several models in one request, each measure from the ones best at it.
+    static let bestModel = "combined"
+    private static let combinedModels = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
 
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high,uv_index" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&current=\(currentFields)" +
-            "&models=\(model)&timezone=Asia%2FJerusalem&forecast_days=7")!
+            "&models=\(model == bestModel ? combinedModels : model)&timezone=Asia%2FJerusalem&forecast_days=7")!
         // ECMWF has no UV index: take it from Open-Meteo's default blend, at the same time (one
         // radio wake-up, not two in a row). GFS carries its own, so it needs no second request.
         let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7")!
         async let uvTask: UV? = model != ecmwfModel ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
-        let r = try await fetch(url, Response.self, fresh: fresh)
+        let r = model == bestModel ? try combine(try await fetchData(url, fresh: fresh)) : try await fetch(url, Response.self, fresh: fresh)
         let uv = await uvTask
         let h = r.hourly
         let sky = h.time.indices.map { effective(h.cloud_cover_low[safe: $0] ?? nil, h.cloud_cover_mid[safe: $0] ?? nil, h.cloud_cover_high[safe: $0] ?? nil) }
