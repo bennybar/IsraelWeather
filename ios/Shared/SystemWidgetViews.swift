@@ -153,7 +153,7 @@ struct SystemUpNext: View {
             let run = next.drop { $0.t < first.t }.prefix(while: \.wet)
             let end = (run.last ?? first).date.addingTimeInterval(3600)
             let peak = Int((run.compactMap(\.rainChance).max() ?? 0).rounded())
-            out.append((.blue, "\(L("rain")) \(peak)%", "\(Fmt.time(first.date)) – \(Fmt.time(end))"))
+            out.append((.blue, peak >= rainyPct ? "\(L("rain")) \(peak)%" : L("rain"), "\(Fmt.time(first.date)) – \(Fmt.time(end))"))
         } else {
             out.append((.green, L("dry_next"), L("no_rain_day")))
         }

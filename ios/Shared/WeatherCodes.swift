@@ -64,8 +64,8 @@ enum WeatherCodes {
         }
     }
 
-    /// Clear / partly cloudy / cloudy / rain…: the sky family, for picking widget backgrounds.
-    /// Codes whose icon shows rain falling: light rain, rain and thunderstorms.
-    static func showsRain(_ code: Int) -> Bool { code == 1560 || code == 1140 || code == 1020 }
+    /// Codes whose icon shows rain falling: possible rain, light rain, rain, sleet and thunderstorms.
+    static func showsRain(_ code: Int) -> Bool { [1530, 1540, 1560, 1140, 1080, 1020].contains(code) }
+    /// Rain, storms or snow: for the gray sky of the backgrounds.
     static func isRainy(_ code: Int) -> Bool { [1530, 1540, 1560, 1140, 1020, 1510, 1080, 1070, 1060, 1520].contains(code) }
 }

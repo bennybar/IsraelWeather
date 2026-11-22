@@ -57,7 +57,7 @@ class BestCombinedTest {
     }
 
     /**
-     * A made-up four-day response (rain is rounded to the 0.1 mm the app shows).
+     * A made-up six-day response (rain is rounded to the 0.1 mm the app shows).
      * Day 1: best match's day says showers (80) from rain at night (01–04); the daytime has only
      * 0.07 mm an hour (0.77 mm, no wet hour), so the day stays dry. Best match's drizzle at 20:00
      * has no blended rain, so it turns to sky.
@@ -66,14 +66,18 @@ class BestCombinedTest {
      * mean of 0.19999… that must count as 0.2); 10:00 has 0.14 mm (shown 0.1, stays dry), and
      * Météo-France is gone from 12:00. 1.0 mm in the daytime: light rain, not best match's rain.
      * Day 4: best match's day says thunder (95), with a 3 mm storm at 09: the day keeps its thunder.
+     * Day 5: best match says showers (80) at 10–13 but the blend has 0.1 mm an hour: sky, hours and day.
+     * Day 6: best match's day says thunder (95) from a storm at 02:00; the daytime has two 0.3 mm
+     * hours: a light-rain day, not a thunderstorm one.
      * Wind and gusts vary by hour; humidity is missing and mid cloud too short.
      */
     @Test
     fun keepsTheBlendConsistent() = runBlocking {
-        val n = 96
+        val n = 144
         val hours = (0 until n).map { "2026-12-%02dT%02d:00".format(1 + it / 24, it % 24) }
         fun col(v: (Int) -> Any?) = (0 until n).joinToString(",", "[", "]") { v(it)?.toString() ?: "null" }
-        val rainAll = mapOf(1 to 1.5, 2 to 1.5, 3 to 1.5, 4 to 1.5, 33 to 1.2, 34 to 1.2, 57 to 0.6, 58 to 0.14, 81 to 3.0) +
+        val rainAll = mapOf(1 to 1.5, 2 to 1.5, 3 to 1.5, 4 to 1.5, 33 to 1.2, 34 to 1.2, 57 to 0.6, 58 to 0.14, 81 to 3.0, 106 to 0.1, 107 to 0.1, 108 to 0.1, 109 to 0.1,
+            122 to 2.0, 129 to 0.3, 130 to 0.3) +
             (7..17).associateWith { 0.07 }
         // 11:00 on day 3: 0.3, 0.3 and 0.0, a mean of 0.19999…; 14:00: GFS 0.2 and ICON 0.0 only.
         fun gfs(i: Int) = when (i) { 59 -> 0.3; 62 -> 0.2; else -> rainAll[i] ?: 0 }
@@ -84,13 +88,13 @@ class BestCombinedTest {
             "precipitation_best_match":${col { 0 }},"precipitation_gfs_global":${col { gfs(it) }},
             "precipitation_meteofrance_arpege_world":${col { mf(it) }},"precipitation_icon_global":${col { icon(it) }},
             "precipitation_probability_gfs_global":${col { 80 }},"precipitation_probability_icon_global":${col { 60 }},
-            "weather_code_best_match":${col { if (it == 20) 53 else if (it == 81) 95 else if (it / 24 == 1) 45 else if (it / 24 == 0) 0 else 3 }},
+            "weather_code_best_match":${col { if (it == 20) 53 else if (it == 81 || it == 122) 95 else if (it in 106..109) 80 else if (it / 24 == 1) 45 else if (it / 24 == 0) 0 else 3 }},
             "wind_speed_10m_best_match":${col { 1 }},"wind_speed_10m_gfs_global":${col { 20 + it }},"wind_speed_10m_meteofrance_arpege_world":${col { 10 + it }},
             "wind_gusts_10m_best_match":${col { 1 }},"wind_gusts_10m_gfs_global":${col { 30 + it }},"wind_gusts_10m_meteofrance_arpege_world":${col { 5 }},
             "wind_direction_10m_best_match":${col { 270 }},"uv_index_best_match":${col { 2 }},
             "cloud_cover_low_best_match":${col { 90 }},"cloud_cover_mid_best_match":[0,0,0,0,0,0,0,0,0,0],"cloud_cover_high_best_match":${col { 0 }}},
-          "daily":{"time":["2026-12-01","2026-12-02","2026-12-03","2026-12-04"],"weather_code_best_match":[80,45,63,95],
-            "temperature_2m_max_best_match":[30,30,30,30],"temperature_2m_min_best_match":[0,0,0,0],"uv_index_max_best_match":[2,2,2,2]},
+          "daily":{"time":["2026-12-01","2026-12-02","2026-12-03","2026-12-04","2026-12-05","2026-12-06"],"weather_code_best_match":[80,45,63,95,80,95],
+            "temperature_2m_max_best_match":[30,30,30,30,30,30],"temperature_2m_min_best_match":[0,0,0,0,0,0],"uv_index_max_best_match":[2,2,2,2,2,2]},
           "current":{"time":"2026-12-01T03:15","interval":900,"temperature_2m":20,"weather_code":0,"wind_speed_10m":1,"wind_gusts_10m":1,"wind_direction_10m":270,"cloud_cover_low":90}}"""
         val fake = OkHttpClient.Builder().addInterceptor { chain ->
             Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("OK")
@@ -113,10 +117,15 @@ class BestCombinedTest {
         assertEquals(storm, f.hourly[81].code)
         // Days: a night shower with a damp daytime stays dry; daytime rain sets light rain or rain by
         // amount, over fog and over best match's own rain code; a storm day keeps its thunder.
-        assertTrue(f.daily[0].code != rain && f.daily[0].code != light)
+        assertEquals(cloudy, f.daily[0].code)
         assertEquals(rain, f.daily[1].code)
         assertEquals(light, f.daily[2].code)
         assertEquals(storm, f.daily[3].code)
+        assertTrue((106..109).all { f.hourly[it].code == cloudy })
+        assertEquals(cloudy, f.daily[4].code)
+        assertEquals(storm, f.hourly[122].code)
+        assertEquals(light, f.hourly[129].code)
+        assertEquals(light, f.daily[5].code)
         // Rain is the models' mean, of the ones left once Météo-France ends.
         assertEquals(1.5, f.hourly[2].rain!!, 0.001)
         assertEquals(0.1, f.hourly[62].rain!!, 0.001)

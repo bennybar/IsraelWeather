@@ -140,7 +140,9 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val wetDay = model == BEST && daytimeRain >= WET_DAY_MM - EPS &&
                 daytime.any { (h.precipitation[it] ?: 0.0) >= WET_HOUR_MM - EPS }
             val code = d.weather_code[i]
-            val stormOrSnow = code != null && (code >= 95 || code in 71..77 || code == 85 || code == 86)
+            fun isStormOrSnow(c: Int?) = c != null && (c >= 95 || c in 71..77 || c == 85 || c == 86)
+            // A storm or snow in the daytime itself (a night thunderstorm doesn't make the day one).
+            val stormOrSnow = isStormOrSnow(code) && daytime.any { isStormOrSnow(h.weather_code[it]) }
             val codedRain = code != null && (code in 51..67 || code in 80..82)
             val dayCode = if (wetDay) {
                 // Storms and snow keep their code; otherwise the amount decides (light rain or rain).
@@ -188,14 +190,19 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val fallback = best(obj, field, n)
             return List(n) { i -> cols.mapNotNull { it[i] }.takeIf { it.isNotEmpty() }?.average() ?: fallback[i] }
         }
-        // The hour's code against its blended rain: a dry, foggy or missing code (0–3, 45, 48) from
-        // 0.2 mm becomes light rain, from 1 mm rain; best match's drizzle or rain (51–67, 80–82) under
-        // 0.1 mm becomes a plain sky code (the cloud decides). Storms and snow stay.
-        fun wetCode(code: Int?, mm: Double?): Int? = when {
-            mm == null -> code
-            (code == null || code <= 3 || code == 45 || code == 48) && mm >= WET_HOUR_MM - EPS -> if (mm >= 1.0 - EPS) 61 else 51
-            code != null && (code in 51..67 || code in 80..82) && mm < 0.1 - EPS -> 3
-            else -> code
+        // The hour's code from its blended rain, for dry, foggy, missing and rain codes alike (0–3,
+        // 45, 48, 51–67, 80–82): light rain from 0.2 mm, rain from 1 mm, else a plain sky code where
+        // best match said rain (the cloud decides). Storms and snow stay.
+        fun wetCode(code: Int?, mm: Double?): Int? {
+            if (mm == null) return code
+            val rainCode = code != null && (code in 51..67 || code in 80..82)
+            if (!(code == null || code <= 3 || code == 45 || code == 48 || rainCode)) return code
+            return when {
+                mm >= 1.0 - EPS -> 61
+                mm >= WET_HOUR_MM - EPS -> 51
+                rainCode -> 3
+                else -> code
+            }
         }
         val n = hTimes.size
         val nd = dTimes.size
