@@ -47,7 +47,16 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func start() {
         if settings.useLocation {
-            if location.authorizationStatus == .notDetermined { location.requestWhenInUseAuthorization() } else { location.requestLocation() }
+            if location.authorizationStatus == .notDetermined {
+                location.requestWhenInUseAuthorization()
+            } else if let last = location.location, Date().timeIntervalSince(last.timestamp) < 600 {
+                // A fix under 10 minutes old is good enough: opening the app again soon after
+                // doesn't wake the location hardware.
+                Task { await apply(last) }
+                return
+            } else {
+                location.requestLocation()
+            }
         }
         Task { await refreshAll() }
     }
