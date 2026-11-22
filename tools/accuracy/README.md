@@ -4,7 +4,7 @@ Grades forecast sources against what Israeli airports actually measured.
 
 - `backtest.py` grades every model Open-Meteo archives (what each forecast 1, 2 and 3 days
   ahead) over the past year, plus whatever `logger.py` has recorded. Writes `results.json`.
-- `logger.py` records IMS, Foreca and ECMWF (as the app gets it) once a day, since IMS and
+- `logger.py` records IMS, Foreca, and ECMWF and best match (as the app gets them) three times a day (each source once per day), since IMS and
   Foreca keep no forecast history.
 
 Run them with the system Python (`/usr/bin/python3`): Python.org's build can't verify HTTPS

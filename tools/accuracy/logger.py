@@ -49,9 +49,10 @@ def foreca(lat, lon, key):
              "rain": h.get("precipAccum")} for h in f.get("forecast", [])], {}
 
 
-def app_ecmwf(lat, lon):
+def open_meteo(lat, lon, model):
+    """An Open-Meteo model as the app gets it: ECMWF (ecmwf_ifs) or best match (best_match)."""
     q = urllib.parse.urlencode({"latitude": lat, "longitude": lon, "hourly": "temperature_2m,precipitation,wind_speed_10m",
-                                "models": "ecmwf_ifs", "timezone": "Asia/Jerusalem", "forecast_days": 5})
+                                "models": model, "timezone": "Asia/Jerusalem", "forecast_days": 5})
     h = fetch("https://api.open-meteo.com/v1/forecast?" + q)["hourly"]
     return [{"t": t.replace("T", " "), "temp": h["temperature_2m"][i], "wind": h["wind_speed_10m"][i], "rain": h["precipitation"][i]}
             for i, t in enumerate(h["time"])], {}
@@ -63,7 +64,8 @@ def main():
     places = fetch(f"{PROXY}/v1/locations")["locations"]
     key = open(KEY_FILE).read().strip() if os.path.exists(KEY_FILE) else None
     for icao, (_, lat, lon) in STATIONS.items():
-        jobs = {"ims": lambda: ims(lat, lon, places), "app_ecmwf": lambda: app_ecmwf(lat, lon)}
+        jobs = {"ims": lambda: ims(lat, lon, places), "app_ecmwf": lambda: open_meteo(lat, lon, "ecmwf_ifs"),
+                "app_best": lambda: open_meteo(lat, lon, "best_match")}
         if key:
             jobs["foreca"] = lambda: foreca(lat, lon, key)
         for source, job in jobs.items():
