@@ -1,5 +1,6 @@
 package com.bennybar.israelweather.data
 
+import com.bennybar.israelweather.RainAlert
 import android.content.Context
 import com.bennybar.israelweather.widget.Widgets
 import kotlinx.coroutines.CoroutineScope
@@ -152,6 +153,12 @@ class WeatherRepository(
                 _forecasts.update { m -> m + (id to Loadable(f, now)) }
                 withContext(Dispatchers.IO) { write("forecast-$id", Forecast.serializer(), Stamped(now, f)) }
                 if (updateWidgets) scope.launch { Widgets.updateAll(context) }
+                // My location's forecast: set (or clear) the rain alert from it.
+                val st = settings.value
+                if (st.rainAlerts && st.useLocation && id == st.currentForecastId) {
+                    val english = context.resources.configuration.locales[0].language == "en"
+                    RainAlert.update(context, f, placeFor(id)?.name(english))
+                }
             }
             .onFailure { e -> _forecasts.update { m -> m + (id to (m[id] ?: Loadable()).copy(loading = false, error = e)) } }
             .isSuccess
@@ -203,9 +210,19 @@ class WeatherRepository(
     fun warningsFor(rid: Int, all: List<Warning>? = _warnings.value.value): List<Warning> =
         all.orEmpty().filter { rid in it.regions && it.isActive() }
 
-    /** Live station reading; quietly absent until the proxy has an IMS token. */
+    /**
+     * Live station reading for a forecast id, kept under that id; quietly absent until the proxy has
+     * an IMS token. The proxy takes IMS place ids, so my exact spot and searched places ask by their
+     * nearest IMS point (their own ids would be rejected).
+     */
     suspend fun refreshNow(id: Int) {
-        runCatching { api.now(id) }.onSuccess { o -> _now.update { it + (id to o) } }
+        val s = settings.value
+        val ims = when {
+            id == CURRENT_ID -> s.currentPlace
+            id < 0 -> s.custom(id)?.nearest
+            else -> id
+        } ?: return
+        runCatching { api.now(ims) }.onSuccess { o -> _now.update { it + (id to o) } }
     }
 
     suspend fun radar(): Radar = api.radar()

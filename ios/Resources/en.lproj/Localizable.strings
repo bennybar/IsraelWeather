@@ -102,3 +102,14 @@
 "source_best" = "Best Combined";
 "source_best_line" = "Source: Best Combined (several models via Open-Meteo)";
 "source_best_hint" = "Temperature from Open-Meteo best match and ECMWF's AI model, rain from GFS, Météo-France and ICON, wind and gusts from GFS and Météo-France; sky and humidity from best match, with the rain icons following the blended rain (light rain from 0.2 mm an hour). Over the past year, 1–3 days ahead, it beat every single model against Israeli airport stations, mostly thanks to more accurate temperatures. Warnings still come from IMS.";
+"measured_at" = "Measured at %@";
+"forecast_cards" = "Forecast cards";
+"card_hourly" = "Hourly forecast";
+"card_week" = "7-day forecast";
+"card_details" = "Details";
+"reset" = "Reset";
+"section_notifications" = "Notifications";
+"rain_alerts" = "Rain alert";
+"rain_alerts_footer" = "About an hour before rain at My Location, once per rain spell, not at night. Set whenever the forecast updates, so it adds no background work.";
+"rain_alert_title" = "Rain soon";
+"rain_alert_body" = "Rain from %@ in %@.";

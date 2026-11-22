@@ -32,6 +32,8 @@ enum IMS {
     static func places() async throws -> [Place] { try await fetch(URL(string: base + "/v1/locations")!, PlacesResponse.self).locations }
     static func forecast(_ id: Int, fresh: Bool) async throws -> Forecast { try await fetch(URL(string: base + "/v1/forecast/\(id)")!, Forecast.self, fresh: fresh) }
     static func warnings() async throws -> [Warning] { try await fetch(URL(string: base + "/v1/warnings")!, WarningsResponse.self).warnings }
+    /// The nearest station's latest reading for an IMS place (HTTP 503 while the proxy has no IMS token).
+    static func now(_ id: Int) async throws -> Observation { try await fetch(URL(string: base + "/v1/now/\(id)")!, Observation.self) }
 }
 
 /// ECMWF's 9 km IFS through Open-Meteo, with the same sky fixes as Android.

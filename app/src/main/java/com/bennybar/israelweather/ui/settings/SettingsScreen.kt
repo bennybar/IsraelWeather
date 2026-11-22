@@ -56,6 +56,12 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bennybar.israelweather.ui.rememberLocationAccess
 import com.bennybar.israelweather.BuildConfig
+import com.bennybar.israelweather.RainAlert
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Switch
 import com.bennybar.israelweather.R
 import com.bennybar.israelweather.app
 import com.bennybar.israelweather.data.IconStyle
@@ -91,6 +97,10 @@ fun SettingsScreen() {
         onPauseOrDispose { }
     }
     val location = rememberLocationAccess()
+    // Rain alerts need the notification permission (Android 13+): asked when switched on.
+    val notifyPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        app.settings.setRainAlerts(granted)
+    }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
         Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -286,6 +296,23 @@ fun SettingsScreen() {
                             Text(stringResource(R.string.edit_cards_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null)
+                    }
+                }
+            }
+            item {
+                Section(stringResource(R.string.section_notifications)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(stringResource(R.string.rain_alerts), fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.rain_alerts_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                        }
+                        Switch(checked = settings.rainAlerts, onCheckedChange = { on ->
+                            when {
+                                !on -> { app.settings.setRainAlerts(false); RainAlert.cancel(context) }
+                                RainAlert.canNotify(context) -> app.settings.setRainAlerts(true)
+                                Build.VERSION.SDK_INT >= 33 -> notifyPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        })
                     }
                 }
             }

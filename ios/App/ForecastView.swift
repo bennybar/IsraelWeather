@@ -81,9 +81,15 @@ struct ForecastPage: View {
                 VStack(spacing: 12) {
                     header(f, now)
                     if let f {
-                        hourly(f)
-                        week(f)
-                        details(now)
+                        // The cards in the order chosen in Settings, without the hidden ones.
+                        let hidden = model.settings.hiddenCards
+                        ForEach(model.settings.cards.filter { !hidden.contains($0) }, id: \.self) { card in
+                            switch card {
+                            case .hourly: hourly(f)
+                            case .week: week(f)
+                            case .details: details(now)
+                            }
+                        }
                         sourceLine(f, updated: entry?.1)
                     } else {
                         ProgressView().tint(.white).padding(40)
@@ -116,7 +122,10 @@ struct ForecastPage: View {
     /// condition, high/low and feels-like beside it.
     private func header(_ f: Forecast?, _ now: Hour?) -> some View {
         let today = f?.days(1).first
-        let feels = Sun.apparent(temp: now?.temp, rh: now?.rh, windKmh: now?.wind)
+        // The nearest station's reading when it's recent, else the forecast's.
+        let obs = model.observations[id].flatMap { $0.isRecent && $0.temp != nil ? $0 : nil }
+        let temp = obs?.temp ?? now?.temp
+        let feels = Sun.apparent(temp: temp, rh: obs?.rh ?? now?.rh, windKmh: obs?.wind ?? now?.wind)
         let night = now.map { WeatherCodes.isNight($0.t) } ?? false
         return Card {
             HStack(alignment: .top) {
@@ -140,7 +149,7 @@ struct ForecastPage: View {
                 SettingsButton { showSettings = true }
             }
             HStack(alignment: .center, spacing: 16) {
-                Text(Fmt.temp(now?.temp)).font(.system(size: 72, weight: .thin)).lineLimit(1)
+                Text(Fmt.temp(temp)).font(.system(size: 72, weight: .thin)).lineLimit(1)
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         if let now { WeatherGlyph(code: now.code, night: night, size: 18) }
@@ -150,6 +159,10 @@ struct ForecastPage: View {
                         Text(String(format: L("high_low"), Fmt.temp(today.max), Fmt.temp(today.min))).font(.subheadline.weight(.medium))
                     }
                     Text("\(L("feels_like")) \(Fmt.temp(feels))").font(.subheadline).opacity(0.8)
+                    if let obs {
+                        Label(String(format: L("measured_at"), obs.station.name), systemImage: "sensor.fill")
+                            .font(.caption).opacity(0.75).lineLimit(1)
+                    }
                 }
                 Spacer(minLength: 0)
             }

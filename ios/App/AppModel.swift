@@ -15,6 +15,10 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var settingsVersion = 0
     /// The forecast page shown (Places opens one by tapping it).
     @Published var page = 0
+    /// Live station readings by page id (only while the proxy has an IMS token).
+    @Published var observations: [Int: Observation] = [:]
+    /// No readings until then: the proxy has no IMS token, so don't ask on every refresh.
+    private var stationsOffUntil = Date.distantPast
 
     let settings = AppSettings.shared
     private let location = CLLocationManager()
@@ -69,10 +73,28 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             await load(page.id, forecastID: fid, force: force)
         }
         warnings = await Repository.shared.warnings(force: force)
+        await loadObservations()
         loading = false
         // Widgets reload only when a forecast was actually downloaded (not on every app open:
         // reloads count against the widgets' daily budget and wake their process).
         if force || forecasts.mapValues(\.1) != before { WidgetCenter.shared.reloadAllTimelines() }
+    }
+
+    /// The nearest station's reading for each page, by its nearest IMS point. Only the app asks
+    /// (widgets don't), the proxy caches it for 5 minutes, and a missing token pauses it for 6 hours.
+    private func loadObservations() async {
+        guard Date() > stationsOffUntil else { return }
+        for page in pages {
+            let ims = page.current ? settings.currentPlace : settings.custom(page.id).map { $0.nearest } ?? page.id
+            guard let ims, ims > 0 else { continue }
+            do {
+                observations[page.id] = try await IMS.now(ims)
+            } catch HTTPError.status(503) {
+                stationsOffUntil = Date().addingTimeInterval(6 * 3600)
+                observations = [:]
+                return
+            } catch {}
+        }
     }
 
     func load(_ id: Int, forecastID: Int, force: Bool = false) async {
@@ -110,6 +132,12 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func move(from: IndexSet, to: Int) {
         savedPlaces.move(fromOffsets: from, toOffset: to)
         settings.places = savedPlaces
+    }
+
+    /// Rain alerts were switched on: schedule one from my location's forecast as it is.
+    func rainAlertsChanged() {
+        guard settings.useLocation, let fid = settings.currentForecastID, let f = forecasts[fid]?.0 else { return }
+        RainAlert.update(f, place: places[fid]?.name(english: Fmt.english))
     }
 
     /// Units, icons or the hours' details changed: redraw the app and the widgets, no refetch.

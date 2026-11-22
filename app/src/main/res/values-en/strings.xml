@@ -237,4 +237,10 @@
     <string name="source_best_hint">Temperature from Open-Meteo best match and ECMWF\'s AI model, rain from GFS, Météo-France and ICON, wind and gusts from GFS and Météo-France; sky and humidity from best match, with the rain icons following the blended rain (light rain from 0.2 mm an hour). Over the past year, 1–3 days ahead, it beat every single model against Israeli airport stations, mostly thanks to more accurate temperatures. Warnings and radar still come from IMS.</string>
     <string name="source_line_best">Source: Best Combined (several models via Open-Meteo) · exact location</string>
     <string name="source_best">Forecast: Best Combined, several models via Open-Meteo · Warnings &amp; radar: Israel Meteorological Service</string>
+    <string name="section_notifications">Notifications</string>
+    <string name="rain_alerts">Rain alert</string>
+    <string name="rain_alerts_hint">About an hour before rain at My Location, once per rain spell, not at night. Set whenever the forecast updates, so it adds no background work.</string>
+    <string name="rain_alert_title">Rain soon</string>
+    <string name="rain_alert_body">Rain from %1$s in %2$s.</string>
+    <string name="rain_alert_body_here">Rain from %1$s.</string>
 </resources>

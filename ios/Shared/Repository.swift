@@ -85,6 +85,10 @@ actor Repository {
         do {
             let f = try await fetchForecast(id, fresh: fresh)
             write("forecast-\(id)", f)
+            // My location's forecast: set (or clear) the rain alert from it.
+            if settings.useLocation, id == settings.currentForecastID, settings.rainAlerts {
+                RainAlert.update(f, place: await place(for: currentID)?.name(english: Fmt.english))
+            }
             return (f, Date())
         } catch {
             return cached(id)

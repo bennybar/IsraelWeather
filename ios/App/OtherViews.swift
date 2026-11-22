@@ -178,6 +178,9 @@ struct SettingsView: View {
     @State private var iconStyle = AppSettings.shared.iconStyle
     @State private var hourDetails = AppSettings.shared.hourDetails
     @State private var skyMode = AppSettings.shared.skyMode
+    @State private var cards = AppSettings.shared.cards
+    @State private var hiddenCards = AppSettings.shared.hiddenCards
+    @State private var rainAlerts = AppSettings.shared.rainAlerts
     @State private var source = AppSettings.shared.source
     @State private var key = AppSettings.shared.forecaKey
     @State private var keyStatus: Bool?
@@ -204,6 +207,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
+                    NavigationLink(L("forecast_cards")) { CardsView(cards: $cards, hidden: $hiddenCards) }
                 }
                 Section {
                     ForEach(HourDetail.allCases, id: \.self) { d in
@@ -236,6 +240,9 @@ struct SettingsView: View {
                 Section(L("section_location")) {
                     Toggle(L("use_location"), isOn: $useLocation)
                 }
+                Section {
+                    Toggle(L("rain_alerts"), isOn: $rainAlerts)
+                } header: { Text(L("section_notifications")) } footer: { Text(L("rain_alerts_footer")) }
                 Section(L("section_about")) {
                     Text(L("about_body")).font(.footnote).foregroundStyle(.secondary)
                     Link("GitHub", destination: URL(string: "https://github.com/bennybar/IsraelWeather")!)
@@ -250,10 +257,46 @@ struct SettingsView: View {
             .onChange(of: iconStyle) { _, v in AppSettings.shared.iconStyle = v; model.displayChanged() }
             .onChange(of: hourDetails) { _, v in AppSettings.shared.hourDetails = v; model.displayChanged() }
             .onChange(of: skyMode) { _, v in AppSettings.shared.skyMode = v; model.displayChanged() }
+            .onChange(of: cards) { _, v in AppSettings.shared.cards = v; model.settingsVersion += 1 }
+            .onChange(of: hiddenCards) { _, v in AppSettings.shared.hiddenCards = v; model.settingsVersion += 1 }
+            .onChange(of: rainAlerts) { _, on in
+                AppSettings.shared.rainAlerts = on
+                if on {
+                    // Ask once; if refused, the switch goes back off.
+                    Task {
+                        let ok = await RainAlert.requestPermission()
+                        if !ok { rainAlerts = false } else { model.rainAlertsChanged() }
+                    }
+                } else {
+                    RainAlert.cancel()
+                }
+            }
             .onChange(of: useLocation) { _, v in AppSettings.shared.useLocation = v; refetch = true }
             .onChange(of: source) { _, v in AppSettings.shared.source = v; refetch = true }
             .onChange(of: key) { _, v in AppSettings.shared.forecaKey = v; refetch = true }
             .onDisappear { if refetch { model.settingsChanged() } }
+        }
+    }
+}
+
+/// The forecast page's cards: drag to reorder, switch to show or hide.
+struct CardsView: View {
+    @Binding var cards: [ForecastCard]
+    @Binding var hidden: Set<ForecastCard>
+
+    var body: some View {
+        List {
+            ForEach(cards, id: \.self) { card in
+                Toggle(L("card_\(card.rawValue)"), isOn: Binding(
+                    get: { !hidden.contains(card) },
+                    set: { on in if on { hidden.remove(card) } else { hidden.insert(card) } }))
+            }
+            .onMove { cards.move(fromOffsets: $0, toOffset: $1) }
+        }
+        .environment(\.editMode, .constant(.active))
+        .navigationTitle(L("forecast_cards"))
+        .toolbar {
+            Button(L("reset")) { cards = ForecastCard.allCases; hidden = [] }
         }
     }
 }

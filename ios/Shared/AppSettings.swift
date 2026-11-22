@@ -8,6 +8,11 @@ enum ForecastSource: String, CaseIterable, Codable { case imsEcmwf, ecmwf, forec
 enum SkyMode: String, CaseIterable { case automatic, day, night }
 
 /// Extra lines under each of the next hours (Settings → Next hours).
+/// The forecast page's cards below the header, which can be reordered and hidden.
+enum ForecastCard: String, CaseIterable {
+    case hourly, week, details
+}
+
 enum HourDetail: String, CaseIterable {
     case rain, wind, feels, humidity, uv
 
@@ -46,6 +51,27 @@ final class AppSettings {
     var hourDetails: Set<HourDetail> {
         get { Set((defaults.array(forKey: "hourDetails") as? [String] ?? [HourDetail.rain.rawValue]).compactMap(HourDetail.init)) }
         set { defaults.set(HourDetail.allCases.filter(newValue.contains).map(\.rawValue), forKey: "hourDetails") }
+    }
+    var cards: [ForecastCard] {
+        get {
+            let saved = (defaults.array(forKey: "cards") as? [String] ?? []).compactMap(ForecastCard.init)
+            return saved + ForecastCard.allCases.filter { !saved.contains($0) }
+        }
+        set { defaults.set(newValue.map(\.rawValue), forKey: "cards") }
+    }
+    var hiddenCards: Set<ForecastCard> {
+        get { Set((defaults.array(forKey: "hiddenCards") as? [String] ?? []).compactMap(ForecastCard.init)) }
+        set { defaults.set(newValue.map(\.rawValue), forKey: "hiddenCards") }
+    }
+    /// A notification about an hour before rain at my location (scheduled when its forecast refreshes).
+    var rainAlerts: Bool {
+        get { defaults.bool(forKey: "rainAlerts") }
+        set { defaults.set(newValue, forKey: "rainAlerts") }
+    }
+    /// When the last rain alert was set to go off: a later one for the same spell is skipped.
+    var rainAlertFire: Date? {
+        get { defaults.object(forKey: "rainAlertFire") as? Date }
+        set { defaults.set(newValue, forKey: "rainAlertFire") }
     }
     var skyMode: SkyMode {
         get { SkyMode(rawValue: defaults.string(forKey: "skyMode") ?? "") ?? .automatic }

@@ -143,6 +143,25 @@ struct Localized: Codable, Hashable {
     func get(english: Bool) -> String? { (english ? en : he) ?? he ?? en }
 }
 
+/// The latest reading from the IMS station nearest a place (from the proxy, once it has an IMS token).
+struct Observation: Codable, Hashable {
+    struct Station: Codable, Hashable { let id: Int; let name: String }
+    let station: Station
+    let t: String?
+    let temp: Double?
+    let rh: Double?
+    let wind: Double?
+    let gust: Double?
+    let windDir: Double?
+    let rain: Double?
+
+    /// Taken within the last hour.
+    var isRecent: Bool {
+        guard let t, let d = ISO8601DateFormatter().date(from: t) ?? Fmt.parse(t) else { return false }
+        return Date().timeIntervalSince(d) < 3600
+    }
+}
+
 struct Warning: Codable, Hashable, Identifiable {
     let id: Int
     let severity: Int

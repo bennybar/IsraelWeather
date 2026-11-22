@@ -49,6 +49,8 @@ data class Settings(
     val forecastSource: ForecastSource = ForecastSource.IMS_ECMWF,
     /** The user's own Foreca API key (for [ForecastSource.FORECA]). */
     val forecaKey: String = "",
+    /** A notification about an hour before rain at my location (set when its forecast refreshes). */
+    val rainAlerts: Boolean = false,
 ) {
     /**
      * The forecast to show for "my location": the nearest IMS point's when it is within
@@ -106,6 +108,7 @@ class SettingsStore(context: Context) {
             iconStyle = enumOr(prefs.getString("iconStyle", null), d.iconStyle),
             forecastSource = enumOr(prefs.getString("forecastSource", null), d.forecastSource),
             forecaKey = prefs.getString("forecaKey", null).orEmpty(),
+            rainAlerts = prefs.getBoolean("rainAlerts", false),
             customPlaces = prefs.getString("customPlaces", null)
                 ?.let { runCatching { Json.decodeFromString(ListSerializer(CustomPlace.serializer()), it) }.getOrNull() }.orEmpty(),
         )
@@ -127,6 +130,7 @@ class SettingsStore(context: Context) {
             .putString("hiddenCards", s.hiddenCards.joinToString(",") { it.name })
             .putString("places", s.places.joinToString(","))
             .putBoolean("useLocation", s.useLocation)
+            .putBoolean("rainAlerts", s.rainAlerts)
             .putInt("currentPlace", s.currentPlace ?: -1)
             .putString("currentLat", s.currentLat?.toString())
             .putString("currentLon", s.currentLon?.toString())
@@ -149,6 +153,7 @@ class SettingsStore(context: Context) {
     fun setForecaKey(v: String) = update { it.copy(forecaKey = v.trim()) }
     fun setRefreshMinutes(v: Int) = update { it.copy(refreshMinutes = v) }
     fun setUseLocation(v: Boolean) = update { it.copy(useLocation = v) }
+    fun setRainAlerts(v: Boolean) = update { it.copy(rainAlerts = v) }
     fun setCurrentPlace(id: Int?) = update { it.copy(currentPlace = id) }
 
     fun setCurrentLocation(id: Int, lat: Double, lon: Double, km: Int, town: Localized?) =

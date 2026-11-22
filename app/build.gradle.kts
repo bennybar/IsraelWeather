@@ -31,7 +31,7 @@ android {
         minSdk = 35
         targetSdk = 36
         versionCode = 75
-        versionName = "1.0.74"
+        versionName = "1.0.75"
     }
 
     dependenciesInfo {

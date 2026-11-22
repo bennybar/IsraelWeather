@@ -14,6 +14,7 @@
 		20099C05D3BBD73DCF03DE8D /* GlassViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E68A8B4CCF5960F4521E136 /* GlassViews.swift */; };
 		266EB4257006A45DCD795D06 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
 		2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */; };
+		34528BB21C844BD70693EAAA /* RainAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C12AB640A0DC2342667D36 /* RainAlert.swift */; };
 		3E5EDA9D97B572EAFE919A0C /* IsraelWeatherWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8B2F539E6BA595EA12798F52 /* IsraelWeatherWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */; };
 		43C07093CC76C2E3759A1B5D /* WidgetSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 360C794946B57766F9C5C8CB /* WidgetSchedule.swift */; };
@@ -26,6 +27,7 @@
 		73107E319C2BCE092FA05FAD /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945586967142489A20048C10 /* Models.swift */; };
 		74A0F8A3DA01AB2FCE4D9A9A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945586967142489A20048C10 /* Models.swift */; };
 		7AAF85AAABA8CF4AE906D4A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F85815675953FAC192073B2A /* Localizable.strings */; };
+		8665CD67ED6D1C80CA07E675 /* RainAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C12AB640A0DC2342667D36 /* RainAlert.swift */; };
 		8E135C37BE96ABF74C2D0E63 /* OtherViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023D8DFF71644411A353F13F /* OtherViews.swift */; };
 		965C468DA3AD5175AF894817 /* Sun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E47580DF0F1784E82878A5D /* Sun.swift */; };
 		9810EE1D337D9B3BBAF4EE0D /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C680C2320A3AEE72489A2D5 /* ForecastView.swift */; };
@@ -98,6 +100,7 @@
 		9DB70116318068D4BADD7078 /* IsraelWeatherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsraelWeatherApp.swift; sourceTree = "<group>"; };
 		A6BA5E590D5BEE3B7785FD91 /* DayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayView.swift; sourceTree = "<group>"; };
 		B9C0DFCA37EF7BC9272D2B19 /* Fmt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fmt.swift; sourceTree = "<group>"; };
+		C1C12AB640A0DC2342667D36 /* RainAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RainAlert.swift; sourceTree = "<group>"; };
 		C2429FCDCBA9DAA5D658A827 /* Sources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources.swift; sourceTree = "<group>"; };
 		D22AA4408EFCBACEE76BF863 /* SpectrumWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumWidget.swift; sourceTree = "<group>"; };
 		D863691701A7071136FF4D71 /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -151,6 +154,7 @@
 				5E68A8B4CCF5960F4521E136 /* GlassViews.swift */,
 				2E7D9E736090F9CABFB86661 /* Glyphs.swift */,
 				945586967142489A20048C10 /* Models.swift */,
+				C1C12AB640A0DC2342667D36 /* RainAlert.swift */,
 				D8687ECA21E024CC5B146CF0 /* Repository.swift */,
 				C2429FCDCBA9DAA5D658A827 /* Sources.swift */,
 				5106BEA0DCBE64D8A4627D7A /* SpectrumViews.swift */,
@@ -301,6 +305,7 @@
 				2DD002CDE92A3342850D250B /* IsraelWeatherApp.swift in Sources */,
 				74A0F8A3DA01AB2FCE4D9A9A /* Models.swift in Sources */,
 				8E135C37BE96ABF74C2D0E63 /* OtherViews.swift in Sources */,
+				8665CD67ED6D1C80CA07E675 /* RainAlert.swift in Sources */,
 				E4843C38C0B59244F25535F3 /* Repository.swift in Sources */,
 				67C064876A5D407A3F507882 /* Sources.swift in Sources */,
 				430DAB13E193DDCDCE30D757 /* SpectrumViews.swift in Sources */,
@@ -321,6 +326,7 @@
 				BA3DF6D1B1F016A7BB346012 /* GlassViews.swift in Sources */,
 				FB35E4095D54097A19FC2246 /* Glyphs.swift in Sources */,
 				73107E319C2BCE092FA05FAD /* Models.swift in Sources */,
+				34528BB21C844BD70693EAAA /* RainAlert.swift in Sources */,
 				4A9FE67F66859863D43F8358 /* RefreshIntent.swift in Sources */,
 				19C50A3B4FDFDAC6AA5698FA /* Repository.swift in Sources */,
 				F31A088D7D2F2DF1CF5174D3 /* Sources.swift in Sources */,
