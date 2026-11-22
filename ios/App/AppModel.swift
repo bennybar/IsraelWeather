@@ -15,6 +15,8 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var settingsVersion = 0
     /// The forecast page shown (Places opens one by tapping it).
     @Published var page = 0
+    /// The tab shown (a warning badge on the forecast opens Alerts).
+    @Published var tab = 0
     /// Live station readings by page id (only while the proxy has an IMS token).
     @Published var observations: [Int: Observation] = [:]
     /// No readings until then: the proxy has no IMS token, so don't ask on every refresh.

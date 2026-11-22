@@ -208,20 +208,49 @@ struct ForecastPage: View {
         let days = f.days(7)
         let lo = days.compactMap(\.min).min() ?? 0
         let hi = max(days.compactMap(\.max).max() ?? lo, lo + 1)
+        // Active IMS warnings for this place's region, badged on the days they cover.
+        let rid = model.places[id]?.rid
+        let warnings = model.warnings.filter { w in w.isActive && rid.map { w.regions.contains($0) } ?? false }
         return Card(title: L("week_title"), icon: "calendar") {
             VStack(spacing: 0) {
                 ForEach(Array(days.enumerated()), id: \.offset) { i, d in
                     if i > 0 { Divider().overlay(.white.opacity(0.25)) }
                     NavigationLink(value: DayRoute(page: id, day: d.date)) {
+                        let warned = warnings.contains { $0.covers(day: d.date) }
+                        let windy = Self.windy(f, d)
+                        let total = f.rainTotal(d) ?? 0
                         HStack(spacing: 10) {
-                            Text(Fmt.dayLabel(d.date)).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7).frame(width: 58, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 4) {
+                                    Text(Fmt.dayLabel(d.date)).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                                    if warned {
+                                        // Opens the warnings (a button of its own inside the row).
+                                        Button { model.tab = 1 } label: {
+                                            Image(systemName: "exclamationmark.triangle.fill").font(.caption).foregroundStyle(Color(hex: 0xFFC46B))
+                                                .frame(width: 22, height: 22).contentShape(Rectangle())
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                // The day's strongest wind, on windy days only.
+                                if let w = windy {
+                                    Label(Fmt.wind(w) + " " + Fmt.windUnit(), systemImage: "wind").font(.caption2.weight(.medium))
+                                        .lineLimit(1).minimumScaleFactor(0.8).opacity(0.85)
+                                }
+                            }
+                            .frame(width: 70, alignment: .leading)
                             VStack(spacing: 1) {
                                 WeatherGlyph(code: d.code, size: 19)
                                 if let c = f.rainChance(d), c >= 20 {
                                     Text("\(c)%").font(.caption2.weight(.bold)).foregroundStyle(Color(hex: 0x9FD2FF))
                                 }
+                                // How much, on days with real rain.
+                                if total >= 0.5 {
+                                    Text(String(format: "%.1f %@", total, L("unit_mm"))).font(.caption2).foregroundStyle(Color(hex: 0x9FD2FF))
+                                        .lineLimit(1).minimumScaleFactor(0.8)
+                                }
                             }
-                            .frame(width: 38)
+                            .frame(width: 46)
                             Text(Fmt.temp(d.min)).font(.body).opacity(0.7).lineLimit(1).minimumScaleFactor(0.6).frame(width: 38, alignment: .trailing)
                             RangeBar(lo: lo, hi: hi, from: d.min ?? lo, to: d.max ?? hi, dot: i == 0 ? f.currentHour()?.temp : nil,
                                      track: .white.opacity(0.22), ring: .black.opacity(0.25), colors: DaySummary.warmth)
@@ -239,10 +268,21 @@ struct ForecastPage: View {
         }
     }
 
-    /// "Thursday, 19 November, Sunny, H:24° L:14°, Rain chance 40%" for VoiceOver.
+    /// The day's strongest wind (km/h) when it reaches 30 km/h, else nil.
+    private static func windy(_ f: Forecast, _ d: Day) -> Double? {
+        f.wind(d).0.flatMap { $0 >= 30 ? $0 : nil }
+    }
+
+    /// "Thursday, 19 November, Sunny, H:24° L:14°, Rain chance 40%, 4.2 mm, Wind 35 km/h, Warning" for VoiceOver.
     private func rowLabel(_ f: Forecast, _ d: Day) -> String {
         var parts = [Fmt.longDay(d.date), WeatherCodes.describe(d.code), String(format: L("high_low"), Fmt.temp(d.max), Fmt.temp(d.min))]
         if let c = f.rainChance(d), c >= 20 { parts.append("\(L("rain_chance")) \(c)%") }
+        if let t = f.rainTotal(d), t >= 0.5 { parts.append(String(format: "%.1f %@", t, L("unit_mm"))) }
+        if let w = Self.windy(f, d) { parts.append("\(L("wind")) \(Fmt.wind(w)) \(Fmt.windUnit())") }
+        let rid = model.places[id]?.rid
+        if model.warnings.contains(where: { w in w.isActive && rid.map { w.regions.contains($0) } ?? false && w.covers(day: d.date) }) {
+            parts.append(L("warning"))
+        }
         return parts.joined(separator: ", ")
     }
 

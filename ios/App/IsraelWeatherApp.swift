@@ -20,13 +20,13 @@ struct IsraelWeatherApp: App {
 }
 
 struct RootView: View {
-    @State private var tab = 0
+    @EnvironmentObject var model: AppModel
 
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $model.tab) {
             Tab(L("tab_forecast"), systemImage: "cloud.sun.fill", value: 0) { ForecastView() }
             Tab(L("tab_alerts"), systemImage: "exclamationmark.triangle.fill", value: 1) { AlertsView() }
-            Tab(L("tab_places"), systemImage: "list.bullet", value: 2) { PlacesView(tab: $tab) }
+            Tab(L("tab_places"), systemImage: "list.bullet", value: 2) { PlacesView(tab: $model.tab) }
         }
         // The whole app sits on the sky: light text, icons and bars everywhere (Settings too).
         .preferredColorScheme(.dark)

@@ -130,6 +130,12 @@ struct Forecast: Codable {
         hours(on: d.date).compactMap(\.rainChance).max().map { Int($0.rounded()) }
     }
 
+    /// A day's total rain (mm), when the source gives amounts.
+    func rainTotal(_ d: Day) -> Double? {
+        let amounts = hours(on: d.date).compactMap(\.rain)
+        return amounts.isEmpty ? nil : amounts.reduce(0, +)
+    }
+
     /// A day's strongest wind and that hour's direction.
     func wind(_ d: Day) -> (Double?, Double?) {
         let h = hours(on: d.date).filter { $0.wind != nil }.max { ($0.wind ?? 0) < ($1.wind ?? 0) }
@@ -182,6 +188,14 @@ struct Warning: Codable, Hashable, Identifiable {
     var isActive: Bool {
         guard let to, let end = Fmt.parse(String(to.prefix(16))) else { return true }
         return end > Date()
+    }
+
+    /// In force at some time on [day] ("yyyy-MM-dd"): an open start or end counts as now / for good.
+    func covers(day: String) -> Bool {
+        let start = from.flatMap { Fmt.parse(String($0.prefix(16))) } ?? Date()
+        let end = to.flatMap { Fmt.parse(String($0.prefix(16))) } ?? .distantFuture
+        guard let dayStart = Fmt.parse(day + " 00:00") else { return false }
+        return start < dayStart.addingTimeInterval(86400) && end > dayStart
     }
 }
 
