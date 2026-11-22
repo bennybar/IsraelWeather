@@ -11,6 +11,7 @@ import json
 import math
 import os
 import sys
+import time
 import urllib.parse
 import urllib.request
 
@@ -70,7 +71,11 @@ def main():
             if os.path.exists(path):
                 continue
             try:
-                hours, extra = job()
+                try:
+                    hours, extra = job()
+                except Exception:
+                    time.sleep(30)  # timeouts happen: one more try before giving up until the next run
+                    hours, extra = job()
                 json.dump({"source": source, "station": icao, "issued": dt.datetime.now().isoformat(timespec="minutes"),
                            "hours": hours, **extra}, open(path, "w", encoding="utf-8"))
                 print("saved", os.path.basename(path), len(hours), "hours")

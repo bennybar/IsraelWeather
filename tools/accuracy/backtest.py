@@ -229,7 +229,7 @@ def main():
     ap.add_argument("--out", default="results.json")
     ap.add_argument("--logs", default=os.path.expanduser("~/Library/Application Support/IsraelWeather/accuracy"))
     args = ap.parse_args()
-    end = dt.date.today() - dt.timedelta(days=2)
+    end = dt.date.today() - dt.timedelta(days=1)
     start = end - dt.timedelta(days=args.days)
 
     obs = {s: observations(s, start, end) for s in STATIONS}
