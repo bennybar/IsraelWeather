@@ -148,9 +148,9 @@ struct SystemUpNext: View {
     private var events: [(color: Color, title: String, detail: String)] {
         let next = f.upcoming(24)
         var out: [(Color, String, String)] = []
-        let wet = next.filter { ($0.rainChance ?? 0) >= Double(rainyPct) }
+        let wet = next.filter(\.wet)
         if let first = wet.first {
-            let run = next.drop { $0.t < first.t }.prefix { ($0.rainChance ?? 0) >= Double(rainyPct) }
+            let run = next.drop { $0.t < first.t }.prefix(while: \.wet)
             let end = (run.last ?? first).date.addingTimeInterval(3600)
             let peak = Int((run.compactMap(\.rainChance).max() ?? 0).rounded())
             out.append((.blue, "\(L("rain")) \(peak)%", "\(Fmt.time(first.date)) – \(Fmt.time(end))"))

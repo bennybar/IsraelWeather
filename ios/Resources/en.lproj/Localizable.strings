@@ -63,9 +63,9 @@
 "sun" = "Sun";
 "sunset" = "Sunset";
 "hour_by_hour" = "Hour by hour";
-"sum_rain_window" = "Rain likely from %@ to %@.";
+"sum_rain_window" = "Rain from %@ to %@.";
 "sum_rain_eases" = "Rain eases around %@.";
-"sum_rain_from" = "Rain likely from %@.";
+"sum_rain_from" = "Rain from %@.";
 "sum_windy" = " Windy, up to %@ %@.";
 "sum_dry" = "%@, no rain expected.";
 "dir_0" = "north";

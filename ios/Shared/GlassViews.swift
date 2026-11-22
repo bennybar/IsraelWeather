@@ -143,7 +143,7 @@ struct GlassSpectrumView: View {
         case .hours: capsulesHours(f, now, night)
         case .rain:
             // Rain watch only when rain is coming; on dry days, the two days.
-            if let wet = f.upcoming(12).first(where: { ($0.rainChance ?? 0) >= Double(rainyPct) }) {
+            if let wet = f.upcoming(12).first(where: \.wet) {
                 capsulesRain(f, now, night, wet)
             } else {
                 capsulesDays(f, now, night)

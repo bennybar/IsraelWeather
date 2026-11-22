@@ -72,6 +72,12 @@ extension EnvironmentValues {
 /// Rainy enough for the solid pill.
 let rainyPct = 30
 
+extension Hour {
+    /// Rain likely (30%+) or a rain icon: what summaries, the rain card and widgets call a wet hour,
+    /// so none says "no rain" under a rain icon.
+    var wet: Bool { (rainChance ?? 0) >= Double(rainyPct) || WeatherCodes.showsRain(code) }
+}
+
 // MARK: palettes (Android's)
 
 struct Palette {

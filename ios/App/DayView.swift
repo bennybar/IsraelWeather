@@ -161,7 +161,7 @@ struct DayView: View {
     private func rain(_ f: Forecast, _ d: Day) -> some View {
         let hours = dayHours(f, d)
         let peak = Int((hours.compactMap(\.rainChance).max() ?? 0).rounded())
-        let wet = hours.filter { ($0.rainChance ?? 0) >= Double(rainyPct) }
+        let wet = hours.filter(\.wet)
         let amounts = hours.compactMap(\.rain)
         let total = amounts.reduce(0, +)
         // The rainiest hours: by amount where the source gives one, else by chance.
@@ -294,8 +294,7 @@ struct DayView: View {
 enum DaySummary {
     static let warmth = [Color(hex: 0x8EC5FF), Color(hex: 0xFFD66B), Color(hex: 0xFF9A5A)]
 
-    /// Likely rain, or a rain icon (so a summary never says "no rain" under one).
-    private static func wet(_ h: Hour) -> Bool { (h.rainChance ?? 0) >= Double(rainyPct) || WeatherCodes.isRainy(h.code) }
+    private static func wet(_ h: Hour) -> Bool { h.wet }
 
     /// "Rain eases around 10:00.", "Rain likely from 15:00.", or the day's sky.
     static func nextHours(_ f: Forecast) -> String {

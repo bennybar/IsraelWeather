@@ -117,7 +117,8 @@ enum ECMWF {
         let n = hTimes.count, nd = dTimes.count
         let bestTemp = best(h, "temperature_2m", n)
         let temp = mean(h, "temperature_2m", n, ["best_match", "ecmwf_aifs025_single"])
-        let rain = mean(h, "precipitation", n, ["gfs_global", "meteofrance_arpege_world", "icon_global"])
+        // To the 0.1 mm the app shows, so the icons' thresholds match the amounts on screen.
+        let rain = mean(h, "precipitation", n, ["gfs_global", "meteofrance_arpege_world", "icon_global"]).map { $0.map { ($0 * 10).rounded() / 10 } }
         let wind = mean(h, "wind_speed_10m", n, ["gfs_global", "meteofrance_arpege_world"])
         let rawGusts = mean(h, "wind_gusts_10m", n, ["gfs_global", "meteofrance_arpege_world"])
         let gusts: [Double?] = (0..<n).map { i -> Double? in
@@ -211,15 +212,19 @@ enum ECMWF {
             let weatherHours = daytime.filter { (h.weather_code[$0] ?? 0) > 3 }.count
             // Best Combined: real daytime rain (0.5 mm+, at least one wet hour) makes the day light rain
             // (rain from 2 mm) however few hours it took; best match's daily code, often set by a night
-            // shower, doesn't decide. A day already coded wet over 3+ daytime hours keeps its code.
+            // shower, doesn't decide, and without such rain its rain code doesn't stand.
             let daytimeRain = daytime.reduce(0.0) { $0 + (h.precipitation[$1] ?? 0) }
             let wetDay = model == bestModel && daytimeRain >= wetDayMM - eps
                 && daytime.contains { (h.precipitation[$0] ?? 0) >= wetHourMM - eps }
             let code = d.weather_code[i]
-            let codedWet = code.map { $0 > 3 && $0 != 45 && $0 != 48 } ?? false
+            let stormOrSnow = code.map { $0 >= 95 || (71...77).contains($0) || $0 == 85 || $0 == 86 } ?? false
+            let codedRain = code.map { (51...67).contains($0) || (80...82).contains($0) } ?? false
             let dayCode: Int
-            if wetDay && (weatherHours < 3 || !codedWet) {
-                dayCode = skyCode(daytimeRain >= 2 - eps ? 61 : 51, dayCloud)
+            if wetDay {
+                // Storms and snow keep their code; otherwise the amount decides (light rain or rain).
+                dayCode = skyCode(stormOrSnow ? code : daytimeRain >= 2 - eps ? 61 : 51, dayCloud)
+            } else if model == bestModel && codedRain {
+                dayCode = skyCode(3, dayCloud) // best match's rain without real daytime rain in the blend
             } else if (code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil {
                 dayCode = skyCode(3, dayCloud)
             } else {

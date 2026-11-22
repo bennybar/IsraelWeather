@@ -135,14 +135,18 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val weatherHours = daytime.count { (h.weather_code[it] ?: 0) > 3 }
             // Best Combined: real daytime rain (0.5 mm+, at least one wet hour) makes the day light rain
             // (rain from 2 mm) however few hours it took; best match's daily code, often set by a night
-            // shower, doesn't decide. A day already coded wet over 3+ daytime hours keeps its code.
+            // shower, doesn't decide, and without such rain its rain code doesn't stand.
             val daytimeRain = daytime.sumOf { h.precipitation[it] ?: 0.0 }
             val wetDay = model == BEST && daytimeRain >= WET_DAY_MM - EPS &&
                 daytime.any { (h.precipitation[it] ?: 0.0) >= WET_HOUR_MM - EPS }
             val code = d.weather_code[i]
-            val codedWet = code != null && code > 3 && code != 45 && code != 48
-            val dayCode = if (wetDay && (weatherHours < 3 || !codedWet)) {
-                skyCode(if (daytimeRain >= 2.0 - EPS) 61 else 51, dayCloud)
+            val stormOrSnow = code != null && (code >= 95 || code in 71..77 || code == 85 || code == 86)
+            val codedRain = code != null && (code in 51..67 || code in 80..82)
+            val dayCode = if (wetDay) {
+                // Storms and snow keep their code; otherwise the amount decides (light rain or rain).
+                skyCode(if (stormOrSnow) code else if (daytimeRain >= 2.0 - EPS) 61 else 51, dayCloud)
+            } else if (model == BEST && codedRain) {
+                skyCode(3, dayCloud) // best match's rain without real daytime rain in the blend
             } else if ((code ?: 0) > 3 && weatherHours < 3 && dayCloud != null) {
                 skyCode(3, dayCloud) // a plain sky code, so the cloud decides
             } else {
@@ -197,7 +201,9 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         val nd = dTimes.size
         val bestTemp = best(h, "temperature_2m", n)
         val temp = mean(h, "temperature_2m", n, "best_match", "ecmwf_aifs025_single")
+        // To the 0.1 mm the app shows, so the icons' thresholds match the amounts on screen.
         val rain = mean(h, "precipitation", n, "gfs_global", "meteofrance_arpege_world", "icon_global")
+            .map { mm -> mm?.let { Math.round(it * 10) / 10.0 } }
         val wind = mean(h, "wind_speed_10m", n, "gfs_global", "meteofrance_arpege_world")
         val gusts = mean(h, "wind_gusts_10m", n, "gfs_global", "meteofrance_arpege_world").mapIndexed { i, g ->
             if (g != null && wind[i] != null) maxOf(g, wind[i]!!) else g
