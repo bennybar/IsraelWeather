@@ -170,7 +170,7 @@ struct DayView: View {
             .prefix(3)
             .sorted { $0.t < $1.t }
         return Card(title: title("rain", f, d), icon: "drop.fill") {
-            if peak < 10 && total < 0.1 {
+            if peak < 10 && total < 0.1 && wet.isEmpty {
                 Text(L("no_rain_day")).font(.title3.weight(.medium))
             } else {
                 HStack(alignment: .top, spacing: 0) {

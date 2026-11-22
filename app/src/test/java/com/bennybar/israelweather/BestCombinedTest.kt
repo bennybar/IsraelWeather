@@ -67,6 +67,8 @@ class BestCombinedTest {
      * Météo-France is gone from 12:00. 1.0 mm in the daytime: light rain, not best match's rain.
      * Day 4: best match's day says thunder (95), with a 3 mm storm at 09: the day keeps its thunder.
      * Day 5: best match says showers (80) at 10–13 but the blend has 0.1 mm an hour: sky, hours and day.
+     * Its night hours: rain (63) at 0.5 mm → light rain, drizzle (53) at 1.2 mm → rain, no code at
+     * 0.4 mm → light rain, freezing rain (66) at 0.4 mm → sleet, and at 0.1 mm → sky.
      * Day 6: best match's day says thunder (95) from a storm at 02:00; the daytime has two 0.3 mm
      * hours: a light-rain day, not a thunderstorm one.
      * Wind and gusts vary by hour; humidity is missing and mid cloud too short.
@@ -77,6 +79,7 @@ class BestCombinedTest {
         val hours = (0 until n).map { "2026-12-%02dT%02d:00".format(1 + it / 24, it % 24) }
         fun col(v: (Int) -> Any?) = (0 until n).joinToString(",", "[", "]") { v(it)?.toString() ?: "null" }
         val rainAll = mapOf(1 to 1.5, 2 to 1.5, 3 to 1.5, 4 to 1.5, 33 to 1.2, 34 to 1.2, 57 to 0.6, 58 to 0.14, 81 to 3.0, 106 to 0.1, 107 to 0.1, 108 to 0.1, 109 to 0.1,
+            96 to 0.5, 97 to 1.2, 98 to 0.4, 99 to 0.4, 100 to 0.1,
             122 to 2.0, 129 to 0.3, 130 to 0.3) +
             (7..17).associateWith { 0.07 }
         // 11:00 on day 3: 0.3, 0.3 and 0.0, a mean of 0.19999…; 14:00: GFS 0.2 and ICON 0.0 only.
@@ -88,7 +91,7 @@ class BestCombinedTest {
             "precipitation_best_match":${col { 0 }},"precipitation_gfs_global":${col { gfs(it) }},
             "precipitation_meteofrance_arpege_world":${col { mf(it) }},"precipitation_icon_global":${col { icon(it) }},
             "precipitation_probability_gfs_global":${col { 80 }},"precipitation_probability_icon_global":${col { 60 }},
-            "weather_code_best_match":${col { if (it == 20) 53 else if (it == 81 || it == 122) 95 else if (it in 106..109) 80 else if (it / 24 == 1) 45 else if (it / 24 == 0) 0 else 3 }},
+            "weather_code_best_match":${col { if (it == 96) 63 else if (it == 97) 53 else if (it == 98) null else if (it in 99..100) 66 else if (it == 20) 53 else if (it == 81 || it == 122) 95 else if (it in 106..109) 80 else if (it / 24 == 1) 45 else if (it / 24 == 0) 0 else 3 }},
             "wind_speed_10m_best_match":${col { 1 }},"wind_speed_10m_gfs_global":${col { 20 + it }},"wind_speed_10m_meteofrance_arpege_world":${col { 10 + it }},
             "wind_gusts_10m_best_match":${col { 1 }},"wind_gusts_10m_gfs_global":${col { 30 + it }},"wind_gusts_10m_meteofrance_arpege_world":${col { 5 }},
             "wind_direction_10m_best_match":${col { 270 }},"uv_index_best_match":${col { 2 }},
@@ -122,6 +125,7 @@ class BestCombinedTest {
         assertEquals(light, f.daily[2].code)
         assertEquals(storm, f.daily[3].code)
         assertTrue((106..109).all { f.hourly[it].code == cloudy })
+        assertEquals(listOf(light, rain, light, 1080, cloudy), (96..100).map { f.hourly[it].code })
         assertEquals(cloudy, f.daily[4].code)
         assertEquals(storm, f.hourly[122].code)
         assertEquals(light, f.hourly[129].code)

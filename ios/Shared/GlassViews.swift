@@ -206,7 +206,8 @@ struct GlassSpectrumView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(L("rain_from")).font(.system(size: 10.5)).opacity(0.8)
                 // The chance only when it says likely: a rain icon at 12% would read oddly.
-                Text(Fmt.time(wet.date) + ((wet.rainChance ?? 0) >= Double(rainyPct) ? " · \(Int(wet.rainChance ?? 0))%" : ""))
+                let pct = Int((wet.rainChance ?? 0).rounded())
+                Text(Fmt.time(wet.date) + (pct >= rainyPct ? " · \(pct)%" : ""))
                     .font(.system(size: 17, weight: .semibold))
                 HStack(alignment: .bottom, spacing: 3) {
                     ForEach(Array(next.enumerated()), id: \.offset) { _, h in

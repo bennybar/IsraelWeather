@@ -106,9 +106,11 @@ enum ECMWF {
         }
         // The hour's code from its blended rain, for dry, foggy, missing and rain codes alike (0–3,
         // 45, 48, 51–67, 80–82): light rain from 0.2 mm, rain from 1 mm, else a plain sky code where
-        // best match said rain (the cloud decides). Storms and snow stay.
+        // best match said rain (the cloud decides). Freezing rain keeps its code when wet; storms and
+        // snow stay.
         func wetCode(_ code: Int?, _ mm: Double?) -> Int? {
             guard let mm else { return code }
+            if let code, freezing.contains(code) { return mm >= wetHourMM - eps ? code : 3 }
             let rainCode = code.map { (51...67).contains($0) || (80...82).contains($0) } ?? false
             guard code.map({ $0 <= 3 || $0 == 45 || $0 == 48 }) ?? true || rainCode else { return code }
             if mm >= 1 - eps { return 61 }
@@ -181,6 +183,8 @@ enum ECMWF {
     private static let wetHourMM = 0.2
     /// Slack for thresholds: a mean of tenths can land a hair under them (0.6 / 3 = 0.19999…).
     private static let eps = 1e-6
+    /// Freezing drizzle and rain (WMO 56, 57, 66, 67): keep their sleet icon when wet.
+    private static let freezing: Set<Int> = [56, 57, 66, 67]
     private static let combinedModels = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
 
     static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
@@ -218,16 +222,17 @@ enum ECMWF {
             let wetDay = model == bestModel && daytimeRain >= wetDayMM - eps
                 && daytime.contains { (h.precipitation[$0] ?? 0) >= wetHourMM - eps }
             let code = d.weather_code[i]
-            func isStormOrSnow(_ c: Int?) -> Bool { c.map { $0 >= 95 || (71...77).contains($0) || $0 == 85 || $0 == 86 } ?? false }
-            // A storm or snow in the daytime itself (a night thunderstorm doesn't make the day one).
+            // Storms, snow and freezing rain count only in the daytime itself (a night thunderstorm
+            // doesn't make the day one).
+            func isStormOrSnow(_ c: Int?) -> Bool { c.map { $0 >= 95 || (71...77).contains($0) || $0 == 85 || $0 == 86 || freezing.contains($0) } ?? false }
             let stormOrSnow = isStormOrSnow(code) && daytime.contains { isStormOrSnow(h.weather_code[$0]) }
             let codedRain = code.map { (51...67).contains($0) || (80...82).contains($0) } ?? false
             let dayCode: Int
             if wetDay {
                 // Storms and snow keep their code; otherwise the amount decides (light rain or rain).
                 dayCode = skyCode(stormOrSnow ? code : daytimeRain >= 2 - eps ? 61 : 51, dayCloud)
-            } else if model == bestModel && codedRain {
-                dayCode = skyCode(3, dayCloud) // best match's rain without real daytime rain in the blend
+            } else if model == bestModel && (codedRain || (isStormOrSnow(code) && !stormOrSnow)) {
+                dayCode = skyCode(3, dayCloud) // best match's rain or night storm without daytime weather in the blend
             } else if (code ?? 0) > 3 && weatherHours < 3 && dayCloud != nil {
                 dayCode = skyCode(3, dayCloud)
             } else {

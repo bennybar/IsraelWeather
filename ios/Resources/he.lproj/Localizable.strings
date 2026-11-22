@@ -47,7 +47,7 @@
 "icon_style" = "אייקוני מזג אוויר";
 "icons_glass" = "זכוכית";
 "icons_oneui" = "בסגנון One UI";
-"rain_from" = "גשם צפוי מ-";
+"rain_from" = "גשם מ-";
 "rain_chance" = "סיכוי לגשם";
 "next_hours" = "השעות הקרובות";
 "next_hours_footer" = "מוצג מתחת לכל שעה בדף התחזית.";
@@ -63,9 +63,9 @@
 "sun" = "שמש";
 "sunset" = "שקיעה";
 "hour_by_hour" = "שעה אחר שעה";
-"sum_rain_window" = "גשם צפוי בין %@ ל-%@.";
+"sum_rain_window" = "גשם בין %@ ל-%@.";
 "sum_rain_eases" = "הגשם נחלש בסביבות %@.";
-"sum_rain_from" = "גשם צפוי החל מ-%@.";
+"sum_rain_from" = "גשם החל מ-%@.";
 "sum_windy" = " רוח ערה, עד %@ %@.";
 "sum_dry" = "%@, לא צפוי גשם.";
 "dir_0" = "צפון";

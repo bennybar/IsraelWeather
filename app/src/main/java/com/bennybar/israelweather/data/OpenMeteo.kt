@@ -41,6 +41,8 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         private const val WET_HOUR_MM = 0.2
         /** Slack for thresholds: a mean of tenths can land a hair under them (0.6 / 3 = 0.19999…). */
         private const val EPS = 1e-6
+        /** Freezing drizzle and rain (WMO 56, 57, 66, 67): keep their sleet icon when wet. */
+        private val FREEZING = setOf(56, 57, 66, 67)
         private const val COMBINED_MODELS = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
     }
 
@@ -140,15 +142,16 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
             val wetDay = model == BEST && daytimeRain >= WET_DAY_MM - EPS &&
                 daytime.any { (h.precipitation[it] ?: 0.0) >= WET_HOUR_MM - EPS }
             val code = d.weather_code[i]
-            fun isStormOrSnow(c: Int?) = c != null && (c >= 95 || c in 71..77 || c == 85 || c == 86)
-            // A storm or snow in the daytime itself (a night thunderstorm doesn't make the day one).
+            // Storms, snow and freezing rain count only in the daytime itself (a night thunderstorm
+            // doesn't make the day one).
+            fun isStormOrSnow(c: Int?) = c != null && (c >= 95 || c in 71..77 || c == 85 || c == 86 || c in FREEZING)
             val stormOrSnow = isStormOrSnow(code) && daytime.any { isStormOrSnow(h.weather_code[it]) }
             val codedRain = code != null && (code in 51..67 || code in 80..82)
             val dayCode = if (wetDay) {
                 // Storms and snow keep their code; otherwise the amount decides (light rain or rain).
                 skyCode(if (stormOrSnow) code else if (daytimeRain >= 2.0 - EPS) 61 else 51, dayCloud)
-            } else if (model == BEST && codedRain) {
-                skyCode(3, dayCloud) // best match's rain without real daytime rain in the blend
+            } else if (model == BEST && (codedRain || (isStormOrSnow(code) && !stormOrSnow))) {
+                skyCode(3, dayCloud) // best match's rain or night storm without daytime weather in the blend
             } else if ((code ?: 0) > 3 && weatherHours < 3 && dayCloud != null) {
                 skyCode(3, dayCloud) // a plain sky code, so the cloud decides
             } else {
@@ -192,10 +195,12 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         // The hour's code from its blended rain, for dry, foggy, missing and rain codes alike (0–3,
         // 45, 48, 51–67, 80–82): light rain from 0.2 mm, rain from 1 mm, else a plain sky code where
-        // best match said rain (the cloud decides). Storms and snow stay.
+        // best match said rain (the cloud decides). Freezing rain keeps its code when wet; storms and
+        // snow stay.
         fun wetCode(code: Int?, mm: Double?): Int? {
             if (mm == null) return code
             val rainCode = code != null && (code in 51..67 || code in 80..82)
+            if (code in FREEZING) return if (mm >= WET_HOUR_MM - EPS) code else 3
             if (!(code == null || code <= 3 || code == 45 || code == 48 || rainCode)) return code
             return when {
                 mm >= 1.0 - EPS -> 61
