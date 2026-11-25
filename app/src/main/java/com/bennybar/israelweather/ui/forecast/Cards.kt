@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -301,18 +302,19 @@ fun WeekCard(f: Forecast, s: Settings) {
     val wc = LocalWeatherColors.current
     val locale = appLocale()
     val today = israelNow().toLocalDate()
-    val days = f.daily.filter { !it.localDate.isBefore(today) }.take(7)
+    val days = f.daily.filter { !it.localDate.isBefore(today) }.take(10)
     val lo = days.mapNotNull { it.min }.minOrNull() ?: 0.0
     val hi = (days.mapNotNull { it.max }.maxOrNull() ?: 1.0).coerceAtLeast(lo + 1)
     CardBox {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 6.dp)) {
-            days.forEach { d ->
+            days.forEachIndexed { i, d ->
                 val dayHours = f.hoursOn(d.localDate)
                 // IMS gives hourly amounts further ahead than chances: no chance shows "–".
                 val rain = dayHours.mapNotNull { it.rainChance }.maxOrNull()?.roundToInt()
                 val amount = dayHours.mapNotNull { it.rain }.takeIf { it.isNotEmpty() }?.sum()
                 val rainColor = if ((rain ?: 0) > 0 || (amount ?: 0.0) > 0) wc.rain else cs.onSurfaceVariant
-                Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Days 8–10 are an outlook: faded.
+                Row(Modifier.fillMaxWidth().height(52.dp).alpha(if (i >= 7) 0.55f else 1f), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.width(68.dp)) {
                         Text(
                             // English full names ("Wednesday") don't fit the column; Hebrew ones do.

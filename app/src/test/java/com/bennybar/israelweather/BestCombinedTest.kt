@@ -32,8 +32,8 @@ class BestCombinedTest {
         assumeTrue("network needed", f != null)
         f!!
         assertEquals(Forecast.SOURCE_BEST, f.source)
-        assertEquals(168, f.hourly.size)
-        assertEquals(7, f.daily.size)
+        assertEquals(240, f.hourly.size)
+        assertEquals(10, f.daily.size)
         assertNotNull(f.now)
         assertTrue(f.hourly.all { it.temp != null && it.uv != null })
         // The same hours from the raw multi-model response: temperature must be the two models' mean.

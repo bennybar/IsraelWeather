@@ -90,14 +90,15 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
     private data class Response(val hourly: Hourly, val daily: Daily, val current: Current? = null)
 
     /** ECMWF's 9 km IFS by default; [GFS] for NOAA's GFS (the best-graded model here, see tools/accuracy). */
-    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID, model: String = ECMWF): Forecast = withContext(Dispatchers.IO) {
+    /** [uv]: ECMWF's UV from a second request (skipped when only days past IMS's are wanted). */
+    suspend fun forecast(lat: Double, lon: Double, fresh: Boolean = false, id: Int = CURRENT_ID, model: String = ECMWF, uv: Boolean = true): Forecast = withContext(Dispatchers.IO) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
             "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
             "cloud_cover_low,cloud_cover_mid,cloud_cover_high" +
-            "&models=${if (model == BEST) COMBINED_MODELS else model}&timezone=Asia%2FJerusalem&forecast_days=7"
+            "&models=${if (model == BEST) COMBINED_MODELS else model}&timezone=Asia%2FJerusalem&forecast_days=10"
         val request = Request.Builder().url(url)
             .apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }
             .build()
@@ -108,7 +109,7 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
         }
         // ECMWF has no UV index: take it from Open-Meteo's default blend (same hours and days).
         // GFS and best match carry their own, so they need no second request.
-        val uv = if (model == ECMWF) runCatching { uvIndex(lat, lon, fresh) }.getOrNull() else null
+        val uv = if (model == ECMWF && uv) runCatching { uvIndex(lat, lon, fresh) }.getOrNull() else null
         val h = r.hourly.copy(uv_index = uv?.hourly?.uv_index ?: r.hourly.uv_index)
         val dailyUv = uv?.daily?.uv_index_max ?: r.daily.uv_index_max
         val sky = h.time.indices.map { i -> effectiveCloud(h.cloud_cover_low.getOrNull(i), h.cloud_cover_mid.getOrNull(i), h.cloud_cover_high.getOrNull(i)) }
@@ -275,30 +276,12 @@ class OpenMeteo(private val http: OkHttpClient, private val json: Json) {
 
     private fun uvIndex(lat: Double, lon: Double, fresh: Boolean): UvResponse {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
-            "&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7"
+            "&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=10"
         val request = Request.Builder().url(url).apply { if (fresh) cacheControl(okhttp3.CacheControl.Builder().noCache().build()) }.build()
         return http.newCall(request).execute().use { res ->
             if (!res.isSuccessful) throw HttpException(res.code)
             json.decodeFromString(UvResponse.serializer(), res.body.string())
         }
-    }
-
-    @Serializable
-    private data class CurrentOnly(val current: Current)
-
-    /**
-     * ECMWF's current conditions at a point, for "now" at IMS places (IMS's hourly forecast is
-     * coarse; this follows the actual sky more closely). Rain chance and UV from [hours].
-     */
-    suspend fun current(lat: Double, lon: Double, hours: List<Hour>): Hour? = withContext(Dispatchers.IO) {
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f".format(Locale.ROOT, lat, lon) +
-            "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
-            "cloud_cover_low,cloud_cover_mid,cloud_cover_high&models=ecmwf_ifs&timezone=Asia%2FJerusalem"
-        val c = http.newCall(Request.Builder().url(url).build()).execute().use { res ->
-            if (!res.isSuccessful) throw HttpException(res.code)
-            json.decodeFromString(CurrentOnly.serializer(), res.body.string()).current
-        }
-        nowHour(c, hours)
     }
 
     private fun nowHour(c: Current, hours: List<Hour>): Hour {

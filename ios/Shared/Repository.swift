@@ -104,8 +104,18 @@ actor Repository {
         guard let p = await places().first(where: { $0.id == id }) else { throw HTTPError.status(404) }
         if !settings.usesIMS { return try await spot(p.lat, p.lon, id, fresh) }
         var f = try await IMS.forecast(id, fresh: fresh)
-        // IMS's hourly sky lags the real one: "now" from ECMWF's current conditions.
-        if let now = try? await ECMWF.current(lat: p.lat, lon: p.lon, hours: f.hourly) { f.now = now }
+        // One ECMWF request (no UV) for "now" (IMS's hourly sky lags the real one) and the days
+        // after IMS's 7. "Now" keeps the rain chance, amount and UV of IMS's hour, as before.
+        if let e = try? await ECMWF.forecast(lat: p.lat, lon: p.lon, id: id, fresh: fresh, uv: false) {
+            if var now = e.now {
+                let slot = f.hourly.last { $0.t <= now.t }
+                now.rainChance = slot?.rainChance; now.rain = slot?.rain; now.uv = slot?.uv
+                f.now = now
+            }
+            let lastHour = f.hourly.last?.t ?? "", lastDay = f.daily.last?.date ?? ""
+            f.hourly += e.hourly.filter { $0.t > lastHour }
+            f.daily += e.daily.filter { $0.date > lastDay }
+        }
         return f
     }
 

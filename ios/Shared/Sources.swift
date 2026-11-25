@@ -79,7 +79,6 @@ enum ECMWF {
         let hourly: H
         let daily: D
     }
-    private struct CurrentOnly: Decodable { let current: Current }
 
     /// "Best Combined", from one multi-model response (fields suffixed with each model's name): each
     /// measure averaged over the models that forecast it best 1–3 days ahead against Israeli airports
@@ -189,16 +188,17 @@ enum ECMWF {
     private static let freezing: Set<Int> = [56, 57, 66, 67]
     private static let combinedModels = "best_match,ecmwf_aifs025_single,gfs_global,meteofrance_arpege_world,icon_global"
 
-    static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel) async throws -> Forecast {
+    /// `uv`: ECMWF's UV from a second request (skipped when only days past IMS's are wanted).
+    static func forecast(lat: Double, lon: Double, id: Int, fresh: Bool, model: String = ecmwfModel, uv: Bool = true) async throws -> Forecast {
         let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,relative_humidity_2m," +
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover_low,cloud_cover_mid,cloud_cover_high,uv_index" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&current=\(currentFields)" +
-            "&models=\(model == bestModel ? combinedModels : model)&timezone=Asia%2FJerusalem&forecast_days=7")!
+            "&models=\(model == bestModel ? combinedModels : model)&timezone=Asia%2FJerusalem&forecast_days=10")!
         // ECMWF has no UV index: take it from Open-Meteo's default blend, at the same time (one
         // radio wake-up, not two in a row). GFS carries its own, so it needs no second request.
-        let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=7")!
-        async let uvTask: UV? = model != ecmwfModel ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
+        let uvURL = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&hourly=uv_index&daily=uv_index_max&timezone=Asia%2FJerusalem&forecast_days=10")!
+        async let uvTask: UV? = model != ecmwfModel || !uv ? nil : try? await fetch(uvURL, UV.self, fresh: fresh)
         let r = model == bestModel ? try combine(try await fetchData(url, fresh: fresh)) : try await fetch(url, Response.self, fresh: fresh)
         let uv = await uvTask
         let h = r.hourly
@@ -243,12 +243,6 @@ enum ECMWF {
             return Day(date: d.time[i], code: dayCode, min: d.temperature_2m_min[i], max: d.temperature_2m_max[i], uv: (uv?.daily.uv_index_max ?? d.uv_index_max)?[safe: i] ?? nil)
         }
         return Forecast(id: id, hourly: hours, daily: days, source: model == gfsModel ? Forecast.sourceGFS : model == bestModel ? Forecast.sourceBest : Forecast.sourceECMWF, now: r.current.map { nowHour($0, hours) })
-    }
-
-    /// ECMWF's current conditions at a point, for "now" at IMS places.
-    static func current(lat: Double, lon: Double, hours: [Hour]) async throws -> Hour {
-        let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(f4(lat))&longitude=\(f4(lon))&current=\(currentFields)&models=ecmwf_ifs&timezone=Asia%2FJerusalem")!
-        return nowHour(try await fetch(url, CurrentOnly.self).current, hours)
     }
 
     private static func nowHour(_ c: Current, _ hours: [Hour]) -> Hour {
@@ -337,7 +331,7 @@ enum Foreca {
         let spot = String(format: "%.3f,%.3f", locale: Locale(identifier: "en_US_POSIX"), lon, lat)
         async let now = fetch(url("current/\(spot)"), Current.self, bearer: key)
         async let hours = fetch(url("forecast/hourly/\(spot)", "&periods=168&dataset=full"), Series.self, bearer: key)
-        async let days = fetch(url("forecast/daily/\(spot)", "&periods=7&dataset=full"), Series.self, bearer: key)
+        async let days = fetch(url("forecast/daily/\(spot)", "&periods=10&dataset=full"), Series.self, bearer: key)
         func hour(_ p: Point) -> Hour {
             Hour(t: String((p.time ?? "").prefix(16)).replacingOccurrences(of: "T", with: " "), code: imsCode(p.symbol), temp: p.temperature,
                  rainChance: p.precipProb, rain: p.precipAccum, rh: p.relHumidity, wind: p.windSpeed, gust: p.windGust, windDir: p.windDir, uv: p.uvIndex)

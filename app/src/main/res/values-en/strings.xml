@@ -92,7 +92,7 @@
     <string name="card_hero">Now</string>
     <string name="card_alerts">Alerts</string>
     <string name="card_hourly">12 hours</string>
-    <string name="card_week">7 days</string>
+    <string name="card_week">10 days</string>
     <string name="card_details">Details</string>
     <string name="card_radar">Radar</string>
     <string name="card_summary">National forecast</string>

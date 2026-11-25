@@ -9,7 +9,7 @@
 "high" = "H";
 "low" = "L";
 "now" = "Now";
-"week_title" = "7-day forecast";
+"week_title" = "10-day forecast";
 "feels_like" = "Feels like";
 "humidity" = "Humidity";
 "wind" = "Wind";
@@ -105,7 +105,7 @@
 "measured_at" = "Measured at %@";
 "forecast_cards" = "Forecast cards";
 "card_hourly" = "Hourly forecast";
-"card_week" = "7-day forecast";
+"card_week" = "10-day forecast";
 "card_details" = "Details";
 "reset" = "Reset";
 "section_notifications" = "Notifications";

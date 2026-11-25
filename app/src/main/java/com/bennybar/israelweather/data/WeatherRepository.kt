@@ -179,10 +179,23 @@ class WeatherRepository(
     }
 
     /** IMS's forecast with ECMWF's current conditions as "now" (its hourly sky lags the real one). */
+    /**
+     * IMS's forecast with ECMWF's "now" (IMS's hourly sky lags the real one) and ECMWF's days after
+     * IMS's 7, from one Open-Meteo request (no UV request: those days don't need it).
+     */
     private suspend fun withImsNow(f: Forecast, id: Int): Forecast {
         val place = ensurePlacesLoaded().firstOrNull { it.id == id } ?: return f
-        val now = runCatching { openMeteo.current(place.lat, place.lon, f.hourly) }.getOrNull() ?: return f
-        return f.copy(now = now)
+        val e = runCatching { openMeteo.forecast(place.lat, place.lon, id = id, model = OpenMeteo.ECMWF, uv = false) }.getOrNull() ?: return f
+        // "Now" keeps the rain chance, amount and UV of IMS's hour it falls in, as before.
+        val slot = e.now?.let { n -> f.hourly.lastOrNull { it.t <= n.t } }
+        val now = e.now?.copy(rainChance = slot?.rainChance, rain = slot?.rain, uv = slot?.uv)
+        val lastHour = f.hourly.lastOrNull()?.t ?: ""
+        val lastDay = f.daily.lastOrNull()?.date ?: ""
+        return f.copy(
+            now = now ?: f.now,
+            hourly = f.hourly + e.hourly.filter { it.t > lastHour },
+            daily = f.daily + e.daily.filter { it.date > lastDay },
+        )
     }
 
     /** Re-fetch every forecast in use (after the forecast source changes). */

@@ -205,7 +205,7 @@ struct ForecastPage: View {
 
     /// The week: big rows, each opening its day.
     private func week(_ f: Forecast) -> some View {
-        let days = f.days(7)
+        let days = f.days(10)
         let lo = days.compactMap(\.min).min() ?? 0
         let hi = max(days.compactMap(\.max).max() ?? lo, lo + 1)
         // Active IMS warnings for this place's region, badged on the days they cover.
@@ -215,6 +215,7 @@ struct ForecastPage: View {
             VStack(spacing: 0) {
                 ForEach(Array(days.enumerated()), id: \.offset) { i, d in
                     if i > 0 { Divider().overlay(.white.opacity(0.25)) }
+                    // A day without hours (Foreca's last days) has no day screen to open.
                     NavigationLink(value: DayRoute(page: id, day: d.date)) {
                         let warned = warnings.contains { $0.covers(day: d.date) }
                         let windy = Self.windy(f, d)
@@ -258,11 +259,14 @@ struct ForecastPage: View {
                             Text(Fmt.temp(d.max)).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(width: 38, alignment: .leading)
                         }
                         .frame(minHeight: 52)
+                        // Days 8–10 are an outlook: faded.
+                        .opacity(i >= 7 ? 0.55 : 1)
                         .contentShape(Rectangle())
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(rowLabel(f, d))
                     }
                     .buttonStyle(.plain)
+                    .disabled(f.hours(on: d.date).isEmpty)
                 }
             }
         }

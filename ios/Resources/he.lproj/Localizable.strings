@@ -9,7 +9,7 @@
 "high" = "מקס׳";
 "low" = "מינ׳";
 "now" = "עכשיו";
-"week_title" = "תחזית ל-7 ימים";
+"week_title" = "תחזית ל-10 ימים";
 "feels_like" = "מורגש כמו";
 "humidity" = "לחות";
 "wind" = "רוח";
@@ -105,7 +105,7 @@
 "measured_at" = "נמדד ב%@";
 "forecast_cards" = "כרטיסי התחזית";
 "card_hourly" = "תחזית שעתית";
-"card_week" = "תחזית ל-7 ימים";
+"card_week" = "תחזית ל-10 ימים";
 "card_details" = "פרטים";
 "reset" = "איפוס";
 "section_notifications" = "התראות";

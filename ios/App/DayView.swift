@@ -20,7 +20,8 @@ struct DayView: View {
 
     var body: some View {
         let f = model.forecasts[page]?.0
-        let days = f?.days(7) ?? []
+        // The days with hours (Foreca gives 7 days hourly, 10 daily).
+        let days = (f?.days(10) ?? []).filter { !(f?.hours(on: $0.date).isEmpty ?? true) }
         let d = days.first { $0.date == day }
         ZStack {
             // Today's screen at night gets the night sky, like the forecast page behind it.

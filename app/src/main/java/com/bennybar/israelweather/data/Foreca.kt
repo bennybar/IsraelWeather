@@ -59,7 +59,7 @@ class Foreca(private val http: OkHttpClient, private val json: Json) {
             ?.let { return@withContext it.second.copy(id = id) }
         val now = json.decodeFromString(Current.serializer(), get("current/$spot", key, "")).current
         val hours = json.decodeFromString(Series.serializer(), get("forecast/hourly/$spot", key, "&periods=168&dataset=full")).forecast
-        val days = json.decodeFromString(Series.serializer(), get("forecast/daily/$spot", key, "&periods=7&dataset=full")).forecast
+        val days = json.decodeFromString(Series.serializer(), get("forecast/daily/$spot", key, "&periods=10&dataset=full")).forecast
         fun hour(p: Point) = Hour(
             t = (p.time ?: "").take(16).replace('T', ' '),
             code = imsCode(p.symbol),
